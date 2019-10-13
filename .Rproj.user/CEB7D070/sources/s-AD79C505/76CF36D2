@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1570827920094.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "76CF36D2",
+    "lastKnownWriteTime" : 1570966149,
+    "last_content_update" : 1570966149421,
+    "path" : "D:/liuyanguu/Shiny_regional_aggregate/ShinyApp_Regional_Aggregate.R",
+    "project_path" : "ShinyApp_Regional_Aggregate.R",
+    "properties" : {
+        "cursorPosition" : "124,6",
+        "scrollLine" : "118"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}

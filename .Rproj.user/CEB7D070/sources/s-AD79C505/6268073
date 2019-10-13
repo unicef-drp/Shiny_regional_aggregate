@@ -1,0 +1,27 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1570716896046.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "1153131318",
+    "id" : "6268073",
+    "lastKnownWriteTime" : 1570807052,
+    "last_content_update" : 1570807052479,
+    "path" : "D:/liuyanguu/Shiny_regional_aggregate/R/outputaggregates-BWC.R",
+    "project_path" : "R/outputaggregates-BWC.R",
+    "properties" : {
+        "cursorPosition" : "352,42",
+        "docOutlineSize" : "135.95114947620743",
+        "docOutlineVisible" : "1",
+        "scrollLine" : "340"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 3,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
