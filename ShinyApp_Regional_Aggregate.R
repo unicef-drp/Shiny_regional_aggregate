@@ -7,8 +7,9 @@
 
 suppressPackageStartupMessages({
 library("shiny")    # for shiny apps
-library("leaflet")  # renderLeaflet map 
-library("spData")   # loads the world dataset 
+library("leaflet")  # for openstreetmap
+library("maps")     # provide shap files for selected countries
+library("maptools") # modify shap files
 library("DT")       # for shiny table 
 library("ggplot2")
 library("data.table") 
@@ -20,6 +21,9 @@ of any country or territory or the delimitation of any frontiers."
 # dc: dataset of country.info.CME
 dc <- fread(here::here("input", "country.info.CME.csv"))
 regions <- sort(unique(dc$MDGRegion1))
+
+
+# User Interface ----------------------------------------------------------
 
 ui = fluidPage(
   # side panel
@@ -68,6 +72,9 @@ ui = fluidPage(
     )
 )
 
+
+# Server ------------------------------------------------------------------
+
 server = function(input, output, session) {
   # filter and return a vector of country names by selected region
   get.sub.c = reactive({
@@ -85,16 +92,21 @@ server = function(input, output, session) {
     if (is.null(input$country_input)){
       return()
     }
+    # load map
+    world <- maps::map("world", fill=TRUE, plot=FALSE)
+    world_map <- maptools::map2SpatialPolygons(world, sub(":.*$", "", world$names))
+    world_map <- sp::SpatialPolygonsDataFrame(world_map,data.frame(country=names(world_map), 
+                                                     stringsAsFactors=FALSE), FALSE)
     leaflet() %>% addProviderTiles("OpenStreetMap.BlackAndWhite") %>%
-      # world is the leaflet map dataset
-      addPolygons(data = world[world$name_long%in%input$country_input,])
+      addPolygons(data = subset(world_map, country %in% input$country_input), weight = 1)
     })
   
   # print the selected countries in app 
   output$selected_countries  = renderText({
     paste(sort(input$country_input), collapse = ", ")
   })
-
+  
+  # write selected countries into the master 'country.info.CME_adhoc.csv' file
   observeEvent(input$click_write, {
     # clear the current column (or create new), then write the wanted countries
     dc[,AdhocCountries:=""]
@@ -168,9 +180,12 @@ server = function(input, output, session) {
     # only print the most recent 5 years
     dt2[Region=="Adhoc"][order(-Year),][1:5,-1]
   })
+  
   output$results_table <- DT::renderDataTable({
     # print all 
     show.results()
   })
 }
+
+# Run App ---------------------------------------------------------------------
 shinyApp(ui, server)
