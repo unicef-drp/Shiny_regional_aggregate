@@ -95,8 +95,8 @@ server = function(input, output, session) {
     # load map
     world <- maps::map("world", fill=TRUE, plot=FALSE)
     world_map <- maptools::map2SpatialPolygons(world, sub(":.*$", "", world$names))
-    world_map <- sp::SpatialPolygonsDataFrame(world_map,data.frame(country=names(world_map), 
-                                                     stringsAsFactors=FALSE), FALSE)
+    world_map <- sp::SpatialPolygonsDataFrame(world_map, data.frame(country = names(world_map), 
+                                                     stringsAsFactors = FALSE), match.ID = FALSE)
     leaflet() %>% addProviderTiles("OpenStreetMap.BlackAndWhite") %>%
       addPolygons(data = subset(world_map, country %in% input$country_input), weight = 1)
     })
@@ -133,7 +133,7 @@ server = function(input, output, session) {
   # An reactive action to read the result dataset, trigger the printing of figures and tables 
   show.results <- eventReactive(input$click_show, {
     if(file.exists(here::here(file.dir.median, "Rates & Deaths_AdhocCountries.csv"))){
-      message("Read the file 'Rates & Deaths_AdhocCountries.csv'.")
+      message("Read the results file: 'Rates & Deaths_AdhocCountries.csv'.")
       fread(here::here(file.dir.median, "Rates & Deaths_AdhocCountries.csv"))
     } else {NULL}
   })
@@ -164,11 +164,11 @@ server = function(input, output, session) {
     }
     dt_long <- data.table::melt(dt, measure.vars = grep("deaths", colnames(dt), value = TRUE), 
                                 value.name = "deaths", variable.name = "type")
-    ggplot(dt_long[!is.na(deaths),], aes(x = Year, y = deaths, color = Region)) +
+    ggplot(dt_long[!is.na(deaths),], aes(x = Year, y = log10(deaths), color = Region)) +
       geom_line(size = 0.5) + 
       theme_bw() + 
       ggtitle("Median Deaths of U5MR, IMR, and NMR by Year") + 
-      labs(y = "Deaths") + 
+      labs(y = "log10(Deaths)") + 
       facet_wrap(facets= ~ type) + 
       theme(legend.position="bottom") + 
       scale_color_discrete(labels = c("Selected Countries", "World"))

@@ -45,5 +45,5 @@ LoadLibrariesAndCodes <- function(
               "getloessestimates",
               "getadjustmentfreetrajectories",
               "extractmodelmethodologysheet")
-  sapply(file.path(package.dir, "R", paste0(rcodes, ".R")), source)
+  invisible(sapply(file.path(package.dir, "R", paste0(rcodes, ".R")), source))
 }

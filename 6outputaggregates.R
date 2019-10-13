@@ -4,35 +4,27 @@
 # David Sharrow, 2019
 #----------------------------------------------------------------------
 # NOTE: To get NMR deaths, need to set up NMR runname folder and add "YYYY-MM-DDres_nmr.csv" for median calculation and "finalresults.jtc.Rda" for UI
+
 #----------------------------------------------------------------------
 # 1. User settings
 #----------------------------------------------------------------------
 
 run.on.server <- F# Indicate if run is on the server
-get.notifications <- F # Get notifications via Pushbullet about run progress (only if Pushbullet is set up)?
-# user<-"dsharrow"
 workdir <- here::here()
-# Define working directory
 if (run.on.server) {
   package.dir <- workdir <- getwd()
 } else {
   package.dir <- workdir
 }
-setwd(workdir)
+
 #----------------------------------------------------------------------
 # 2. Load libraries and codes
 #----------------------------------------------------------------------
 source(file.path(package.dir, "R/loadlibrariesandcodes.R"))
 # NOTE: if you run this for the first time, use do.install = TRUE to install all packages needed
 # LoadLibrariesAndCodes(run.on.server = run.on.server, package.dir = package.dir, do.install = TRUE)
-
 LoadLibrariesAndCodes(run.on.server = run.on.server, package.dir = package.dir)
-if (get.notifications) {
-  library(RPushbullet)
-  options(error = function() { # Be notified when there is an error
-    pbPost("note", "Error!", geterrmessage())
-  })
-}
+
 # There will be a lot of output, to ignore as long as it does not contain R errors
 # source("calculateARRforotherperiods.R")
 #----------------------------------------------------------------------
