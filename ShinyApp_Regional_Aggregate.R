@@ -145,8 +145,8 @@ server = function(input, output, session) {
     }
     dt_long <- data.table::melt(show.results(), measure.vars = c("U5MR median", "IMR median", "NMR median"), 
                                 value.name = "rate", variable.name = "type_of_rate")
-    ggplot(dt_long[!is.na(rate),], aes(x = Year, y = rate, color = Region)) +
-      geom_line(size = 0.5) + 
+    ggplot(dt_long[!is.na(rate),], aes(x = Year, y = rate, color = Region, type = Region)) +
+      geom_line(size = 1) + 
       theme_bw() + 
       ggtitle("Median U5MR, IMR, and NMR by Year") + 
       labs(y = "Deaths per 1,000 live births") + 
@@ -164,8 +164,8 @@ server = function(input, output, session) {
     }
     dt_long <- data.table::melt(dt, measure.vars = grep("deaths", colnames(dt), value = TRUE), 
                                 value.name = "deaths", variable.name = "type")
-    ggplot(dt_long[!is.na(deaths),], aes(x = Year, y = log10(deaths), color = Region)) +
-      geom_line(size = 0.5) + 
+    ggplot(dt_long[!is.na(deaths),], aes(x = Year, y = log10(deaths))) +
+      geom_line(size = 1) + 
       theme_bw() + 
       ggtitle("Median Deaths of U5MR, IMR, and NMR by Year") + 
       labs(y = "log10(Deaths)") + 
