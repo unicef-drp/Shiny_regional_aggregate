@@ -97,6 +97,11 @@ server = function(input, output, session) {
     world_map <- maptools::map2SpatialPolygons(world, sub(":.*$", "", world$names))
     world_map <- sp::SpatialPolygonsDataFrame(world_map, data.frame(country = names(world_map), 
                                                      stringsAsFactors = FALSE), match.ID = FALSE)
+    # world_map$country[!world_map$country%in%dc$CountryName]
+    world_map$country <- plyr::revalue(world_map$country, c("UK" = "United Kingdom", 
+                                                            "USA" = "United States of America",
+                                                            "Republic of Congo" = "Congo",
+                                                            "Democratic Republic of the Congo" = "Congo DR"))
     leaflet() %>% addProviderTiles("OpenStreetMap.BlackAndWhite") %>%
       addPolygons(data = subset(world_map, country %in% input$country_input), weight = 1)
     })
@@ -150,7 +155,7 @@ server = function(input, output, session) {
       theme_bw() + 
       ggtitle("Median U5MR, IMR, and NMR by Year") + 
       labs(y = "Deaths per 1,000 live births") + 
-      facet_wrap(facets= ~type_of_rate) + 
+      facet_wrap(facets= ~ type_of_rate) + 
       theme(legend.position="bottom") + 
       scale_color_discrete(labels = c("Selected Countries", "World"))
     
@@ -162,9 +167,9 @@ server = function(input, output, session) {
     if (is.null(dt)){
       return()
     }
-    dt_long <- data.table::melt(dt, measure.vars = grep("deaths", colnames(dt), value = TRUE), 
+    dt_long <- data.table::melt(show.results(), measure.vars = grep("deaths", colnames(dt), value = TRUE), 
                                 value.name = "deaths", variable.name = "type")
-    ggplot(dt_long[!is.na(deaths),], aes(x = Year, y = log10(deaths))) +
+    ggplot(dt_long[!is.na(deaths),], aes(x = Year, y = log10(deaths), color = Region)) +
       geom_line(size = 1) + 
       theme_bw() + 
       ggtitle("Median Deaths of U5MR, IMR, and NMR by Year") + 

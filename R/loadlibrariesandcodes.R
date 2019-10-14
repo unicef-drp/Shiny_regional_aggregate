@@ -17,8 +17,9 @@ LoadLibrariesAndCodes <- function(
     install.packages(pkgs, repos = "http://cran.r-project.org")
   # the splines and grid packages are part of the R distribution, no installation needed
   pkgs <- c(pkgs, "splines", "grid")
-  lapply(pkgs, library, character.only = TRUE)
-  
+  suppressPackageStartupMessages({
+  invisible(lapply(pkgs, library, character.only = TRUE))
+  })
   # read in R functions
   rcodes <- c("applyrules", "standardisecountrynames",
               "cleandatafromcmeinfo", "cleandata", 
