@@ -43,9 +43,6 @@ file.dir.median <- file.path(paste("Aggregate results (median)", date)) ##<< Fil
 
 # This part is just for double-check
 source(file.path("R/outputaggregates-BWC.R"))
-country.info <- read.csv("input/country.info.CME_adhoc.csv", as.is = TRUE)
-message("Read in and check the file.\n Adhoc countries are ", 
-        paste(setDT(country.info)[AdhocCountries=="Adhoc", sort(CountryName)], collapse = ", "))
 
 #Note: if replace.rates.reg and replace.rates.cat are NULL, Outputaggregates will calculate aggregates in the conventional way, i.e. replacing missing rates with the regional aggregate rate
 #Note: if replace.rates.reg and replace.rates.cat are indicated with the desired aggregate and aggregate categories respectrively, Outputaggregates will calculate aggregates by replacing missing rates with the rate from a replacement aggrgate indicated by replace.rates.reg (the code below is set up to use the M49 aggregate as a replacement)

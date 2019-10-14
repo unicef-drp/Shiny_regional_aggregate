@@ -18,10 +18,9 @@ note1 <- "Note 1. This map is stylized and not to scale and does not reflect
 a position by UNICEF on the legal status of any country or territory or the delimitation 
 of any country or territory or the delimitation of any frontiers."
 
-# dc: dataset of country.info.CME
+# dc: country.info.CME dataset; regions: MDG regions in country.info.CME
 dc <- fread(here::here("input", "country.info.CME.csv"))
-regions <- sort(unique(dc$MDGRegion1))
-
+regions <- sort(dc[, unique(MDGRegion1)])
 
 # User Interface ----------------------------------------------------------
 
@@ -123,7 +122,7 @@ server = function(input, output, session) {
   observeEvent(input$click_check, {
     if(file.exists(here::here("input", "country.info.CME_adhoc.csv"))){
       message("file created")
-      dc2 <- fread(here::here("input", "country.info.CME_adhoc.csv"))
+      dc2 <- data.table::fread(here::here("input", "country.info.CME_adhoc.csv"))
       message("Read in and check the file.\n Adhoc countries are ", paste(dc2[AdhocCountries=="Adhoc", sort(CountryName)], collapse = ", "))
     } else {
       warning("file not created")
@@ -132,12 +131,19 @@ server = function(input, output, session) {
   
   # run the David's script
   observeEvent(input$click_run, {
-    source(here::here("6outputaggregates.R"))
+    cnames <- data.table::fread("input/country.info.CME_adhoc.csv")[AdhocCountries=="Adhoc", sort(CountryName)]
+    if (length(cnames) >0) {
+        message("Double check the file.\n Adhoc countries are ", cnames, collapse = ", ")
+        source(here::here("6outputaggregates.R")) 
+      } else {
+        warning("No country selected in the file.")
+      }
   })
   
   # An reactive action to read the result dataset, trigger the printing of figures and tables 
   show.results <- eventReactive(input$click_show, {
-    if(file.exists(here::here(file.dir.median, "Rates & Deaths_AdhocCountries.csv"))){
+    if (!exists("file.dir.median")) file.dir.median <- "Aggregate results (median) 2019-08-15"
+    if (file.exists(here::here(file.dir.median, "Rates & Deaths_AdhocCountries.csv"))){
       message("Read the results file: 'Rates & Deaths_AdhocCountries.csv'.")
       fread(here::here(file.dir.median, "Rates & Deaths_AdhocCountries.csv"))
     } else {NULL}
