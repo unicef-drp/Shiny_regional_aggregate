@@ -7,6 +7,7 @@
 
 suppressPackageStartupMessages({
 library("shiny")    # for shiny apps
+library("shinyWidgets")
 library("leaflet")  # for openstreetmap
 library("maps")     # provide shap files for selected countries
 library("maptools") # modify shap files
@@ -21,6 +22,7 @@ of any country or territory or the delimitation of any frontiers."
 # dc: country.info.CME dataset; regions: MDG regions in country.info.CME
 dc <- fread(here::here("input", "country.info.CME.csv"))
 regions <- sort(dc[, unique(MDGRegion1)])
+countries <- sort(dc[,unique(CountryName)])
 
 # User Interface ----------------------------------------------------------
 
@@ -31,34 +33,36 @@ ui = fluidPage(
     selectInput(inputId = "supplied_region", label = "World Regions",
                        choices = regions,
                        selected = "Northern Africa"),
-    # select all? 
-    checkboxInput(inputId = "select_all", 
+    # select all or not
+    shinyWidgets::materialSwitch(inputId = "select_all", 
                   label = "Select all countries by default", value = TRUE),
-    
-    # populate the country selection
+
+    # populate the country selection in the meun
       p("Available countries:"),
-      uiOutput("country_in_region")
+      uiOutput("country_in_region"),
+    
+      p("If wish to add more countries:"),
+      uiOutput("country_out_region")
+
   ),
   
   # main panel 
   mainPanel(
-    h2("World Map"),
-    br(),
+    h3("Map of Selected Countries"),
     leafletOutput(outputId = "mymap"),
     p(note1),
-    br(),
-    h3("Countries selected are:"),
+    h4("Country List:"),
     textOutput(outputId = "selected_countries"),
-    br(), br(),
-    # action buttons:
+    br(), 
+    h3("Actions"),
     actionButton("click_write",  "1. Write selected", width = "40%"),
     actionButton("click_check",  "2. Check countries", width = "40%"),
     br(),
     actionButton("click_run",    "3. Run outputaggregates", width = "40%"),
     actionButton("click_show",   "4. Show results", width = "40%"),
-    br(),br(),
+    br(),
     # plots:
-    h3("Plot the results"),
+    h3("Results"),
     plotOutput("plot_rate"),
     plotOutput("plot_death"),
     br(), 
@@ -80,17 +84,31 @@ server = function(input, output, session) {
     # the countries selected, select by renderUI:country_input:
     dc[dc$MDGRegion1%in%input$supplied_region, CountryName]
   })
-  # render check boxes of countries to select back in ui
+  # render check boxes of countries to send back to ui
   output$country_in_region <- renderUI({
     checkboxGroupInput(inputId = "country_input", label = "Countries",
                        choices = get.sub.c(), selected = if(input$select_all) get.sub.c() else NULL)
   })  
+  # render the droplist, default to select `country_input`
+  # `country_input_more` is the final selection
+  output$country_out_region <- renderUI({
+    # select picker
+    shinyWidgets::pickerInput(
+      inputId = "country_input_more", label = "",  
+      choices = countries, 
+      selected = input$country_input,  # default select the countries in region
+      multiple = TRUE,  # allow multiple selection
+      options = list(
+        `actions-box` = TRUE, 
+        size = 11,
+        `selected-text-format` = "count > 3"
+      )
+    )
+  })
   
   # map the selected countries (if available in this map)
   output$mymap = renderLeaflet({
-    if (is.null(input$country_input)){
-      return()
-    }
+    validate(need(input$country_input_more, "Please select countries."))
     # load map
     world <- maps::map("world", fill=TRUE, plot=FALSE)
     world_map <- maptools::map2SpatialPolygons(world, sub(":.*$", "", world$names))
@@ -102,19 +120,19 @@ server = function(input, output, session) {
                                                             "Republic of Congo" = "Congo",
                                                             "Democratic Republic of the Congo" = "Congo DR"))
     leaflet() %>% addProviderTiles("OpenStreetMap.BlackAndWhite") %>%
-      addPolygons(data = subset(world_map, country %in% input$country_input), weight = 1)
+      addPolygons(data = subset(world_map, country %in% input$country_input_more), weight = 1)
     })
   
   # print the selected countries in app 
   output$selected_countries  = renderText({
-    paste(sort(input$country_input), collapse = ", ")
+    paste(sort(input$country_input_more), collapse = ", ")
   })
   
   # write selected countries into the master 'country.info.CME_adhoc.csv' file
   observeEvent(input$click_write, {
     # clear the current column (or create new), then write the wanted countries
     dc[,AdhocCountries:=""]
-    dc[CountryName%in%input$country_input, AdhocCountries:="Adhoc"]
+    dc[CountryName%in%input$country_input_more, AdhocCountries:="Adhoc"]
     write.csv(dc, file = here::here("input", "country.info.CME_adhoc.csv"))
   })
   
@@ -122,8 +140,11 @@ server = function(input, output, session) {
   observeEvent(input$click_check, {
     if(file.exists(here::here("input", "country.info.CME_adhoc.csv"))){
       message("file created")
+      
       dc2 <- data.table::fread(here::here("input", "country.info.CME_adhoc.csv"))
       message("Read in and check the file.\n Adhoc countries are ", paste(dc2[AdhocCountries=="Adhoc", sort(CountryName)], collapse = ", "))
+      
+      
     } else {
       warning("file not created")
     }
@@ -132,6 +153,8 @@ server = function(input, output, session) {
   # run the David's script
   observeEvent(input$click_run, {
     cnames <- data.table::fread("input/country.info.CME_adhoc.csv")[AdhocCountries=="Adhoc", sort(CountryName)]
+    
+    
     if (length(cnames) >0) {
         message("Double check the file.\n Adhoc countries are ", cnames, collapse = ", ")
         source(here::here("6outputaggregates.R")) 
