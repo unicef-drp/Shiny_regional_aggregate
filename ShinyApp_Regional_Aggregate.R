@@ -55,14 +55,13 @@ ui = fluidPage(
     textOutput(outputId = "selected_countries"),
     br(), 
     h3("Actions"),
-    actionButton("click_write",  "1. Write selected", width = "40%"),
-    actionButton("click_check",  "2. Check countries", width = "40%"),
+    actionButton("click_write",  "1. Confirm your selection", width = "50%"),
     br(),
-    actionButton("click_run",    "3. Run outputaggregates", width = "40%"),
-    actionButton("click_show",   "4. Show results", width = "40%"),
+    actionButton("click_run",    "2. Run aggregates", width = "50%"),
     br(),
     # plots:
     h3("Results"),
+    textOutput(outputId = "selected_countries_on_file"),
     plotOutput("plot_rate"),
     plotOutput("plot_death"),
     br(), 
@@ -131,53 +130,43 @@ server = function(input, output, session) {
   # write selected countries into the master 'country.info.CME_adhoc.csv' file
   observeEvent(input$click_write, {
     # clear the current column (or create new), then write the wanted countries
+    showModal(modalDialog("Selection confirmed:", paste(input$country_input_more, collapse = ", "),
+                          footer = modalButton("OK"), size = "s"))
     dc[,AdhocCountries:=""]
     dc[CountryName%in%input$country_input_more, AdhocCountries:="Adhoc"]
     write.csv(dc, file = here::here("input", "country.info.CME_adhoc.csv"))
+    # removeModal()
   })
   
-  # double check if the adhoc countries to run is correct
-  observeEvent(input$click_check, {
-    if(file.exists(here::here("input", "country.info.CME_adhoc.csv"))){
-      message("file created")
-      
-      dc2 <- data.table::fread(here::here("input", "country.info.CME_adhoc.csv"))
-      message("Read in and check the file.\n Adhoc countries are ", paste(dc2[AdhocCountries=="Adhoc", sort(CountryName)], collapse = ", "))
-      
-      
-    } else {
-      warning("file not created")
-    }
-  })
-  
-  # run the David's script
-  observeEvent(input$click_run, {
+  # check the names in `country.info.CME_adhoc.csv` file and 
+  # run David's script `6outputaggregates.R`
+  get.results <- eventReactive(input$click_run, {
     cnames <- data.table::fread("input/country.info.CME_adhoc.csv")[AdhocCountries=="Adhoc", sort(CountryName)]
-    
-    
-    if (length(cnames) >0) {
-        message("Double check the file.\n Adhoc countries are ", cnames, collapse = ", ")
-        source(here::here("6outputaggregates.R")) 
+    # only run if countries to be run >0 and equal selected countries
+    if (length(cnames) >0 & identical(sort(cnames), sort(input$country_input_more))) {
+        # showModal will show that the scripe is running 
+        showModal(modalDialog("Running aggregate for", paste(cnames, collapse = ", "), footer=NULL))
+          source(here::here("6outputaggregates.R"))
+          message("Read the results file: 'Rates & Deaths_AdhocCountries.csv'.")
+        removeModal()
+        return(fread(here::here(file.dir.median, "Rates & Deaths_AdhocCountries.csv")))
       } else {
-        warning("No country selected in the file.")
+        showModal(modalDialog(
+          "Please press <1. Confirm your selection> first.\n  The countries on the record file now are ", 
+          paste(cnames, collapse = ", "), ", which doesn't match your selected countries."
+        ))
+        return(NULL)
       }
-  })
-  
-  # An reactive action to read the result dataset, trigger the printing of figures and tables 
-  show.results <- eventReactive(input$click_show, {
-    if (!exists("file.dir.median")) file.dir.median <- "Aggregate results (median) 2019-08-15"
-    if (file.exists(here::here(file.dir.median, "Rates & Deaths_AdhocCountries.csv"))){
-      message("Read the results file: 'Rates & Deaths_AdhocCountries.csv'.")
-      fread(here::here(file.dir.median, "Rates & Deaths_AdhocCountries.csv"))
-    } else {NULL}
+    
+    # output results 
   })
 
   # Figure 1: Rate by year
   output$plot_rate <- renderPlot({
-    if (is.null(show.results())){
+    if (is.null(get.results())){
       return()
     }
-    dt_long <- data.table::melt(show.results(), measure.vars = c("U5MR median", "IMR median", "NMR median"), 
+    dt_long <- data.table::melt(get.results(), measure.vars = c("U5MR median", "IMR median", "NMR median"), 
                                 value.name = "rate", variable.name = "type_of_rate")
     ggplot(dt_long[!is.na(rate),], aes(x = Year, y = rate, color = Region, type = Region)) +
       geom_line(size = 1) + 
@@ -192,11 +181,11 @@ server = function(input, output, session) {
   
   # Figure 2: Number of deaths by year 
   output$plot_death <- renderPlot({
-    dt <- show.results()
+    dt <- get.results()
     if (is.null(dt)){
       return()
     }
-    dt_long <- data.table::melt(show.results(), measure.vars = grep("deaths", colnames(dt), value = TRUE), 
+    dt_long <- data.table::melt(dt, measure.vars = grep("deaths", colnames(dt), value = TRUE), 
                                 value.name = "deaths", variable.name = "type")
     ggplot(dt_long[!is.na(deaths),], aes(x = Year, y = log10(deaths), color = Region)) +
       geom_line(size = 1) + 
@@ -210,14 +199,19 @@ server = function(input, output, session) {
   
   # print results as data table 
   output$results_table_recent <-  DT::renderDataTable({
-    dt2 <- copy(show.results())
+    if (is.null(get.results())){
+      return()
+    }
     # only print the most recent 5 years
-    dt2[Region=="Adhoc"][order(-Year),][1:5,-1]
+    get.results()[Region=="Adhoc"][order(-Year),][1:5,-1]
   })
   
   output$results_table <- DT::renderDataTable({
-    # print all 
-    show.results()
+    if (is.null(get.results())){
+      return()
+    } 
+    # prints all results
+    get.results()
   })
 }
 
