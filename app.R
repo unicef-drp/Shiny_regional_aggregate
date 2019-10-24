@@ -81,13 +81,16 @@ ui = fluidPage(
                h3("The most recent five years"),
                DT::dataTableOutput("results_table_recent", width = "80%"),
                h3("All the aggregated results"),
+               # optional to download
+               downloadButton("download_table", "Download Results"),
                DT::dataTableOutput("results_table", width = "80%"),
                br()
                ),
       # tabPanel ("About")
       tabPanel.about()
     ) #tabsetPanel
-  ) #mainpanel
+  ), #mainpanel
+theme = "bootstrap.css"
 ) #ui fluidpage
 
 # Server ------------------------------------------------------------------
@@ -224,6 +227,7 @@ server = function(input, output, session) {
     # only print the most recent 5 years of Adhoc group, order by year
     DT::formatRound(
       DT::datatable(get.table()[Region=="Adhoc"][1:5,-1]),
+      # format number columns with digits
       columns = c("U5MR median", "IMR median", "NMR median"), digits = 2)
   })
   
@@ -232,6 +236,17 @@ server = function(input, output, session) {
       DT::datatable(get.table()), 
       columns = c("U5MR median", "IMR median", "NMR median"), digits = 2)
   })
+  
+  # Make results available for download
+  output$download_table <- downloadHandler(
+    filename <- function() {
+      paste0("Results ", Sys.Date(), ".csv")
+    },
+    content <- function(file) {
+      write.csv(get.table(), file, row.names = F, na = "")
+    }
+  )
+  
 }
 # Run App ---------------------------------------------------------------------
 shinyApp(ui, server)
