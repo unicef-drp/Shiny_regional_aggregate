@@ -1,10 +1,8 @@
-##########################################################
+#
 # Shiny app to aggregate selected countries in each region
 # Yang Liu, 
 # Oct.11, 2019
-##########################################################
-
-
+#
 suppressPackageStartupMessages({
 library("shiny")    # for shiny apps
 library("shinyWidgets")
@@ -20,12 +18,19 @@ note1 <- "Note 1. This map is stylized and not to scale and does not reflect
 a position by UNICEF on the legal status of any country or territory or the delimitation 
 of any country or territory or the delimitation of any frontiers."
 
+
+# Dataset -----------------------------------------------------------------
+
 # dc: country.info.CME dataset; regions: MDG regions in country.info.CME
 dc <- fread(here::here("input", "country.info.CME.csv"))
 regions <- sort(dc[, unique(MDGRegion1)])
-countries <- sort(dc[,unique(CountryName)])
-
-# User Interface ----------------------------------------------------------
+countries <- sort(dc[,unique(OfficialName)])
+# source the world map with modified country names 
+source(here::here("R_shiny/helper.R"))
+world_map <- get.world.map()
+# source the About panel, which is a function to be called in ui
+tabPanel.about <- source(here::here("R_shiny/about.R"))$value
+# UI ----------------------------------------------------------
 
 ui = fluidPage(
   # side panel
@@ -38,7 +43,8 @@ ui = fluidPage(
     shinyWidgets::materialSwitch(inputId = "select_all", 
                   label = "Select all countries by default", value = TRUE),
 
-    # populate the country selection in the meun
+    # populate the country selection in the meun, 
+    # rendered by renderUI in server
       p("Available countries:"),
       uiOutput("country_in_region"),
     
@@ -78,9 +84,8 @@ ui = fluidPage(
                DT::dataTableOutput("results_table", width = "80%"),
                br()
                ),
-      tabPanel("About",
-        p("Add some notes here.")       
-      )
+      # tabPanel ("About")
+      tabPanel.about()
     ) #tabsetPanel
   ) #mainpanel
 ) #ui fluidpage
@@ -89,14 +94,14 @@ ui = fluidPage(
 
 server = function(input, output, session) {
   # filter and return a vector of country names by selected region
-  get.sub.c = reactive({
+  reactive.get.sub.c = reactive({
     # the countries selected, select by renderUI:country_input:
-    dc[dc$MDGRegion1%in%input$supplied_region, CountryName]
+    dc[dc$MDGRegion1%in%input$supplied_region, OfficialName]
   })
   # render check boxes of countries to send back to ui
   output$country_in_region <- renderUI({
     checkboxGroupInput(inputId = "country_input", label = "Countries",
-                       choices = get.sub.c(), selected = if(input$select_all) get.sub.c() else NULL)
+                       choices = reactive.get.sub.c(), selected = if(input$select_all) reactive.get.sub.c() else NULL)
   })  
   # render the droplist, default to select `country_input`
   # `country_input_more` is the final selection
@@ -118,18 +123,9 @@ server = function(input, output, session) {
   # map the selected countries (if available in this map)
   output$mymap = renderLeaflet({
     validate(need(input$country_input_more, "Please select countries."))
-    # load map
-    world <- maps::map("world", fill=TRUE, plot=FALSE)
-    world_map <- maptools::map2SpatialPolygons(world, sub(":.*$", "", world$names))
-    world_map <- sp::SpatialPolygonsDataFrame(world_map, data.frame(country = names(world_map), 
-                                                     stringsAsFactors = FALSE), match.ID = FALSE)
-    # world_map$country[!world_map$country%in%dc$CountryName]
-    world_map$country <- plyr::revalue(world_map$country, c("UK" = "United Kingdom", 
-                                                            "USA" = "United States of America",
-                                                            "Republic of Congo" = "Congo",
-                                                            "Democratic Republic of the Congo" = "Congo DR"))
-    leaflet() %>% addProviderTiles("OpenStreetMap.BlackAndWhite") %>%
-      addPolygons(data = subset(world_map, country %in% input$country_input_more), weight = 1)
+    # plot on pre-loaded world_map from get.world.map()
+    leaflet::leaflet() %>% addProviderTiles("OpenStreetMap.BlackAndWhite") %>%
+      leaflet::addPolygons(data = subset(world_map, country %in% input$country_input_more), weight = 1)
     })
   
   # print the selected countries in app 
@@ -143,7 +139,7 @@ server = function(input, output, session) {
     showModal(modalDialog("Selection confirmed:", paste(input$country_input_more, collapse = ", "),
                           footer = modalButton("OK"), size = "s"))
     dc[,AdhocCountries:=""]
-    dc[CountryName%in%input$country_input_more, AdhocCountries:="Adhoc"]
+    dc[OfficialName%in%input$country_input_more, AdhocCountries:="Adhoc"]
     write.csv(dc, file = here::here("input", "country.info.CME_adhoc.csv"))
     # removeModal()
   })
@@ -151,7 +147,7 @@ server = function(input, output, session) {
   # check the names in `country.info.CME_adhoc.csv` file and 
   # run David's script `6outputaggregates.R`
   reactive.get.results <- eventReactive(input$click_run, {
-    cnames <- data.table::fread("input/country.info.CME_adhoc.csv")[AdhocCountries=="Adhoc", sort(CountryName)]
+    cnames <- data.table::fread("input/country.info.CME_adhoc.csv")[AdhocCountries=="Adhoc", sort(OfficialName)]
     # only run if countries to be run >0 and equal selected countries
     if (length(cnames) >0 & identical(sort(cnames), sort(input$country_input_more))) {
         # showModal will show that the scripe is running, and removed when scripts are done 
@@ -183,8 +179,8 @@ server = function(input, output, session) {
       theme_bw() + 
       ggtitle("Median U5MR, IMR, and NMR by Year") + 
       labs(y = "Deaths per 1,000 live births") + 
-      facet_wrap(facets= ~ type_of_rate) + 
-      theme(legend.position="bottom") + 
+      facet_wrap(facets = ~ type_of_rate) + 
+      theme(legend.position = "bottom") + 
       scale_color_discrete(labels = c("Selected Countries", "World")) +
       theme(plot.title = element_text(size = 20))
     
