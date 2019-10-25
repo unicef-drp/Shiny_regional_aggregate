@@ -33,6 +33,9 @@ tabPanel.about <- source(here::here("R_shiny/about.R"))$value
 # UI ----------------------------------------------------------
 
 ui = fluidPage(
+  # head panel 
+  source(here::here("R_shiny/headerPanel.R"), local = TRUE)$value,
+  
   # side panel
   sidebarPanel(
     titlePanel("Aggregate Selected Countries"),
