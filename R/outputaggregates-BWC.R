@@ -71,7 +71,7 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
     livebirths.file <- file.path("input", "data_livebirths.csv")
   
   # read in data
-  country.info <- read.csv(file = country.info.file, header = T, stringsAsFactors = F,
+  country.info <- read.csv(file = country.info.file, header = T, stringsAsFactors = FALSE,
                            strip.white = T)
   country.info <- country.info[, !grepl("pop", colnames(country.info))]
   data.pop <- read.csv(file = population.file, header = T, stringsAsFactors = F, strip.white = T)
@@ -446,353 +446,79 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
            envir = environment())
     cat(paste("World results loaded from ", output.dir.samplescombined, "\n"))
   }
-  } # if(get.world.results)
+} # if(get.world.results)
   #-------------------------------------------------------------------------
   # get regional results
   if (!is.null(regiontypes.select)) {#PROBABLY DELETE THIS ONE
     cat(paste("Generating regional results...\n"))
-    if (is.element("UNICEFProg", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = UNICEFProgRegionAll, ## func at end; think about new regions
-                         regions = country.info[, grepl("UNICEFProg", colnames(country.info))],
-                         filename = "UNICEFProgRegion",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits,
-                         replace.rates.reg = replace.rates.reg,
-                         round.output = round.output)
-    if (is.element("UNICEFReport", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = UNICEFReportRegionAll,
-                         regions = country.info[, grepl("UNICEFReport", colnames(country.info))],
-                         filename = "UNICEFReportRegion",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits,
-                         replace.rates.reg = replace.rates.reg,                          
-                         round.output = round.output)
-    if (is.element("Wealthall", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = WealthallRegionAll,
-                            regions = country.info[, grepl("Wealthall", colnames(country.info))],
-                            filename = "Wealthall",
+    #'@param region_code0, a code to point to vector of regions (pre-defined in
+    #'  `chooseregion.R`) It is also used as the string pattern in grepl() to
+    #'  extract all related columns from country.info
+    wrap.GetRegionalResultsBWC <- function(region_code0){
+     my_list = list(
+        "UNICEFProg" = UNICEFProgRegionAll,
+        "UNICEFReport" = UNICEFReportRegionAll,
+        "Wealthall" = WealthallRegionAll,
+        "WealthallGlobal" = WealthallGlobalAll,
+        "Wealthdata" = WealthdataRegionAll,
+        "WealthdataGlobal" = WealthdataGlobalAll,
+        "MDG" = MDGRegionAll,
+        "SDG" = SDGRegionAll,
+        "SDGSimple" = SDGSimpleRegionAll,
+        "WHO" = WHORegionAll,
+        "WB" = WBRegionAll,
+        "UNPD" = UNPDRegionAll,
+        "OIC" = OICRegionAll,
+        "Countdown" = CountdownAll,
+        "ECAAfrica" = ECAAfricaRegionAll,
+        "AU" = AURegionAll,
+        "Fragile2018OECD1" = Fragile2018OECD1All,
+        "Fragile2018OECD2" = Fragile2018OECD2All,
+        "ECA" = ECAAll,
+        "GlobalStrategy" = GlobalStrategyAll,
+        "M49" = M49RegionAll,
+        "AfricanEconomicCommunity" = AfricanEconomicCommunityAll
+         )
+      region_types0 <- if (is.null(my_list[[region_code0]])) region_code0 else my_list[[region_code0]] 
+      if(is.null(my_list[[region_code0]])) message("region_code0 is ", region_code0, "\n")
+      # Default: if code = "M49", 
+      # regions = country.info[, grepl("M49", colnames(country.info))],
+      # filename = "M49Region"
+      col_pattern <- region_code0
+      file_name0 <- paste0(region_code0, "Region")
+      
+      # with exceptions:
+      if (region_code0 == "AU") col_pattern <- "AURegion2"
+      # e.g., GAVI, grepl("GAVICountries"), filename = "GAVICountries"
+      if (region_code0 %in% c("ECA", "GAVI", "USAID", "Adhoc")) {
+        col_pattern <- file_name0 <-  paste0(region_code0, "Countries")
+        if (region_code0 == "USAID")  col_pattern = "USAIDcountry" # .... 
+      }
+      
+      # for Fragile2012 to Fragile2018
+      if(region_code0%in%paste0("Fragile", 2012:2018)){
+        region_types0 <- c("Fragile", "Non-fragile")
+        # e.g. FragileCountries2018
+        col_pattern <- file_name0 <- paste0("FragileCountries", gsub("Fragile", "",  x))
+      }
+        
+      if (!any(grepl(col_pattern, colnames(country.info), ignore.case = TRUE))){ 
+        stop("Column pattern", col_pattern, "was not found in Country.CME.\n")}
+
+      GetRegionalResultsBWC(regiontypes = region_types0, ## func at end; think about new regions
+                            regions = country.info[, grepl(col_pattern, colnames(country.info), ignore.case = TRUE)],
+                            filename = file_name0,
                             output.dir = output.dir, output.dir.samples = output.dir.samples,
                             output.dir.samplescombined = output.dir.samplescombined,
                             run.on.server = run.on.server,
                             percentiles = percentiles, ndigits = ndigits,
-                            replace.rates.reg = replace.rates.reg,                          
+                            replace.rates.reg = replace.rates.reg,
                             round.output = round.output)
-    if (is.element("WealthallGlobal", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = WealthallGlobalAll,
-                            regions = country.info[, grepl("WealthallGlobal", colnames(country.info))],
-                            filename = "WealthallGlobal",
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits, 
-                            replace.rates.reg = replace.rates.reg,                          
-                            round.output = round.output)
-    if (is.element("Wealthdata", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = WealthdataRegionAll,
-                            regions = country.info[, grepl("Wealthdata", colnames(country.info))],
-                            filename = "Wealthdata",
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits,
-                            replace.rates.reg = replace.rates.reg,                          
-                            round.output = round.output)
-    if (is.element("WealthdataGlobal", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = WealthdataGlobalAll,
-                            regions = country.info[, grepl("WealthdataGlobal", colnames(country.info))],
-                            filename = "WealthdataGlobal",
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits,                             
-                            replace.rates.reg = replace.rates.reg,                          
-                            round.output = round.output)
-    if (is.element("MDG", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = MDGRegionAll,
-                         regions = country.info[, grepl("MDG", colnames(country.info))],
-                         filename = "MDGRegion",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits,                             
-                         replace.rates.reg = replace.rates.reg,                          
-                         round.output = round.output)
-    if (is.element("SDG", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = SDGRegionAll,
-                            regions = country.info[, grepl("SDG", colnames(country.info))],
-                            filename = "SDGRegion",
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits,                             
-                            replace.rates.reg = replace.rates.reg,                          
-                            round.output = round.output)
-    if (is.element("SDGSimple", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = SDGSimpleRegionAll,
-                            regions = country.info[, grepl("SDGSimple", colnames(country.info))],
-                            filename = "SDGSimpleRegion",
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits,                             
-                            replace.rates.reg = replace.rates.reg,                          
-                            round.output = round.output)
-    if (is.element("WHO", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = WHORegionAll,
-                         regions = country.info[, grepl("WHO", colnames(country.info))],
-                         filename = "WHORegion",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits,                             
-                         replace.rates.reg = replace.rates.reg,                          
-                         round.output = round.output)
-    if (is.element("WB", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = WBRegionAll,
-                         regions = country.info[, grepl("WB", colnames(country.info))],
-                         filename = "WBRegion",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits,                             
-                         replace.rates.reg = replace.rates.reg,                          
-                         round.output = round.output)
-    # if (is.element("WorldBankReg2", regiontypes.select))
-    #   GetRegionalResultsBWC(regiontypes = WorldBankReg2All,
-    #                         regions = country.info[, grepl("WorldBankReg2", colnames(country.info))],
-    #                         filename = "WorldBankReg2",
-    #                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-    #                         output.dir.samplescombined = output.dir.samplescombined,
-    #                         run.on.server = run.on.server,
-    #                         percentiles = percentiles, ndigits = ndigits,                             
-    #                          replace.rates.reg = replace.rates.reg,                          
-    # round.output = round.output)
-    # if (is.element("NewWorldBank", regiontypes.select))
-    #   GetRegionalResultsBWC(regiontypes = NewWorldBankAll,
-    #                         regions = country.info[, grepl("NewWorldBank", colnames(country.info))],
-    #                         filename = "NewWorldBank",
-    #                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-    #                         output.dir.samplescombined = output.dir.samplescombined,
-    #                         run.on.server = run.on.server,
-    #                         percentiles = percentiles, ndigits = ndigits,                             
-    #                          replace.rates.reg = replace.rates.reg,                          
-    # round.output = round.output)
-    if (is.element("UNPD", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = UNPDRegionAll,
-                         regions = country.info[, grepl("UNPD", colnames(country.info))],
-                         filename = "UNPDRegion",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits,                             
-                         replace.rates.reg = replace.rates.reg,                          
-                         round.output = round.output)
-    if (is.element("OIC", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = OICRegionAll,
-                         regions = country.info[, grepl("OIC", colnames(country.info))],
-                         filename = "OICRegion",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits,                             
-                         replace.rates.reg = replace.rates.reg,                          
-                         round.output = round.output)
-    if (is.element("Countdown", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = CountdownAll,
-                         regions = country.info[, grepl("Countdown", colnames(country.info))],
-                         filename = "CountdownCountries",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits,                             
-                         replace.rates.reg = replace.rates.reg,                          
-                         round.output = round.output)
-    if (is.element("ECAAfrica", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = ECAAfricaRegionAll,
-                         regions = country.info[, grepl("ECAAfrica", colnames(country.info))],
-                         filename = "ECAAfricaRegion",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits,                             
-                         replace.rates.reg = replace.rates.reg,                          
-                         round.output = round.output)
-    if (is.element("AU", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = AURegionAll,
-                         regions = country.info[, grepl("AURegion2", colnames(country.info))],
-                         filename = "AURegion",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits,                             
-                         replace.rates.reg = replace.rates.reg,                          
-                         round.output = round.output)
-    if (is.element("Fragile2012", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = Fragile2012All,
-                            regions = country.info[, grepl("FragileCountries2012", colnames(country.info))],
-                            filename = "FragileCountries2012",
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits,                             
-                            replace.rates.reg = replace.rates.reg,                          
-                            round.output = round.output)
-    if (is.element("Fragile2013", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = Fragile2013All,
-                         regions = country.info[, grepl("FragileCountries2013", colnames(country.info))],
-                         filename = "FragileCountries2013",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits,                             
-                         replace.rates.reg = replace.rates.reg,                          
-                         round.output = round.output)
-    if (is.element("Fragile2014", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = Fragile2014All,
-                         regions = country.info[, grepl("FragileCountries2014", colnames(country.info))],
-                         filename = "FragileCountries2014",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits,                             
-                         replace.rates.reg = replace.rates.reg,                          
-                         round.output = round.output)
-    if (is.element("Fragile2015", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = Fragile2015All,
-                         regions = country.info[, grepl("FragileCountries2015", colnames(country.info))],
-                         filename = "FragileCountries2015",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits,                             
-                         replace.rates.reg = replace.rates.reg,                          
-                         round.output = round.output)
-    if (is.element("Fragile2017", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = Fragile2017All,
-                            regions = country.info[, grepl("FragileCountries2017", colnames(country.info))],
-                            filename = "FragileCountries2017",
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits,                             
-                            replace.rates.reg = replace.rates.reg,                          
-                            round.output = round.output)
-    if (is.element("Fragile2018", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = Fragile2018All,
-                            regions = country.info[, grepl("FragileCountries2018", colnames(country.info))],
-                            filename = "FragileCountries2018",
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits,                             
-                            replace.rates.reg = replace.rates.reg,                          
-                            round.output = round.output)
-    if (is.element("Fragile2018OECD1", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = Fragile2018OECD1All,
-                            regions = country.info[, grepl("FragileCountries2018OECD1", colnames(country.info))],
-                            filename = "FragileCountries2018OECD1",
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits,                             
-                            replace.rates.reg = replace.rates.reg,                          
-                            round.output = round.output)
-    if (is.element("Fragile2018OECD2", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = Fragile2018OECD2All,
-                            regions = country.info[, grepl("FragileCountries2018OECD2", colnames(country.info))],
-                            filename = "FragileCountries2018OECD2",
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits,                             
-                            replace.rates.reg = replace.rates.reg,                          
-                            round.output = round.output)
-    # if (is.element("Fragile2018OECD", regiontypes.select))
-    #   GetRegionalResultsBWC(regiontypes = Fragile2018OECDRegionAll,
-    #                         regions = country.info[, grepl("Fragile2018OECD", colnames(country.info))],
-    #                         filename = "Fragile2018OECDRegion",
-    #                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-    #                         output.dir.samplescombined = output.dir.samplescombined,
-    #                         run.on.server = run.on.server,
-    #                         percentiles = percentiles, ndigits = ndigits,                             
-    #                         replace.rates.reg = replace.rates.reg,                          
-    # round.output = round.output)
-    if (is.element("USAID", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = USAIDAll,
-                         regions = country.info[, grepl("USAID", colnames(country.info))],
-                         filename = "USAIDCountries",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits,                             
-                         replace.rates.reg = replace.rates.reg,                          
-                         round.output = round.output)
-    if (is.element("ECA", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = ECAAll,
-                            regions = country.info[, grepl("ECACountries", colnames(country.info))],
-                            filename = "ECACountries",
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits,                             
-                            replace.rates.reg = replace.rates.reg,                          
-                            round.output = round.output)
-    if (is.element("GAVI", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = GAVIAll,
-                            regions = country.info[, grepl("GAVICountries", colnames(country.info))],
-                            filename = "GAVICountries",
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits,                             
-                            replace.rates.reg = replace.rates.reg,                          
-                            round.output = round.output)
-    if (is.element("adhoc", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = adhoc,
-                            regions = country.info[, grepl("AdhocCountries", colnames(country.info))],
-                            filename = "AdhocCountries",
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits,                             
-                            replace.rates.reg = replace.rates.reg,                          
-                            round.output = round.output)
-    if (is.element("GlobalStrategy", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = GlobalStrategyAll,
-                            regions = country.info[, grepl("GlobalStrategy", colnames(country.info))],
-                            filename = "GlobalStrategyCountries",
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits,                             
-                            replace.rates.reg = replace.rates.reg,                          
-                            round.output = round.output)
-    if (is.element("M49", regiontypes.select))
-      GetRegionalResultsBWC(regiontypes = M49RegionAll,
-                         regions = country.info[, grepl("M49", colnames(country.info))],
-                         filename = "M49Region",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits,                             
-                         replace.rates.reg = replace.rates.reg,                          
-                         round.output = round.output)
-    if (is.element("AfricanEconomicCommunity", regiontypes.select)) # WCARO economic communities
-      GetRegionalResultsBWC(regiontypes = AfricanEconomicCommunityAll,
-                            regions = country.info[, grepl("AfricanEconomicCommunity", colnames(country.info))],
-                            filename = "AfricanEconomicCommunityRegion",
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits,                             
-                            replace.rates.reg = replace.rates.reg,                          
-                            round.output = round.output)
+    } # end wrap function: wrap.GetRegionalResultsBWC
+    invisible(sapply(regiontypes.select, wrap.GetRegionalResultsBWC))
   }
 }
+
 #-------------------------------------------------------------------------
 CalculateCountryDeathsBWC <- function(
   j, ##<< Index number of trajectory.

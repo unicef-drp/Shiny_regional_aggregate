@@ -39,10 +39,10 @@ year.lastestimatepublished <- 2018.5
 date <- Sys.Date()
 date <- "2019-08-15"
 file.dir.median <- file.path(paste("Aggregate results (median)", date)) ##<< File directory to save median estimates to
-
+# source the OutputAggregates function
+source(file.path("R/outputaggregates-BWC.R"))
 
 # This part is just for double-check
-source(file.path("R/outputaggregates-BWC.R"))
 
 #Note: if replace.rates.reg and replace.rates.cat are NULL, Outputaggregates will calculate aggregates in the conventional way, i.e. replacing missing rates with the regional aggregate rate
 #Note: if replace.rates.reg and replace.rates.cat are indicated with the desired aggregate and aggregate categories respectrively, Outputaggregates will calculate aggregates by replacing missing rates with the rate from a replacement aggrgate indicated by replace.rates.reg (the code below is set up to use the M49 aggregate as a replacement)
@@ -83,9 +83,10 @@ OutputAggregates(results.U5MR.file = file.path("output", runname.U5MR, "Results.
                  year.target = year.lastestimatepublished, est.years = seq(1950.5, year.lastestimatepublished, 1),
                  test = FALSE,
                  round.output = FALSE,
-                 regiontypes.select = c("adhoc"),
+                 regiontypes.select = c("Adhoc"),
                  replace.rates.reg="M49Region",
-                 replace.rates.cat=replace(country.info$M49Region1, country.info$M49Region1=="Americas", country.info$M49Region2[country.info$M49Region1=="Americas"]))
+                 replace.rates.cat=replace(country.info$M49Region1, country.info$M49Region1=="Americas", 
+                                           country.info$M49Region2[country.info$M49Region1=="Americas"]))
 
 
 

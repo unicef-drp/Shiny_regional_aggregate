@@ -457,8 +457,10 @@ WHORegionAll <- c("Africa", "Americas", "Eastern Mediterranean",
 CountdownAll <- "Countdown"
 ECAAfricaRegionAll <- c("North Africa", "Southern Africa", "Eastern Africa", "West Africa", "Central Africa")
 AURegionAll <- c("Northern Africa", "Southern Africa", "Eastern Africa",  "Western Africa", "Central Africa")
-Fragile2013All <- Fragile2014All <- Fragile2015All <- Fragile2017All <- Fragile2018All <- Fragile2018OECD1All <- c("Fragile", "Non-fragile")
+
+Fragile2018OECD1All <- c("Fragile", "Non-fragile")
 Fragile2018OECD2All<-c("Extremely Fragile", "Other Fragile")
+
 HACAll<-"HAC"
 GlobalStrategyAll<-"Global Strategy"
 USAIDAll <- "USAID"
