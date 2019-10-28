@@ -10,8 +10,9 @@ To run the app directly from github:
 shiny::runGitHub( "unicef-drp/Shiny_regional_aggregate", "liuyanguu")
 ```
 
-To view the code, download the repo and lunch the R project using the __`Rporj`__ file.
+To run the code locally, download the repo and launch the R project using the __`Rporj`__ file.
 ```{r}
 git clone https://github.com/UnicefDAPM/Shiny_regional_aggregate.git
 ```
 
+It is also on Dropbox under folder `Shiny2019`. 

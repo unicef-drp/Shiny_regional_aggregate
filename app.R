@@ -158,6 +158,7 @@ server = function(input, output, session) {
     if (length(cnames) >0 & identical(sort(cnames), sort(input$country_input_more))) {
         # showModal will show that the scripe is running, and removed when scripts are done 
         showModal(modalDialog("Running aggregate for", paste(cnames, collapse = ", "), footer=NULL))
+          # where we run the aggregates:
           source(here::here("6outputaggregates.R"))
           message("Read the results file: 'Rates & Deaths_AdhocCountries.csv'.")
         removeModal()
