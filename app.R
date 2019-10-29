@@ -13,7 +13,7 @@ library("DT")       # for shiny table
 library("ggplot2")
 library("data.table") 
 })
-options("digits" = 2)
+
 note1 <- "Note 1. This map is stylized and not to scale and does not reflect 
 a position by UNICEF on the legal status of any country or territory or the delimitation 
 of any country or territory or the delimitation of any frontiers."
@@ -85,7 +85,8 @@ ui = fluidPage(
                DT::dataTableOutput("results_table_recent", width = "80%"),
                h3("All the aggregated results"),
                # optional to download
-               downloadButton("download_table", "Download Results"),
+               downloadButton("download_table", "Download"),
+               br(),
                DT::dataTableOutput("results_table", width = "80%"),
                br()
                ),
@@ -213,7 +214,8 @@ server = function(input, output, session) {
       theme(plot.title = element_text(size = 20))
   })
   
-  # print results as data table 
+
+  # print results as data table  --------------------------------------------
   # a function to select columns and define some format 
   get.table <- function(){
     if (is.null(reactive.get.results())){
@@ -222,7 +224,7 @@ server = function(input, output, session) {
     # remove some columns 
     dt <- reactive.get.results()
     dt <- dt[, -(grep("Population|population", colnames(dt), value = TRUE)), with = FALSE]
-    dt <- dt[Year>=1990][order(-Year)] # reorder
+    dt <- dt[Year>=1990][order( Region, -Year, )] # reorder
     return(dt)
     # DT::formatRound(datatable(dt), columns = grep("median", colnames(dt), value = TRUE), digits = 2)
   }
@@ -237,7 +239,7 @@ server = function(input, output, session) {
   
   output$results_table <- DT::renderDT({
     DT::formatRound(
-      DT::datatable(get.table()), 
+      DT::datatable( get.table() ), 
       columns = c("U5MR median", "IMR median", "NMR median"), digits = 2)
   })
   
