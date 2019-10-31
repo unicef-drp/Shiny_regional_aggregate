@@ -85,7 +85,7 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
   data.livebirths <- data.livebirths[match(country.info$UNCode, data.livebirths$uncode),] 
   data.livebirths$iso <- country.info$ISO3Code[match(country.info$UNCode, data.livebirths$uncode)]
   
-  if (sum(is.na(data.a0$a0)) > 0)
+  if (any(is.na(data.a0$a0)))
     cat(paste0("Warning: a0 is NA for ", paste(data.a0$iso[is.na(data.a0$a0)], collapse = ", "), ".\n"))
 
   # read in B3 U5MR and IMR trajectories
@@ -262,8 +262,8 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
   pop1to4.orig.ct <- data.pop[, is.element(colnames(data.pop), paste0("pop1to4", est.years.floor))]
   # get live birth matrix like pop; added 2017-07-27 DJS for BWC method
   lb.ct <- data.livebirths[,which(names(data.livebirths)==paste0("lb.",est.years[1])):which(names(data.livebirths)==paste0("lb.",est.years[length(est.years)]))]
-  #-------------------------------------------------------------------------
-  # get country results
+  # get country results ------------------------------------------------------
+  # 
   if(!is.null(nmr.ctj)){
     files.country <- c("death0.ctj.rda", "death1to4.ctj.rda", "deathu5.ctj.rda", "deathnn.ctj.rda",
                        # "dx.array.ctj.rda", "lx.array.ctj.rda", "dx.nn.array.ctj.rda", "lx.nn.array.ctj.rda",
@@ -327,8 +327,8 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
       cat(paste("Country results without regional replacement not loaded. Calculating country deaths with regional replacement instead.\n")) 
     }
   }
-  #-------------------------------------------------------------------------
-  # get country results replacing missing rates with regional aggregate
+  # get country results replacing missing rates with regional aggregate--------
+  # 
   if(!is.null(nmr.ctj)){
     files.country.replace <- c(paste0("death0.ctj.", replace.rates.reg, "-replace.rda"),
                        paste0("death1to4.ctj.", replace.rates.reg, "-replace.rda"),
@@ -402,8 +402,8 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
     cat(paste("Country results (with missing rates replaced with regional) loaded from ", output.dir.samplescombined, "\n"))
     }
   }
-  #-------------------------------------------------------------------------
-  # get world results
+  # get world results ------------------------------------------------------
+  # 
   if(get.world.results){
   if(is.null(nmr.ctj)){
     files.world <- c("res.world.rda", "global.RoDs.ui.rda", "u5mr.wtj.rda", "imr.wtj.rda",
@@ -447,8 +447,8 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
     cat(paste("World results loaded from ", output.dir.samplescombined, "\n"))
   }
 } # if(get.world.results)
-  #-------------------------------------------------------------------------
-  # get regional results
+  # get regional results ---------------------------------------------------------
+  # 
   if (!is.null(regiontypes.select)) {#PROBABLY DELETE THIS ONE
     cat(paste("Generating regional results...\n"))
     #'@param region_code0, a code to point to vector of regions (pre-defined in
@@ -514,7 +514,8 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
                             percentiles = percentiles, ndigits = ndigits,
                             replace.rates.reg = replace.rates.reg,
                             round.output = round.output)
-    } # end wrap function: wrap.GetRegionalResultsBWC
+    } # end function: wrap.GetRegionalResultsBWC
+    # run `GetRegionalResultsBWC` for every region in the `regiontypes.select`
     invisible(sapply(regiontypes.select, wrap.GetRegionalResultsBWC))
   }
 }
@@ -2031,7 +2032,9 @@ CalculateWorldDeathsBWC <- function(
   write.csv(global.RoDs.ui.output,
             file = file.path(output.dir, "Rates of Decline_World.csv"), row.names = F, na = "")
 }
-#----------------------------------------------------------------------
+
+# GetRegionalResultsBWC ------------------------------------------------
+# which main wraps `CalculateRegionalDeathsBWC`
 GetRegionalResultsBWC <- function(
   output.dir,
   output.dir.samples,
@@ -2133,8 +2136,8 @@ CalculateRegionalDeathsBWC <- function(
     load(file.path(output.dir.samplescombined, "death0.ctj.rda"))
     load(file.path(output.dir.samplescombined, "death1to4.ctj.rda"))
     load(file.path(output.dir.samplescombined, "deathu5.ctj.rda"))
-    
-    nn.exists <- file.exists(file.path(output.dir.samplescombined, "deathnn.ctj.rda"))
+    # 
+    nn.exists <- file.exists(file.path(output.dir.samplescombined, "deathnn.ctj.rda")) 
     if(nn.exists){
       load(file.path(output.dir.samplescombined, "deathnn.ctj.rda"))
     }

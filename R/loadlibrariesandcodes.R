@@ -4,22 +4,27 @@
 #----------------------------------------------------------------------
 LoadLibrariesAndCodes <- function(
   run.on.server = FALSE, ##<< Logical value indicating whether or not to run on server.
-  package.dir = NULL, ##<< Path to folder with ``R'' folder.
+  package.dir = NULL, ##<< Path to folder with `R` folder.
   do.install = FALSE ##<< Logical value indicating whether or not to install R packages.
 ) {
-  # install and load libraries
+  # install if needed, and load libraries
   pkgs <- c("MASS", "nlme", "rjags", "R2jags",
             "MCMCpack", "stringr", "mvtnorm", "RColorBrewer", 
             "abind", "plyr", "reshape2", "ggplot2", "gridExtra", "msm","stringdist") 
-  if (run.on.server)
-    pkgs <- c(pkgs, "foreach", "doMC")
-  if (do.install)
-    install.packages(pkgs, repos = "http://cran.r-project.org")
+  if (run.on.server) pkgs <- c(pkgs, "foreach", "doMC")
   # the splines and grid packages are part of the R distribution, no installation needed
-  pkgs <- c(pkgs, "splines", "grid")
+  
+  pkg_vt <- rownames(installed.packages())
+  for (pck in pkgs){
+    if(!pck %in% pkg_vt){install.packages(pck)}
+  }
+  
+  if (do.install) install.packages(pkgs, repos = "http://cran.r-project.org")
+
   suppressPackageStartupMessages({
   invisible(lapply(pkgs, library, character.only = TRUE))
   })
+  
   # read in R functions
   rcodes <- c("applyrules", "standardisecountrynames",
               "cleandatafromcmeinfo", "cleandata", 
@@ -40,7 +45,10 @@ LoadLibrariesAndCodes <- function(
               "getimr", "deriveimrestimatesfromu5mr", "plotresultsforimr",
               "deriveq4fromu5mrandimr",
               "constructoutputforPRK", "combinefinalresults", 
-              "outputaggregates", "outputaggregatestocsv", "summariseresults",
+              # "outputaggregates", replaced by: 
+              "outputaggregates-BWC.R",
+              
+              "outputaggregatestocsv", "summariseresults",
               "calculatearrforotherperiods",  "calculateposteriorprobabilities",
               "plotsforratesandarr",
               "getloessestimates",

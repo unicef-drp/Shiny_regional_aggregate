@@ -3,17 +3,27 @@
 # Yang Liu, 
 # Oct.11, 2019
 #
+pkg_vt <- rownames(installed.packages())
+for (pck in c("shiny", "shinyWidgets", "leaflet",
+              "maps", "maptools", "rgeos",
+              "DT", "ggplot2", "data.table")){
+  if(!pck %in% pkg_vt){install.packages(pck)}
+  library(pck, character.only = T)
+}
+
+
 suppressPackageStartupMessages({
-library("shiny")    # for shiny apps
-library("shinyWidgets")
-library("leaflet")  # for openstreetmap
-library("maps")     # provide shap files for selected countries
-library("maptools") # modify shap files
-library("DT")       # for shiny table 
-library("ggplot2")
-library("data.table") 
+  library("shiny")    # for shiny apps
+  library("shinyWidgets")
+  library("leaflet")  # for openstreetmap
+  library("maps")     # provide shap files for selected countries
+  library("maptools") # modify shap files
+  library("rgeos")
+  library("DT")       # for shiny table 
+  library("ggplot2")
+  library("data.table") 
 })
-options("digits" = 2)
+
 note1 <- "Note 1. This map is stylized and not to scale and does not reflect 
 a position by UNICEF on the legal status of any country or territory or the delimitation 
 of any country or territory or the delimitation of any frontiers."

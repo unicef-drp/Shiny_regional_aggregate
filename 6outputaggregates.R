@@ -9,7 +9,7 @@
 # 1. User settings
 #----------------------------------------------------------------------
 
-run.on.server <- F# Indicate if run is on the server
+run.on.server <- FALSE # Indicate if run is on the server
 workdir <- here::here()
 if (run.on.server) {
   package.dir <- workdir <- getwd()
@@ -42,8 +42,7 @@ file.dir.median <- file.path(paste("Aggregate results (median)", date)) ##<< Fil
 # source the OutputAggregates function
 source(file.path("R/outputaggregates-BWC.R"))
 
-# This part is just for double-check
-
+# The following part is just for double-check
 #Note: if replace.rates.reg and replace.rates.cat are NULL, Outputaggregates will calculate aggregates in the conventional way, i.e. replacing missing rates with the regional aggregate rate
 #Note: if replace.rates.reg and replace.rates.cat are indicated with the desired aggregate and aggregate categories respectrively, Outputaggregates will calculate aggregates by replacing missing rates with the rate from a replacement aggrgate indicated by replace.rates.reg (the code below is set up to use the M49 aggregate as a replacement)
 
