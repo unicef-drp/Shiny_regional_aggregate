@@ -22,7 +22,7 @@ LoadLibrariesAndCodes <- function(
   if (do.install) install.packages(pkgs, repos = "http://cran.r-project.org")
 
   suppressPackageStartupMessages({
-  invisible(lapply(pkgs, library, character.only = TRUE))
+    invisible(lapply(pkgs, library, character.only = TRUE))
   })
   
   # read in R functions
@@ -46,8 +46,7 @@ LoadLibrariesAndCodes <- function(
               "deriveq4fromu5mrandimr",
               "constructoutputforPRK", "combinefinalresults", 
               # "outputaggregates", replaced by: 
-              "outputaggregates-BWC.R",
-              
+              "outputaggregates-BWC",
               "outputaggregatestocsv", "summariseresults",
               "calculatearrforotherperiods",  "calculateposteriorprobabilities",
               "plotsforratesandarr",

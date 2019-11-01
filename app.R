@@ -54,7 +54,7 @@ ui = fluidPage(
                        selected = "Northern Africa"),
     # select all or not
     shinyWidgets::materialSwitch(inputId = "select_all", 
-                  label = "Select all countries by default", value = TRUE),
+                  label = "Select all countries in this region by default", value = TRUE),
 
     # populate the country selection in the meun, 
     # rendered by renderUI in server
