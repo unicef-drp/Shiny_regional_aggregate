@@ -6,7 +6,7 @@
 function() {
   tabPanel("About",
            p("This app offers the option to generate aggregated results based on user-defined selection of countries."),
-           br(), 
+
            p("This app was created and maintained by UN IGME.",
              "For any questions, feedback or suggestions, please contact us at childmortality@unicef.org."),
            p("Please use the latest version of Google Chrome, Mozilla Firefox or Internet Explorer."),

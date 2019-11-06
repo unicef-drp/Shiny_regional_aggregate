@@ -1,5 +1,8 @@
 # helper.R for shiny
 
+cp_UNICEF_div = c("#002759", "#0058AB", "#1CABE2", "#69DBFF", "#CFF4FF", "#FFF09C",
+                        "#FFC20E", "#F26A21", "#E2231A", "#B50800")
+
 revise.name <- function(x, new_list = NULL, no_line_break = FALSE){
     default_labels <- list(
       "Antigua" = "Antigua and Barbuda",
@@ -67,4 +70,22 @@ get.world.map <- function(){
   world_map
 }
 
+SDG_list <- list(
+  "Western Asia and Northern Africa" = "Northern Africa and Western Asia",
+  "Eastern Asia and South-eastern Asia" = "Eastern and South-Eastern Asia",
+  "Central Asia and Southern Asia" = "Central and Southern Asia",
+  "Landlocked developing countries (LLDCs)" = "Landlocked developing countries",
+  "Least developed countries (LDCs)" = "Least developed countries",
+  "Small island developing States (SIDS)" = "Small island developing States",
+  "Northern America and Europe" = "Europe and Northern America",
+  "South-eastern Asia" = "South-Eastern Asia"
+)
 
+new_varname_list <- list(
+  "U5MR median" = "Under-five Mortality Rate",
+  "IMR median"  = "Infant Mortality Rate",
+  "NMR median"  = "Neonatal Mortality Rate",
+  "Under-five deaths median" = "Under-five Deaths",
+  "Infant deaths median"     = "Infant Deaths",
+  "Neonatal deaths median"   = "Neonatal Deaths"
+)
