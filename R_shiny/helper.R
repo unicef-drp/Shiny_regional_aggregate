@@ -89,3 +89,13 @@ new_varname_list <- list(
   "Infant deaths median"     = "Infant Deaths",
   "Neonatal deaths median"   = "Neonatal Deaths"
 )
+
+package_list <- list(
+  "shiny" = "1.4.0",
+  "DT" = "0.9",
+  "data.table" = "1.12.6"
+)
+
+update.package.version <- function(pkg){
+  if (packageVersion(pkg)< revise.name(pkg, new_list = package_list)) install.packages("shiny")
+}

@@ -9,9 +9,10 @@ for (pck in c("shiny", "shinyWidgets", "leaflet",
               "DT","data.table", "here", 
               "ggplot2", "scales", "plotly")){
   if(!pck %in% pkg_vt){install.packages(pck)}
-  library(pck, character.only = T)
 }
 
+source(here::here("R_shiny/helper.R"))
+invisible(sapply(c("shiny", "DT", "data.table"), update.package.version))
 
 suppressPackageStartupMessages({
   library("here")
@@ -49,7 +50,7 @@ change.dt.name <- function(dt){
 }
 
 # Dataset and Parameters -----------------------------------------------------------------
-source(here::here("R_shiny/helper.R"))
+
 
 # dc: country.info.CME dataset; regions: MDG regions in country.info.CME
 dc <- fread(here::here("input", "country.info.CME.csv"))
@@ -136,17 +137,18 @@ ui = fluidPage(
       
         h4("The list of selected countries"),
         textOutput(outputId = "selected_countries"),
+        
         # Plot of Aggregated Results
         uiOutput("panel_plot_rate"),
         
-        # Sex-specific Aggregated Results
+        # Plot of Sex-specific Aggregated Results
         uiOutput("panel_plot_rate_gender"),
         # end conditionalPanel
+        
         br(),br(),
         h4("Map"),
         leafletOutput(outputId = "mymap"),
-        p(note1),
-        br()
+        p(note1)
       ),
   # tables
       tabPanel("Tables and Data Download",
@@ -222,11 +224,13 @@ server = function(input, output, session) {
     if (is.null(reactive.run()$m)){
       return()
     }
+    if(!input$run_gender) return()
     fluidRow(
       h3(panel_title2),
           if (input$show_world) {
           plotlyOutput("plot_rate_gender", inline = TRUE, height = "800px")
-        } else {plotlyOutput("plot_rate_gender", inline = TRUE)}
+          } else {plotlyOutput("plot_rate_gender", inline = TRUE)}
+      
     )
   })
   
