@@ -81,7 +81,7 @@ country_list <- c()
 year_started <- 1985
 
 
-# UI ----------------------------------------------------------
+# UI: side ----------------------------------------------------------
 
 ui = fluidPage(
   # head panel with pic
@@ -95,7 +95,7 @@ ui = fluidPage(
     shinyWidgets::pickerInput(
       inputId = "country_input", label = "Please Select Countries", 
       choices = input_country_list, 
-      selected = c("Finland"),  # default select the countries in region
+      selected = c("Finland"), 
       multiple = TRUE,  # allow multiple selection
       options = list(
         title = "Please select countries",
@@ -137,23 +137,12 @@ ui = fluidPage(
         h4("The list of selected countries"),
         textOutput(outputId = "selected_countries"),
         # Plot of Aggregated Results
-        conditionalPanel(condition = "input.click_run",
-                         # Aggregated Results
-                         br(),
-                         h3(panel_title1),
-                         uiOutput("panel_plot_rate"),
-                         br(),
-                         uiOutput("panel_plot_death"),
-                         br(),br()
-        ),
-            # Sex-specific Aggregated Results
-        conditionalPanel(condition = c("input.run_gender && input.click_run"),
-                         h3(panel_title2),
-                         uiOutput("panel_plot_rate_gender"), # show world or not
-                         br(),br()
-        ),
-        # end conditionalPanel
+        uiOutput("panel_plot_rate"),
         
+        # Sex-specific Aggregated Results
+        uiOutput("panel_plot_rate_gender"),
+        # end conditionalPanel
+        br(),br(),
         h4("Map"),
         leafletOutput(outputId = "mymap"),
         p(note1),
@@ -216,18 +205,29 @@ server = function(input, output, session) {
 
 
   output$panel_plot_rate <- renderUI({
-    plotlyOutput("plot_rate", inline = TRUE)
+    if (is.null(reactive.run())){
+      return()
+    }
+    fluidRow(
+      br(),
+      h3(panel_title1),
+      plotlyOutput("plot_rate", inline = TRUE),
+      br(),
+      plotlyOutput("plot_death", inline = TRUE),
+      br(),br()
+    )
   })
-  
-  output$panel_plot_death <- renderUI({
-    plotlyOutput("plot_death", inline = TRUE)
-  })
-  
-  
+
   output$panel_plot_rate_gender <- renderUI({
-      if (input$show_world) {
-        plotlyOutput("plot_rate_gender", inline = TRUE, height = "800px")
-      } else {plotlyOutput("plot_rate_gender", inline = TRUE)}
+    if (is.null(reactive.run()$m)){
+      return()
+    }
+    fluidRow(
+      h3(panel_title2),
+          if (input$show_world) {
+          plotlyOutput("plot_rate_gender", inline = TRUE, height = "800px")
+        } else {plotlyOutput("plot_rate_gender", inline = TRUE)}
+    )
   })
   
 
