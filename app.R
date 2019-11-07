@@ -36,14 +36,15 @@ Under-five Mortality Rate (U5MR), Infant Mortality Rate (IMR), and Neonatal
 Mortality Rate (NMR). Only U5MR and IMR estimates are produced for
 sex-specific estimates."
 
-note1 <- "Note: This map is stylized and not to scale and does not reflect 
+note_map <- "Note: This map is stylized and not to scale and does not reflect 
 a position by UNICEF on the legal status of any country or territory or the delimitation 
 of any country or territory or the delimitation of any frontiers."
 
-  
 panel_title1   <- "Plots for Aggregated Results"
 panel_title1.2 <- "Tables for Aggregated Results"
 panel_title2 <- "Sex-specific Aggregated Results"
+
+#' function to rename "Adhoc" in dataset
 change.dt.name <- function(dt){
   dt[Region=="Adhoc", Region:= "New Region"]
   return(dt)
@@ -52,37 +53,35 @@ change.dt.name <- function(dt){
 # Dataset and Parameters -----------------------------------------------------------------
 
 
-# dc: country.info.CME dataset; regions: MDG regions in country.info.CME
+# dc: country.info.CME dataset
 dc <- fread(here::here("input", "country.info.CME.csv"))
 
 # Define region
-dc[, UNICEF_region:= ifelse(UNICEFReportRegion2=="", UNICEFReportRegion1, UNICEFReportRegion2)]
+dc[, UNICEF_region:= ifelse(UNICEFReportRegion2 == "", UNICEFReportRegion1, UNICEFReportRegion2)]
 dc[, SDG_region:= ifelse(SDGSimpleRegion1 != "Oceania", SDGSimpleRegion1, SDGSimpleRegion2)]
 dc$SDG_region <- revise.name(dc$SDG_region, new_list = SDG_list)
 regions_1 <- sort(dc[, unique(UNICEF_region)])
 regions_2 <- sort(dc[, unique(SDG_region)])
-# a list by region for input
+# a list by countries grouped by regions for shinyWidgets::pickerInput(country_input)
 input_country_list <- list()
 for (i in 1:length(regions_1)){
   input_country_list[[regions_1[i]]] <- sort(unique(dc[UNICEF_region==regions_1[i], OfficialName]))
 }
 
-# Country Names
+# Country names
 countries <- sort(dc[,unique(OfficialName)])
 
-# source the world map with modified country names 
+# Get world map with modified country names 
 world_map <- get.world.map()
 
-# source the About panel, which is a function to be called in ui
+# Source the About panel, which is a function to be called in ui
 tabPanel.about <- source(here::here("R_shiny/about.R"))$value
   
-country_list <- c()
-
-# show data from: 
+# Show data from: 
 year_started <- 1985
 
 
-# UI: side ----------------------------------------------------------
+# UI: side panel ----------------------------------------------------------
 
 ui = fluidPage(
   # head panel with pic
@@ -92,7 +91,8 @@ ui = fluidPage(
   sidebarPanel(
     titlePanel("Aggregate Selected Countries"), # title
     p(note_header), 
-    # select:
+    
+    # country_input
     shinyWidgets::pickerInput(
       inputId = "country_input", label = "Please Select Countries", 
       choices = input_country_list, 
@@ -105,22 +105,22 @@ ui = fluidPage(
       )),    
     br(),
     
-    # final option to fine-tune country list
     p("You can also further revise the selection here:"),
-    # renderUI: selectInput
+    # country_input_select
     uiOutput("country_select_more"),
     br(),
     
-    # Run
     p(strong("Run the Aggregate")),
+    # run_gender
     shinyWidgets::switchInput(inputId = "run_gender", 
                               label = strong("Show sex-specific results?"), value = FALSE,
                               onLabel = "Yes", offLabel = "No", labelWidth = "300px", inline = TRUE),
-    
-    actionButton("click_run",  strong("Run Aggregates"), width = "375px"),
+    br(),
+    # click_run
+    actionButton("click_run",  strong("Run Aggregates")),
     br(),br(),
     
-    # show results for the world?
+    # show_world
     conditionalPanel("input.click_run",
     shinyWidgets::switchInput(inputId = "show_world", 
                                  label = "Show results for the world in plots", value = FALSE,
@@ -131,10 +131,9 @@ ui = fluidPage(
 
   # UI: main panel ----------------------------------------------------------
   mainPanel(
-  # Run: country list confirmation, run, and map
+  # plots (and map)
     tabsetPanel(
       tabPanel("Plots",
-      
         h4("The list of selected countries"),
         textOutput(outputId = "selected_countries"),
         
@@ -148,28 +147,14 @@ ui = fluidPage(
         br(),br(),
         h4("Map"),
         leafletOutput(outputId = "mymap"),
-        p(note1)
+        p(note_map)
       ),
   # tables
       tabPanel("Tables and Data Download",
-        h3(panel_title1.2),
-        # optional to download
-        downloadButton("download_table", "Download"),
+        uiOutput("panel_results_table"),
         br(),br(),
-        DT::dataTableOutput("results_table", width = "80%"),
-        br(),br(),
-        conditionalPanel(condition = "input.run_gender",
-          h3(panel_title2),
-          p(strong("Data for the female")),
-          downloadButton("download_table_f", "Download"),
-          br(),br(),
-          DT::dataTableOutput("results_table_f", width = "80%"),
         
-          br(),
-          p(strong("Data for the male")),
-          downloadButton("download_table_m", "Download"),
-          br(),br(),
-          DT::dataTableOutput("results_table_m", width = "80%"))       
+        uiOutput("panel_results_table_gender") 
       ),      
   # About
       tabPanel.about()
@@ -181,17 +166,7 @@ theme = "bootstrap.css"
 # Server ------------------------------------------------------------------
 
 server = function(input, output, session) {
-  # Reactive for rendering UI ---------------------------------------
-  # filter and return a vector of country names by selected region
-  reactive.get.sub.c = reactive({
-    # the countries selected, select by renderUI:country_input:
-    if (input$supplied_region%in%regions_1) {
-      dc[dc$UNICEF_region%in%input$supplied_region, OfficialName]
-    } else {
-      dc[dc$SDG_region%in%input$supplied_region, OfficialName]
-    }
-  })
-  
+  # renderUI: side panel ---------------------------------------
   # `country_input_select` is further modified list
   output$country_select_more <- renderUI({
      selectInput(inputId = 'country_input_select', label = 'Selected Countries', choices = countries, 
@@ -206,6 +181,21 @@ server = function(input, output, session) {
   })
 
 
+  # renderUI: main panel ----------------------------------------------------------------
+  # renderUI: print the selected countries in app 
+  output$selected_countries  = renderText({
+    paste(sort(input$country_input_select), collapse = ", ")
+  })
+  
+  # renderUI: map the selected countries (if available in this map)
+  output$mymap = renderLeaflet({
+    validate(need(input$country_input_select, "Please select countries."))
+    # plot on pre-loaded world_map from get.world.map()
+    leaflet::leaflet() %>% addProviderTiles("Esri.WorldTopoMap", provider = "Esri") %>%
+      leaflet::addPolygons(data = subset(world_map, country %in% input$country_input_select), weight = 1)
+  })
+  
+  # renderUI: plots
   output$panel_plot_rate <- renderUI({
     if (is.null(reactive.run())){
       return()
@@ -219,7 +209,7 @@ server = function(input, output, session) {
       br(),br()
     )
   })
-
+  # renderUI: plots by sex
   output$panel_plot_rate_gender <- renderUI({
     if (is.null(reactive.run()$m)){
       return()
@@ -234,21 +224,40 @@ server = function(input, output, session) {
     )
   })
   
-
-  # map the selected countries (if available in this map)
-  output$mymap = renderLeaflet({
-    validate(need(input$country_input_select, "Please select countries."))
-    # plot on pre-loaded world_map from get.world.map()
-    leaflet::leaflet() %>% addProviderTiles("Esri.WorldTopoMap", provider = "Esri") %>%
-      leaflet::addPolygons(data = subset(world_map, country %in% input$country_input_select), weight = 1)
-    })
-  
-  # To print the selected countries in app 
-  output$selected_countries  = renderText({
-    paste(sort(input$country_input_select), collapse = ", ")
+  # renderUI:tables
+  output$panel_results_table <- renderUI({
+    if (is.null(reactive.run())){
+      return()
+    }
+    fluidRow(
+      h3(panel_title1.2),
+      # optional to download
+      downloadButton("download_table", "Download"),
+      br(),br(),
+      DT::dataTableOutput("results_table", width = "80%")
+    )
+  })
+  # renderUI:tables by sex
+  output$panel_results_table_gender <- renderUI({
+    if (is.null(reactive.run()$m)){
+      return()
+    }
+    if(!input$run_gender) return()
+    fluidRow(            
+      h3(panel_title2),
+      p(strong("Data for the female")),
+      downloadButton("download_table_f", "Download"),
+      br(),br(),
+      DT::dataTableOutput("results_table_f", width = "80%"),
+      
+      br(),
+      p(strong("Data for the male")),
+      downloadButton("download_table_m", "Download"),
+      br(),br(),
+      DT::dataTableOutput("results_table_m", width = "80%")      
+    )
   })
   
-
   # Main Reactive ----------------------------------------------------
   # check the names in `country.info.CME_adhoc.csv` file and 
   # run David's script `6outputaggregates.R`
@@ -266,10 +275,10 @@ server = function(input, output, session) {
     if(!input$run_gender){
       # showModal will show that the scripe is running, and removed when scripts are done 
       showModal(modalDialog("Running aggregate for", paste(input$country_input_select, collapse = ", "),
-                            ".\n", "It takes about 5-15 seconds", footer=NULL))
+                            ".\n", "It takes about 10 - 20 seconds", footer=NULL))
     } else {
       showModal(modalDialog("Running sex-specific aggregate for", paste(input$country_input_select, collapse = ", "),
-                            ".\n", "It takes about 10-20 seconds", footer=NULL))
+                            ".\n", "It takes about 20 - 30 seconds", footer=NULL))
     }
     # where we run the aggregates:
     source(here::here("6outputaggregates.R"))
@@ -356,12 +365,11 @@ server = function(input, output, session) {
   }
 
   output$plot_death <- plotly::renderPlotly({
-    if (is.null(reactive.run())){
-      return()
-    }
+    if (!is.null(reactive.run())){
     dt <- reactive.run()$all
     if(!input$show_world) dt <- dt[Region=="New Region",]
     plot.death(dt)
+    }
   })
 
 
@@ -370,8 +378,6 @@ server = function(input, output, session) {
     if (is.null(reactive.run()$m)){
       return()
     }
-    if (!input$run_gender) return()
-    
     vars0 <- c("U5MR median", "IMR median")
     dt_long_m <- get.long(reactive.run()$m, vars0)
     dt_long_f <- get.long(reactive.run()$f, vars0)
@@ -397,57 +403,52 @@ server = function(input, output, session) {
              xaxis = list(title = "Year"))
   })
   
-  # print results as data table  --------------------------------------------
-  # a function to select columns and define some format
+
+  # Tables ------------------------------------------------------------------
+  #' a function to select columns and define some format
   get.table <- function(dt){
     # remove some columns
     dt <- dt[, -(grep("Population|population", colnames(dt), value = TRUE)), with = FALSE]
-    dt <- dt[Year>=year_started][order( Region, -Year, )] # reorder
+    dt <- dt[Year>=year_started][order(Region, -Year)] # reorder
     return(dt)
   }
 
-
-  # results tables ----------------------------------------------------------
   output$results_table <- DT::renderDT({
-    if (is.null(reactive.run())){
-      return()
-    }
+    if (!is.null(reactive.run())){
     dt <- reactive.run()$all
-
     DT::formatRound(
       DT::datatable( get.table(dt) ),
       columns = c("U5MR median", "IMR median", "NMR median"), digits = 2)
+    }
   })
 
   output$results_table_m <- DT::renderDT({
-    if (is.null(reactive.run())){
-      return()
-    }
+    if (!is.null(reactive.run()$m)){
     dt <- reactive.run()$m
     DT::formatRound(
       DT::datatable( get.table(dt) ),
       columns = c("U5MR median", "IMR median"), digits = 2)
+    }
   })
 
   output$results_table_f <- DT::renderDT({
-    if (is.null(reactive.run())){
-      return()
-    }
+    if (!is.null(reactive.run()$f)){
     dt <- reactive.run()$f
     DT::formatRound(
       DT::datatable( get.table(dt) ),
       columns = c("U5MR median", "IMR median"), digits = 2)
+    }
   })
 
 
   # Make results available for download
    down.load.dt <- function(dt, name0 = ""){
     downloadHandler(
-      filename <- function() {
+      filename = function() {
         paste0("Results",name0,"_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
       },
-      content <- function(file) {
-        write.csv(dt, file, row.names = F, na = "")
+      content = function(file) {
+        write.csv(dt, file, row.names = FALSE, na = "")
     }
   )}
 
