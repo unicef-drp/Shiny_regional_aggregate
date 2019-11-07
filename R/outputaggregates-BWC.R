@@ -43,7 +43,7 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
   replace.rates.cat=replace(country.info$M49Region1, country.info$M49Region1=="Americas", country.info$M49Region2[country.info$M49Region1=="Americas"]),  # regiontypes from aggregate (e.g. M49Region1) -- must be vector with 1 regional type for each country and types must be from replace.rates.reg, this argument is necessary for creating the country trajectories with missing rates replaced with regional, not used if these country trajectories already exist
   test = FALSE ##<< Use a subset of first 5 trajectories to test function; must be using trajectory files not just Results.csv
 ) {
-  source("R/chooseregion.R")
+  source(here::here("R/chooseregion.R"))
 
   if (is.null(output.dir)) output.dir <- "output_numberofdeaths"
   output.dir.samples <- file.path(output.dir, "samples")

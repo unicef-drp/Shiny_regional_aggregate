@@ -8,9 +8,11 @@ LoadLibrariesAndCodes <- function(
   do.install = FALSE ##<< Logical value indicating whether or not to install R packages.
 ) {
   # install if needed, and load libraries
-  pkgs <- c("MASS", "nlme", "rjags", "R2jags",
-            "MCMCpack", "stringr", "mvtnorm", "RColorBrewer", 
-            "abind", "plyr", "reshape2", "ggplot2", "gridExtra", "msm","stringdist") 
+  # pkgs <- c("MASS",
+  #           "nlme", "rjags", "R2jags","MCMCpack", 
+  #           "stringr", "mvtnorm", "RColorBrewer", 
+  #           "abind", "plyr", "reshape2", "ggplot2", "gridExtra", "msm","stringdist") 
+  pkgs <- c("plyr", "reshape2") # don't need that many packages to run aggregate
   if (run.on.server) pkgs <- c(pkgs, "foreach", "doMC")
   # the splines and grid packages are part of the R distribution, no installation needed
   

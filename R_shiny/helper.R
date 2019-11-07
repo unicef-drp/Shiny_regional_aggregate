@@ -56,7 +56,7 @@ revise.name <- function(x, new_list = NULL, no_line_break = FALSE){
         out[i] <- labs[[ x[i] ]]
       }
     }
-    return(if(no_line_break)gsub("\n", "", out) else out)
+    return(if(no_line_break) gsub("\n", "", out) else out)
 }
 
 

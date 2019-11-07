@@ -194,13 +194,12 @@ server = function(input, output, session) {
   output$mymap = renderLeaflet({
     validate(need(input$country_input_select, "Please select countries."))
     # plot on pre-loaded world_map from get.world.map()
-    leaflet::leaflet() %>% leaflet::addProviderTiles("Esri.WorldTopoMap", provider = "Esri") %>%
+    leaflet::leaflet() %>% addProviderTiles("Esri.WorldTopoMap", provider = "Esri") %>%
       leaflet::addPolygons(data = subset(world_map, country %in% input$country_input_select), weight = 1)
   })
   
   # renderUI: plots
   output$panel_plot_rate <- renderUI({
-    if (!reactive.check.identical()) return()
     if (is.null(reactive.run())){
       return()
     }
@@ -215,7 +214,6 @@ server = function(input, output, session) {
   })
   # renderUI: plots by sex
   output$panel_plot_rate_gender <- renderUI({
-    if (!reactive.check.identical()) return()
     if (is.null(reactive.run()$m)){
       return()
     }
@@ -231,8 +229,6 @@ server = function(input, output, session) {
   
   # renderUI:tables
   output$panel_results_table <- renderUI({
-    if (!reactive.check.identical()) return()
-    
     if (is.null(reactive.run())){
       return()
     }
@@ -246,9 +242,7 @@ server = function(input, output, session) {
   })
   # renderUI:tables by sex
   output$panel_results_table_gender <- renderUI({
-    if (!reactive.check.identical()) return()
-    
-    if (is.null(reactive.run()$m) ){
+    if (is.null(reactive.run()$m)){
       return()
     }
     if(!input$run_gender) return()
@@ -268,13 +262,6 @@ server = function(input, output, session) {
   })
   
   # Main Reactive ----------------------------------------------------
-  # has the country_input_select been changed by aggregate not run yet?
-  reactive.check.identical <- reactive({
-    cnames <- data.table::fread("input/country.info.CME_adhoc.csv")[AdhocCountries=="Adhoc", sort(OfficialName)]
-    # returns a logic
-    return(identical(sort(cnames), sort(input$country_input_select)))
-  })
-  
   # check the names in `country.info.CME_adhoc.csv` file and 
   # run David's script `6outputaggregates.R`
   reactive.run <- eventReactive(input$click_run, {
@@ -292,11 +279,11 @@ server = function(input, output, session) {
       # showModal will show that the scripe is running, and removed when scripts are done 
       showModal(modalDialog(title = paste("Running aggregate for", paste(input$country_input_select, collapse = ", "), 
                                           "."),
-                            HTML("<br> It may take 10 - 20 seconds"), footer=NULL))
+                            HTML("<br> It takes about 10 - 20 seconds."), footer=NULL))
     } else {
       showModal(modalDialog(title = paste("Running sex-specific aggregate for", paste(input$country_input_select, collapse = ", "),
                             "."), 
-                            HTML("<br> It may take 20 - 30 seconds"), footer=NULL))
+                            HTML("<br> It takes about 20 - 30 seconds."), footer=NULL))
     }
     # where we run the aggregates:
     source(here::here("6outputaggregates.R"))
@@ -321,7 +308,6 @@ server = function(input, output, session) {
      
     } # for the length!=0 check
   })
-
   
   # Figure 1 Rate by Year ---------------------------------------------------
   # some helper functions:
