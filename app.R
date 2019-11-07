@@ -1,5 +1,7 @@
 #
 # Shiny app to aggregate selected countries in each region
+# Please click "Run App" or type shiny::runApp() to run. Don't run all the code (slower).
+#
 # Yang Liu, 
 # Oct.11, 2019
 #
@@ -12,6 +14,7 @@ for (pck in c("shiny", "shinyWidgets", "leaflet",
 }
 
 source(here::here("R_shiny/helper.R"))
+# update packages if certain visions are required
 invisible(sapply(c("shiny", "DT", "data.table"), update.package.version))
 
 suppressPackageStartupMessages({
@@ -113,7 +116,7 @@ ui = fluidPage(
     p(strong("Run the Aggregate")),
     # run_gender
     shinyWidgets::switchInput(inputId = "run_gender", 
-                              label = strong("Show sex-specific results?"), value = FALSE,
+                              label = strong("Run sex-specific results?"), value = FALSE,
                               onLabel = "Yes", offLabel = "No", labelWidth = "300px", inline = TRUE),
     br(),
     # click_run
@@ -123,7 +126,7 @@ ui = fluidPage(
     # show_world
     conditionalPanel("input.click_run",
     shinyWidgets::switchInput(inputId = "show_world", 
-                                 label = "Show results for the world in plots", value = FALSE,
+                              label = "Show results for the world in plots", value = FALSE,
                               onLabel = "Yes", offLabel = "No", labelWidth = "300px", inline = TRUE)
     )
   ),
@@ -191,12 +194,13 @@ server = function(input, output, session) {
   output$mymap = renderLeaflet({
     validate(need(input$country_input_select, "Please select countries."))
     # plot on pre-loaded world_map from get.world.map()
-    leaflet::leaflet() %>% addProviderTiles("Esri.WorldTopoMap", provider = "Esri") %>%
+    leaflet::leaflet() %>% leaflet::addProviderTiles("Esri.WorldTopoMap", provider = "Esri") %>%
       leaflet::addPolygons(data = subset(world_map, country %in% input$country_input_select), weight = 1)
   })
   
   # renderUI: plots
   output$panel_plot_rate <- renderUI({
+    if (!reactive.check.identical()) return()
     if (is.null(reactive.run())){
       return()
     }
@@ -211,6 +215,7 @@ server = function(input, output, session) {
   })
   # renderUI: plots by sex
   output$panel_plot_rate_gender <- renderUI({
+    if (!reactive.check.identical()) return()
     if (is.null(reactive.run()$m)){
       return()
     }
@@ -226,6 +231,8 @@ server = function(input, output, session) {
   
   # renderUI:tables
   output$panel_results_table <- renderUI({
+    if (!reactive.check.identical()) return()
+    
     if (is.null(reactive.run())){
       return()
     }
@@ -239,7 +246,9 @@ server = function(input, output, session) {
   })
   # renderUI:tables by sex
   output$panel_results_table_gender <- renderUI({
-    if (is.null(reactive.run()$m)){
+    if (!reactive.check.identical()) return()
+    
+    if (is.null(reactive.run()$m) ){
       return()
     }
     if(!input$run_gender) return()
@@ -259,12 +268,19 @@ server = function(input, output, session) {
   })
   
   # Main Reactive ----------------------------------------------------
+  # has the country_input_select been changed by aggregate not run yet?
+  reactive.check.identical <- reactive({
+    cnames <- data.table::fread("input/country.info.CME_adhoc.csv")[AdhocCountries=="Adhoc", sort(OfficialName)]
+    # returns a logic
+    return(identical(sort(cnames), sort(input$country_input_select)))
+  })
+  
   # check the names in `country.info.CME_adhoc.csv` file and 
   # run David's script `6outputaggregates.R`
   reactive.run <- eventReactive(input$click_run, {
     if (length(input$country_input_select)==0) {
-      showModal(modalDialog("Please select countries first. 
-                            You may click anywhere to dismiss this message", easyClose = TRUE))
+      showModal(modalDialog(title = "Please select countries first.",  
+                            "You may click anywhere to dismiss this message", easyClose = TRUE))
     } else {
     
     dc[,AdhocCountries:=""]
@@ -274,11 +290,13 @@ server = function(input, output, session) {
     # sex-specific?
     if(!input$run_gender){
       # showModal will show that the scripe is running, and removed when scripts are done 
-      showModal(modalDialog("Running aggregate for", paste(input$country_input_select, collapse = ", "),
-                            ".\n", "It takes about 10 - 20 seconds", footer=NULL))
+      showModal(modalDialog(title = paste("Running aggregate for", paste(input$country_input_select, collapse = ", "), 
+                                          "."),
+                            HTML("<br> It may take 10 - 20 seconds"), footer=NULL))
     } else {
-      showModal(modalDialog("Running sex-specific aggregate for", paste(input$country_input_select, collapse = ", "),
-                            ".\n", "It takes about 20 - 30 seconds", footer=NULL))
+      showModal(modalDialog(title = paste("Running sex-specific aggregate for", paste(input$country_input_select, collapse = ", "),
+                            "."), 
+                            HTML("<br> It may take 20 - 30 seconds"), footer=NULL))
     }
     # where we run the aggregates:
     source(here::here("6outputaggregates.R"))
@@ -303,6 +321,7 @@ server = function(input, output, session) {
      
     } # for the length!=0 check
   })
+
   
   # Figure 1 Rate by Year ---------------------------------------------------
   # some helper functions:
