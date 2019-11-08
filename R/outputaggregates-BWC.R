@@ -1,7 +1,8 @@
-#----------------------------------------------------------------------
+
 # outputaggregates.R
 # Jin Rou New, 2012-2013
-#----------------------------------------------------------------------
+# David Sharrow, 2019
+
 OutputAggregates <- function( # Calculate and output aggregated rates and numbers of deaths at the country,
   ## regional and global level.
   runname.U5MR = NULL, ##<< Either specify 1) \code{runname.U5MR}
@@ -43,7 +44,6 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
   replace.rates.cat=replace(country.info$M49Region1, country.info$M49Region1=="Americas", country.info$M49Region2[country.info$M49Region1=="Americas"]),  # regiontypes from aggregate (e.g. M49Region1) -- must be vector with 1 regional type for each country and types must be from replace.rates.reg, this argument is necessary for creating the country trajectories with missing rates replaced with regional, not used if these country trajectories already exist
   test = FALSE ##<< Use a subset of first 5 trajectories to test function; must be using trajectory files not just Results.csv
 ) {
-  source(here::here("R/chooseregion.R"))
 
   if (is.null(output.dir)) output.dir <- "output_numberofdeaths"
   output.dir.samples <- file.path(output.dir, "samples")
@@ -79,8 +79,10 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
   data.livebirths <- read.csv(file = livebirths.file, header = T, stringsAsFactors = F, strip.white = T)
 
   # reformat data (same country order)
-  data.pop <- join(data.frame(ISO3Code = country.info$ISO3Code), data.pop)
-  data.a0 <- join(data.frame(iso = country.info$ISO3Code), data.a0)
+  suppressWarnings({
+    data.pop <- dplyr::inner_join(data.frame(ISO3Code = country.info$ISO3Code), data.pop, by = "ISO3Code")
+    data.a0 <- dplyr::inner_join(data.frame(iso = country.info$ISO3Code), data.a0, by = "iso")
+  })
   data.livebirths <- reshape(data=data.livebirths, idvar=c("country", "uncode", "sex"), timevar = "year", direction = "wide")
   data.livebirths <- data.livebirths[match(country.info$UNCode, data.livebirths$uncode),] 
   data.livebirths$iso <- country.info$ISO3Code[match(country.info$UNCode, data.livebirths$uncode)]

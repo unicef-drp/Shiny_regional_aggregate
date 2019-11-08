@@ -5,5 +5,5 @@
 #headerPanel(img(src = "http://childmortality.org/themes/default/img/cmeinfo_logoblue.png"), 
 #            windowTitle = "Child Mortality Estimation")
 
-headerPanel(img(src = "logo.png", height = "25%", width = "25%"), 
+headerPanel(img(src = "logo.png", height = "60px", width = "250px"), 
             windowTitle = "Child Mortality Estimation")

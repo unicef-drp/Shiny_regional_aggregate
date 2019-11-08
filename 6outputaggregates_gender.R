@@ -1,12 +1,9 @@
 
+# Sex-specifict death/aggregate estimates
 
-#----------------------------------------------------------------------
-# 7. Sex-specifict death/aggregate estimates
-#----------------------------------------------------------------------
-# #----------------------------------------------------------------------
-# # Note: Requires results for male/female U5MR/IMR & male/female population at age 0/under age
-# # Note: if runname directory is Sex_forDeathCalculation, i.e. not GRYYYMMDD_all, need to copy iso.c.rda and year.t.rda from GrYYYMMDD_all folder and paste in Sex_forDeathCalculation or whatever folder contains the sex-specific results
-# # Note: Need to run "Dropbox\UN IGME data\2019 Round Estimation\Code\output\Sex_forDeathCalculation\processGendertrajectoriesfordeathcalc.R" and "Dropbox\UN IGME data\2019 Round Estimation\Code\output\Sex_forDeathCalculation\processGenderresultsfilefordeathcalc.R" to get sex-specific input files; trajectories needs to be run on server
+# Note: Requires results for male/female U5MR/IMR & male/female population at age 0/under age
+# Note: if runname directory is Sex_forDeathCalculation, i.e. not GRYYYMMDD_all, need to copy iso.c.rda and year.t.rda from GrYYYMMDD_all folder and paste in Sex_forDeathCalculation or whatever folder contains the sex-specific results
+# Note: Need to run "Dropbox\UN IGME data\2019 Round Estimation\Code\output\Sex_forDeathCalculation\processGendertrajectoriesfordeathcalc.R" and "Dropbox\UN IGME data\2019 Round Estimation\Code\output\Sex_forDeathCalculation\processGenderresultsfilefordeathcalc.R" to get sex-specific input files; trajectories needs to be run on server
 
 # Male --------------------------------------------------------------------
 

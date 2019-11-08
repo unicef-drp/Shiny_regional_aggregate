@@ -1,13 +1,7 @@
-#----------------------------------------------------------------------
 # 6outputaggregates.R
 # Jin Rou New, 2013-2015
 # David Sharrow, 2019
-#----------------------------------------------------------------------
-# NOTE: To get NMR deaths, need to set up NMR runname folder and add "YYYY-MM-DDres_nmr.csv" for median calculation and "finalresults.jtc.Rda" for UI
 
-#----------------------------------------------------------------------
-# 1. User settings
-#----------------------------------------------------------------------
 run.on.server <- FALSE # Indicate if run is on the server
 workdir <- here::here()
 if (run.on.server) {
@@ -16,31 +10,15 @@ if (run.on.server) {
   package.dir <- workdir
 }
 
-#----------------------------------------------------------------------
-# 2. Load libraries and codes
-#----------------------------------------------------------------------
-source(file.path(package.dir, "R/loadlibrariesandcodes.R"))
-# NOTE: if you run this for the first time, use do.install = TRUE to install all packages needed
-# LoadLibrariesAndCodes(run.on.server = run.on.server, package.dir = package.dir, do.install = TRUE)
-LoadLibrariesAndCodes(run.on.server = run.on.server, package.dir = package.dir)
-
-# There will be a lot of output, to ignore as long as it does not contain R errors
-# source("calculateARRforotherperiods.R")
-#----------------------------------------------------------------------
-# 3. Get all required components and output death/aggregates estimates
-#----------------------------------------------------------------------
-# source(file.path("R/outputaggregates-BWC.R"))
-# These are required output 
 runname.U5MR <- "GR20190311_all"
 runname.IMR <- "IMR20190314_all"
 runname.NMR <- "NMR_forDeathCalculation"
+
 year.lastestimatepublished <- 2018.5
-date <- Sys.Date()
 date <- "2019-08-15"
 file.dir.median <- file.path(paste("Aggregate results (median)", date)) ##<< File directory to save median estimates to
-# source the OutputAggregates function
-source(file.path("R/outputaggregates-BWC.R"))
 country.info <- read.csv(here::here("input", "country.info.CME_adhoc.csv"), as.is = TRUE)
+
 
 # The following part is just for double-check
 #Note: if replace.rates.reg and replace.rates.cat are NULL, Outputaggregates will calculate aggregates in the conventional way, i.e. replacing missing rates with the regional aggregate rate
