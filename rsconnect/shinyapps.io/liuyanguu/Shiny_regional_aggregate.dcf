@@ -1,0 +1,12 @@
+name: Shiny_regional_aggregate
+title: Shiny_regional_aggregate
+username:
+account: liuyanguu
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 1446281
+bundleId: 2575237
+url: https://liuyanguu.shinyapps.io/Shiny_regional_aggregate/
+when: 1573258863.8144
+asMultiple: FALSE
+asStatic: FALSE

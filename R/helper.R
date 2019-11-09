@@ -16,7 +16,7 @@
 #' @export get.CME.data
 #' @return dt of ISO3, UNcode, year, Under-five, Infant, Neonatal, one row for each country each year in year_range
 #'
-get.CME.data <- function(dt, year_range = c(2000:2018), get_what = NULL, gender = FALSE){
+get.CME.data <- function(dt, year_range = c(2000:2018), get_what = "Rate", gender = FALSE){
   # dt <- Rates_Deaths_Country_Summary_2019
   available_years <- readr::parse_number(grep("IMR", names(dt), value = TRUE))
   if (!all(year_range%in%available_years)) {
@@ -25,7 +25,7 @@ get.CME.data <- function(dt, year_range = c(2000:2018), get_what = NULL, gender 
     year_range <- c(2000:2018) # set to default range
   }
   
-  if(is.null(get_what)) {
+  if(get_what == "Rate") {
     CME_types_full <- if (gender) c("U5MR", "IMR") else c("U5MR", "IMR", "NMR")
     vars_wanted <- c("OfficialName",
                      do.call(paste, expand.grid(CME_types_full, year_range)))
@@ -47,8 +47,8 @@ get.CME.data <- function(dt, year_range = c(2000:2018), get_what = NULL, gender 
 
 
 get.data.all <- function(file, gender0 = FALSE, year_started, year_ended){
-  d1 = get.CME.data(fread(file), year_range = c(year_started:year_ended), gender = gender0)
-  d2 = get.CME.data(fread(file), year_range = c(year_started:year_ended), "deaths", gender = gender0)
+  d1 = get.CME.data(fread(file), year_range = c(year_started:year_ended), "Rate", gender = gender0)
+  d2 = get.CME.data(fread(file), year_range = c(year_started:year_ended), "Deaths", gender = gender0)
   setkey(d1, OfficialName, year)
   setkey(d2, OfficialName, year)
   d12 <- d1[d2]

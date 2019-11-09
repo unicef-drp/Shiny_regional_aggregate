@@ -5,6 +5,7 @@
 ##
 function() {
   tabPanel("About",
+           p(),
            p("
              Global and regional estimates of under-five mortality rates are
              derived by aggregating the number of country-specific under-five
@@ -36,13 +37,13 @@ function() {
            
            
            p("For more information, please refer to",
-             a("https://childmortality.org", 
+             a("www.childmortality.org", 
                href = "https://childmortality.org", target = "_blank"), "."),
            p("This app was created and maintained by UN IGME.",
              "For any questions, feedback or suggestion, please contact us at childmortality@unicef.org."),
            p("Please use the latest version of Google Chrome, Mozilla Firefox or Internet Explorer."),
            br(), br(),
-           p("Last updated: Oct, 2019",
+           p("Last updated: September, 2019",
              br("Created in ",
                 a("R", 
                   href = "http://www.r-project.org/", target = "_blank"),

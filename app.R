@@ -10,7 +10,7 @@ pkg_vt <- rownames(installed.packages())
 for (pck in c("shiny", "shinyWidgets", "shinyjs", "leaflet",
               "maps", "maptools", "rgeos",
               "DT","data.table", "dplyr", "here", 
-              "ggplot2", "scales", "plotly")){
+              "ggplot2", "plotly", "readr")){
   if(!pck %in% pkg_vt){install.packages(pck)}
 }
 # source code
@@ -33,27 +33,31 @@ suppressPackageStartupMessages({
   library("data.table") 
   library("dplyr")
   library("ggplot2")
-  library("scales")
   library("plotly")
-  
+  library("readr")
 })
 
 # Language -------------------------------------------------------------------
-note_header <- "This ShinyApp produces regional aggregates of child mortality
-estimates based on individually selected countries. UN IGME’s latest estimates
-of neonatal, infant and under-five mortality are used."
+note_header <- p("This ShinyApp produces regional aggregates of child mortality
+estimates based on individually selected countries.", 
+a("UN IGME", href = "https://childmortality.org", target = "_blank"),
+"\'s latest estimates of neonatal, infant and under-five mortality are used. 
+Country data will also be included in the downloaded dataset from the \"Tables and Data Download\" panel
+after running the aggregates.")
+
+note_input <- "Please add countries by clicking the list, or typing names and press enter."
+default_select <- "Afghanistan"
+
+panel_title1   <- "Results of selected regional aggregates for"
+panel_title1.2 <- "Tables of selected regional aggregates"
+panel_note1.2 <- "Regional, world, and country data are available for download."
+panel_title2 <- "Sex-specific results for selected regional aggregates"
 
 note_map <- "Note: This map is stylized and not to scale and does not reflect 
 a position by UNICEF on the legal status of any country or territory or the delimitation 
 of any country or territory or the delimitation of any frontiers."
 
-panel_title1   <- "Results for selected regional aggregates"
-panel_title1.2 <- "Tables for selected regional aggregates"
-panel_note1.2 <- "Regional and world aggregates as well as country estimates are available for downloading."
-panel_title2 <- "Sex-specific results for selected regional aggregates"
-
 Adhoc_name <- "Selected Countries"
-
 #' function to rename "Adhoc" in dataset
 change.dt.name <- function(dt){
   dt[Region=="Adhoc", Region:= Adhoc_name]
@@ -90,7 +94,6 @@ tabPanel.about <- source(here::here("R_shiny/about.R"))$value
 # Show data from: 
 year_started <- 1985
 year_ended <- 2018
-default_select <- "Finland"
 
 # median results for all countries
 file_all <- here::here("Aggregate results (median) 2019-08-15", "Rates & Deaths_Country Summary.csv")
@@ -113,26 +116,35 @@ ui = fluidPage(
   # side panel
   sidebarPanel(
     
+    titlePanel("Aggregate Selected Countries"), # title
+    br(),
+    p(note_header), 
+    
+ 
+    
     useShinyjs(),
     extendShinyjs(text = jscode, functions = "refresh"),
     
-    titlePanel("Aggregate Selected Countries"), # title
-    p(note_header), 
-    
     # country_input
-    checkboxInput(inputId = "input_by_region", label = ("Group countries by the five world regions"), value = FALSE),
-    uiOutput("panel_country_select"),    
+    p(note_input),
+    checkboxInput(inputId = "input_by_region", label = ("Group countries by the five continents"), value = FALSE),
+    shinyWidgets::pickerInput(
+      inputId = "country_input_select", label = "Please Select Countries", 
+      choices = countries, 
+      selected = default_select, 
+      multiple = TRUE,  # allow multiple selection
+      options = list(
+        title = "Please select countries",
+        `actions-box` = TRUE, 
+        size = 10
+      )),
     br(),
     
-    p("You can also further revise the selection here by typing names. To delete, use backspace or select and delete:"),
-    # country_input_select
-    uiOutput("panel_country_select_more"),
-    br(),
     
     # run_gender
     checkboxInput(inputId = "run_gender", label = strong("Run sex-specific results?"), value = FALSE),
     # click_run
-    actionButton("click_run",  strong("Run Aggregates"), width = '200px'), 
+    actionButton("click_run",  strong("Run the Aggregates"), width = '200px'), 
     br(),br(), 
     actionButton("click_reset",  ("Reset App"), width = '200px')
   ),
@@ -143,9 +155,12 @@ ui = fluidPage(
   # plots (and map)
     tabsetPanel(
       tabPanel("Plots",
-        h4("The results for selected countries"),
-        textOutput(outputId = "selected_countries"),
-        
+               
+               # print results 
+               h4("The list of selected countries:"),
+               (textOutput("text_selected_countries")),
+               br(),
+
         # Plot of Aggregated Results
         uiOutput("panel_plot_rate"),
         
@@ -156,7 +171,7 @@ ui = fluidPage(
         br(),br(),
         h4("Map"),
         leafletOutput(outputId = "mymap"),
-        p(note_map)
+        h6(note_map)
       ),
   # tables
       tabPanel("Tables and Data Download",
@@ -181,37 +196,14 @@ server = function(input, output, session) {
     }
   })  
   
-  # renderUI: side panel ---------------------------------------
-  # `country_input` is the first level selection`
-  output$panel_country_select <- renderUI({
-    
-    shinyWidgets::pickerInput(
-      inputId = "country_input", label = "Please Select Countries", 
-      choices = if(input$input_by_region) input_country_list else countries, 
-      selected = default_select, 
-      multiple = TRUE,  # allow multiple selection
-      options = list(
-        title = "Please select countries",
-        `actions-box` = TRUE, 
-        size = 12
-      ))
+  # renderUI: side panel ---------------------------------------------------
+  # Update choices in country_input_select
+  observeEvent(input$input_by_region, {
+    updatePickerInput(session, inputId = "country_input_select", 
+                      choices = if(input$input_by_region) input_country_list else countries,
+                      selected = input$country_input_select)
   })
   
-  
-  # `country_input_select` is further modified list
-  output$panel_country_select_more <- renderUI({
-     selectInput(inputId = 'country_input_select', label = 'Selected Countries', choices = countries, 
-                selected = input$country_input, 
-                multiple = TRUE, selectize = TRUE)
-    
-  })
-  
-  
-  # Update selected in country_input (shinyWidgets::pickerInput)
-  observeEvent(input$country_input_select, {
-    updatePickerInput(session, inputId = "country_input", selected = input$country_input_select)
-  })
-
   # Reset selection
   observeEvent(input$click_reset,{
     updatePickerInput(session, inputId = "country_input", selected = default_select)
@@ -219,26 +211,28 @@ server = function(input, output, session) {
   })
 
   # renderUI: main panel ----------------------------------------------------------------
-  # renderUI: print the selected countries in app 
-  # output$selected_countries  = renderText({
-  #   paste(sort(input$country_input_select), collapse = ", ")
-  # })
-  # 
+  
+  # print the currently selected countries dynamically
+  output$text_selected_countries  = renderText({
+    paste(sort(input$country_input_select), collapse = ", ")
+  })
+  
+  # reactive: print and record countries for the click_run
   reactive.selected.countries <- eventReactive(input$click_run, {
     input$country_input_select
   })
-  
-  output$selected_countries <- renderText({
+  output$selected_countries_click_run <- renderText({
     paste(sort(reactive.selected.countries()), collapse = ", ")
   })
+  
   
   # renderUI: map the selected countries (if available in this map)
   output$mymap = renderLeaflet({
     validate(need(input$country_input_select, "Please select countries."))
     # plot on pre-loaded world_map from get.world.map()
-    leaflet::leaflet(options = leafletOptions(minZoom = 2, maxZoom = 5)) %>% 
-      leaflet::addProviderTiles("Esri.WorldTopoMap", provider = "Esri") %>%
-      leaflet::addPolygons(data = subset(world_map, country %in% input$country_input_select), weight = 1)
+    leaflet::leaflet(quakes, options = leafletOptions(minZoom = 2, maxZoom =3)) %>% 
+      addTiles("http://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png") %>%
+      leaflet::addPolygons(data = subset(world_map, country %in% input$country_input_select), weight = 2)
   })
   
   # renderUI: plots
@@ -247,12 +241,14 @@ server = function(input, output, session) {
       return()
     }
     fluidRow(
-      # show_world
-      h3(panel_title1),
-      checkboxInput(inputId = "show_world", label = "Show results for the world in plots", value = FALSE),
-      plotlyOutput("plot_rate", inline = F),
+      h4(strong(panel_title1)),
+      h5(strong(textOutput(outputId = "selected_countries_click_run"))),
       br(),
-      plotlyOutput("plot_death", inline = F),
+      # show_world
+      checkboxInput(inputId = "show_world", label = "Show results for the world in plots", value = FALSE),
+      plotlyOutput("plot_rate"),
+      br(),
+      plotlyOutput("plot_death"),
       br(),br()
     )
   })
@@ -268,9 +264,9 @@ server = function(input, output, session) {
 
       if (length(input$show_world != 0)){
         if (input$show_world) {
-          plotlyOutput("plot_rate_gender", inline = F, height = "800px", width = "80%")
+          plotlyOutput("plot_rate_gender", height = "800px", width = "80%")
         } else {
-          plotlyOutput("plot_rate_gender", inline = F, width = "80%")
+          plotlyOutput("plot_rate_gender", width = "80%")
         }}
     )
   })
@@ -281,7 +277,7 @@ server = function(input, output, session) {
       return()
     }
     fluidRow(
-      h3(panel_title1.2),
+      h4(panel_title1.2),
       p(panel_note1.2),
       # optional to download
       downloadButton("download_table", "Download"),
@@ -353,8 +349,9 @@ server = function(input, output, session) {
           return(
               list(
                   all = change.dt.name(fread(here::here("Aggregate results (median) 2019-08-15", "Rates & Deaths_AdhocCountries.csv"))),
-                  m = change.dt.name(fread(here::here("Aggregate results (median) 2019-08-15 (male)", "Rates & Deaths_AdhocCountries.csv"))),
                   f = change.dt.name(fread(here::here("Aggregate results (median) 2019-08-15 (female)", "Rates & Deaths_AdhocCountries.csv"))),
+                  m = change.dt.name(fread(here::here("Aggregate results (median) 2019-08-15 (male)", "Rates & Deaths_AdhocCountries.csv"))),
+                  c_median_all = c_median_all[Region%in%input$country_input_select,],
                   c_median_f = c_median_f[Region%in%input$country_input_select,],
                   c_median_m = c_median_m[Region%in%input$country_input_select,]
                   ))
@@ -513,11 +510,11 @@ server = function(input, output, session) {
   )}
 
   output$download_table <- down.load.dt(dt = rbind(get.table(reactive.run()$all), 
-                                                   reactive.run()$c_median_all))
+                                                     reactive.run()$c_median_all))
   output$download_table_f <- down.load.dt(dt = rbind(get.table(reactive.run()$f),
-                                                               reactive.run()$c_median_f), name0 = "_female")
+                                                     reactive.run()$c_median_f), name0 = "_female")
   output$download_table_m <- down.load.dt(dt = rbind(get.table(reactive.run()$m),
-                                                               reactive.run()$c_median_m), name0 = "_male")
+                                                     reactive.run()$c_median_m), name0 = "_male")
   
 }
 # Run App ---------------------------------------------------------------------
