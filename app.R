@@ -1,7 +1,7 @@
 #
 # Shiny app to aggregate selected countries in each region
 # Please click "Run App" or type shiny::runApp() to run. Don't run all the code (slow).
-#
+# On ShinyApp.io: https://u5met2017.shinyapps.io/Shiny_regional_aggregate/
 # Yang Liu, 
 # Oct.11, 2019
 #
