@@ -57,12 +57,8 @@ note_map <- "Note: This map is stylized and not to scale and does not reflect
 a position by UNICEF on the legal status of any country or territory or the delimitation 
 of any country or territory or the delimitation of any frontiers."
 
-Adhoc_name <- "Selected Countries"
-#' function to rename "Adhoc" in dataset
-change.dt.name <- function(dt){
-  dt[Region=="Adhoc", Region:= Adhoc_name]
-  return(dt)
-}
+adhoc_name <- "Selected Countries"
+
 # Dataset and Parameters -----------------------------------------------------------------
 
 
@@ -89,7 +85,7 @@ countries <- sort(dc[,unique(OfficialName)])
 world_map <- get.world.map()
 
 # Source the About panel, which is a function to be called in ui
-tabPanel.about <- source(here::here("R_shiny/about.R"))$value
+tabPanel.about <- source(here::here("R_shiny", "about.R"))$value
   
 # Show data from: 
 year_started <- 1985
@@ -103,7 +99,7 @@ c_median_all <- get.data.all(file = file_all, year_started = year_started, year_
 c_median_f <- get.data.all(file = file_f, gender0 = TRUE, year_started = year_started, year_ended = year_ended)
 c_median_m <- get.data.all(file = file_m, gender0 = TRUE, year_started = year_started, year_ended = year_ended)
 
-# for reset
+# for the reset function
 jscode <- "shinyjs.refresh = function() { location.reload(); }"
 
 
@@ -115,17 +111,14 @@ ui = fluidPage(
   
   # side panel
   sidebarPanel(
+    useShinyjs(),
+    extendShinyjs(text = jscode, functions = "refresh"), 
     
     titlePanel("Aggregate Selected Countries"), # title
     br(),
     p(note_header), 
     
- 
-    
-    useShinyjs(),
-    extendShinyjs(text = jscode, functions = "refresh"),
-    
-    # country_input
+    # country_input_select
     p(note_input),
     checkboxInput(inputId = "input_by_region", label = ("Group countries by the five continents"), value = FALSE),
     shinyWidgets::pickerInput(
@@ -140,7 +133,11 @@ ui = fluidPage(
       )),
     br(),
     
-    
+    # rename the group
+    # p("To name the group: "),
+    textAreaInput(inputId = "adhoc_name", label = "Name the selected group (default to \"Selected Countries\")",
+                  value = adhoc_name, rows  = 1,
+                  placeholder = "Default name is applied as well if leave as blank"),
     # run_gender
     checkboxInput(inputId = "run_gender", label = strong("Run sex-specific results?"), value = FALSE),
     # click_run
@@ -221,6 +218,7 @@ server = function(input, output, session) {
   reactive.selected.countries <- eventReactive(input$click_run, {
     input$country_input_select
   })
+
   output$selected_countries_click_run <- renderText({
     paste(sort(reactive.selected.countries()), collapse = ", ")
   })
@@ -307,6 +305,10 @@ server = function(input, output, session) {
   })
   
   # Main Reactive ----------------------------------------------------
+  # to apply adhoc_name
+  reactive.adhoc.name <- eventReactive(input$click_run, {
+    if (is.null(input$adhoc_name)|input$adhoc_name=="") adhoc_name else input$adhoc_name
+  })
   # check the names in `country.info.CME_adhoc.csv` file and 
   # run David's script `6outputaggregates.R`
   reactive.run <- eventReactive(input$click_run, {
@@ -339,7 +341,11 @@ server = function(input, output, session) {
     
     removeModal()
     message("Time spent is ", round(Sys.time() - time0, 1), " seconds.")
-
+    change.dt.name <- function(dt){
+      dt[Region=="Adhoc", Region:= if(is.null(input$adhoc_name)|input$adhoc_name=="") adhoc_name else input$adhoc_name]
+      return(dt)
+    }
+    
     if(!input$run_gender){
           return(list(
                     all = change.dt.name(fread(here::here("Aggregate results (median) 2019-08-15", "Rates & Deaths_AdhocCountries.csv"))),
@@ -391,7 +397,7 @@ server = function(input, output, session) {
     }
     vars0 <- c("U5MR median", "IMR median", "NMR median")
     dt <- reactive.run()$all
-    if(!input$show_world) dt <- dt[Region==Adhoc_name,]
+    if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
     plot.rate(dt, vars0)
   })
   
@@ -422,7 +428,7 @@ server = function(input, output, session) {
   output$plot_death <- plotly::renderPlotly({
     if (!is.null(reactive.run())){
     dt <- reactive.run()$all
-    if(!input$show_world) dt <- dt[Region==Adhoc_name,]
+    if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
     plot.death(dt)
     }
   })
@@ -441,7 +447,7 @@ server = function(input, output, session) {
     dt_long <- rbind(dt_long_f, dt_long_m)
     dt_long$Region <- as.factor(dt_long$Region)
     # show world or not? 
-    if(!input$show_world) dt_long <- dt_long[Region==Adhoc_name,]
+    if(!input$show_world) dt_long <- dt_long[Region==reactive.adhoc.name(),]
     levels(dt_long$type_of_rate) <- revise.name(levels(dt_long$type_of_rate), new_list = new_varname_list)
     
     p = ggplot(dt_long[!is.na(rate), Rate := round(rate,2)], aes(x = Year, y = Rate, color = gender)) +
