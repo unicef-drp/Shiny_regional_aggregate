@@ -10,7 +10,7 @@ pkg_vt <- rownames(installed.packages())
 for (pck in c("shiny", "shinyWidgets", "shinyjs", "leaflet",
               "maps", "maptools", "rgeos",
               "DT","data.table", "dplyr", "here", 
-              "ggplot2", "plotly", "readr")){
+              "ggplot2", "plotly", "readr", "readxl")){
   if(!pck %in% pkg_vt){install.packages(pck)}
 }
 # source code
@@ -36,6 +36,9 @@ suppressPackageStartupMessages({
   library("plotly")
   library("readr")
 })
+
+# Sanitizing error messages
+options(shiny.sanitize.errors = TRUE)
 
 # Language -------------------------------------------------------------------
 note_header <- p("This ShinyApp produces regional aggregates of child mortality
@@ -78,8 +81,9 @@ for (i in 1:length(regions_3)){
   input_country_list[[regions_3[i]]] <- sort(unique(dc[M49Region1==regions_3[i], OfficialName]))
 }
 
-# Country names
+# Country names and ISOs
 countries <- sort(dc[,unique(OfficialName)])
+ISOs <- sort(dc[,unique(ISO3Code)])
 
 # Get world map with modified country names 
 world_map <- get.world.map()
@@ -131,13 +135,21 @@ ui = fluidPage(
         `actions-box` = TRUE, 
         size = 10
       )),
+    
+    # upload ISO
+    fileInput('ISO_input', label = "(Optional) Upload a csv file of selected ISO3 Codes",
+              placeholder = "", accept = c(
+                "text/csv",
+                "text/comma-separated-values,text/plain",
+                ".csv")
+              ),
     br(),
     
     # rename the group
     # p("To name the group: "),
-    textAreaInput(inputId = "adhoc_name", label = "Name the selected group (default to \"Selected Countries\")",
+    textAreaInput(inputId = "adhoc_name", label = "(Optional) Name the selected group of countries",
                   value = adhoc_name, rows  = 1,
-                  placeholder = "Default name is applied as well if leave as blank"),
+                  placeholder = "Default name is \"Selected Countries\" if leave as blank"),
     # run_gender
     checkboxInput(inputId = "run_gender", label = strong("Run sex-specific results?"), value = FALSE),
     # click_run
@@ -187,6 +199,7 @@ theme = "bootstrap.css"
 # Server ------------------------------------------------------------------
 
 server = function(input, output, session) {
+  # Reset session 
   observe({
     if (input$click_reset) {
       js$refresh();
@@ -194,11 +207,67 @@ server = function(input, output, session) {
   })  
   
   # renderUI: side panel ---------------------------------------------------
-  # Update choices in country_input_select
+  # Update choices in country_input_select to be listed by region
   observeEvent(input$input_by_region, {
     updatePickerInput(session, inputId = "country_input_select", 
                       choices = if(input$input_by_region) input_country_list else countries,
                       selected = input$country_input_select)
+  })
+  
+  # Read self-uploaded ISO file (19/12/21)
+  observeEvent(input$ISO_input, {
+    file_type <- tolower(tools::file_ext(input$ISO_input$datapath))
+    file_path <- input$ISO_input$datapath
+    tryCatch({
+      if (file_type == "csv"){
+        dt_iso <- fread(file_path)
+      } else if (file_type %in% c("xlsx", "xls")) {
+        dt_iso <- setDT(readxl::read_excel(file_path))
+      } else {
+        showModal(modalDialog(title == "Currently accept csv, xlsx, xls file.", "Please re-upload."))
+        dt_iso <- NULL
+      }
+
+      if (!is.null(dt_iso)&length(colnames(dt_iso))!=0){
+        message(paste("Read in", file_type ,"file"))
+        # find the column name cloest to "ISO", use the 1st column if not found
+        ISO_column_name <- colnames(dt_iso)[grep("ISO", toupper(colnames(dt_iso)))] 
+        if(length(ISO_column_name) == 0){
+          ISO_column_name <- colnames(dt_iso)[1]
+          message("Couldn't match a column name that looks like \"ISO\". The first column is used. Please check if it is right.")
+          message(paste("The name of the column is", ISO_column_name))
+        }
+        if(length(ISO_column_name) > 1){
+          ISO_column_name <- ISO_column_name[1]
+          message("There are multiple columns that look like \"ISO\". The first column is used. Please check if it is right.")
+          message(paste("The name of the column is", ISO_column_name))
+        }
+        
+        ISO_selected <- dt_iso[[ISO_column_name]]
+        ISO_selected <- ISO_selected[ISO_selected%in%ISOs]
+        if (ISO_column_name%in%ISOs){
+          message("I have included the column name, as an ISO is on the first row.")
+          ISO_selected <- c(ISO_column_name, ISO_selected)
+        }
+        
+        showModal(modalDialog(title = paste("Uploaded and recognized ISOs in column", ISO_column_name ,"are:"), 
+                              length(ISO_selected), " ISOs: ",  HTML("<br>"), 
+                                     paste0(ISO_selected, collapse = ", "), ".",
+                              HTML("<br><br>You may click anywhere to dismiss this message"), easyClose = TRUE
+                              ))
+        
+        updatePickerInput(session, inputId = "country_input_select", 
+                          choices = if(input$input_by_region) input_country_list else countries,
+                          selected = dc[ISO3Code%in%ISO_selected, CountryName])
+      }
+      
+    }, error = function(e){
+      message("The uploaded file is not correct.")
+      },
+    warning = function(e){
+      message("The uploaded file is not correct.")
+      }
+    )
   })
   
   # Reset selection
@@ -309,6 +378,7 @@ server = function(input, output, session) {
   reactive.adhoc.name <- eventReactive(input$click_run, {
     if (is.null(input$adhoc_name)|input$adhoc_name=="") adhoc_name else input$adhoc_name
   })
+  
   # check the names in `country.info.CME_adhoc.csv` file and 
   # run David's script `6outputaggregates.R`
   reactive.run <- eventReactive(input$click_run, {
