@@ -1,69 +1,69 @@
-﻿ISO3Code,ISO3,CountryName
-AFG,AFG,Afghanistan
-AGO,AGO,Angola
-ARM,ARM,Armenia
-AZE,AZE,Azerbaijan
-BGD,BGD,Bangladesh
-BEN,BEN,Benin
-BOL,BOL,Bolivia
-BFA,BFA,Burkina Faso
-BDI,BDI,Burundi
-KHM,KHM,Cambodia
-CMR,CMR,Cameroon
-CAF,CAF,Central African Republic
-TCD,TCD,Chad
-COM,COM,Comoros
-COG,COG,Congo
-COD,COD,Congo DR
-CIV,CIV,Cote d Ivoire
-CUB,CUB,Cuba
-DJI,DJI,Djibouti
-ERI,ERI,Eritrea
-ETH,ETH,Ethiopia
-GMB,GMB,Gambia The
-GEO,GEO,Georgia
-GHA,GHA,Ghana
-GIN,GIN,Guinea
-GNB,GNB,Guinea-Bissau
-GUY,GUY,Guyana
-HTI,HTI,Haiti
-IND,IND,India
-IDN,IDN,Indonesia
-KEN,KEN,Kenya
-KIR,KIR,Kiribati
-PRK,PRK,Korea DPR
-KGZ,KGZ,Kyrgyzstan
-LAO,LAO,Lao PDR
-LSO,LSO,Lesotho
-LBR,LBR,Liberia
-MDG,MDG,Madagascar
-MWI,MWI,Malawi
-MLI,MLI,Mali
-MRT,MRT,Mauritania
-MDA,MDA,Moldova
-MOZ,MOZ,Mozambique
-MMR,MMR,Myanmar
-NPL,NPL,Nepal
-NIC,NIC,Nicaragua
-NER,NER,Niger
-NGA,NGA,Nigeria
-PAK,PAK,Pakistan
-PNG,PNG,Papua New Guinea
-RWA,RWA,Rwanda
-STP,STP,Sao Tome & Principe
-SEN,SEN,Senegal
-SLE,SLE,Sierra Leone
-SLB,SLB,Solomon Islands
-SOM,SOM,Somalia
-SSD,SSD,South Sudan
-SDN,SDN,Sudan
-TJK,TJK,Tajikistan
-TZA,TZA,Tanzania
-TLS,TLS,Timor Leste
-TGO,TGO,Togo
-UGA,UGA,Uganda
-UZB,UZB,Uzbekistan
-VNM,VNM,Vietnam
-YEM,YEM,Yemen
-ZMB,ZMB,Zambia
-ZWE,ZWE,Zimbabwe
+﻿ISO3,ISO3,ISO3Code,CountryName
+AFG,AFG,AFG,Afghanistan
+AGO,AGO,AGO,Angola
+ARM,ARM,ARM,Armenia
+AZE,AZE,AZE,Azerbaijan
+BGD,BGD,BGD,Bangladesh
+BEN,BEN,BEN,Benin
+BOL,BOL,BOL,Bolivia
+BFA,BFA,BFA,Burkina Faso
+BDI,BDI,BDI,Burundi
+KHM,KHM,KHM,Cambodia
+CMR,CMR,CMR,Cameroon
+CAF,CAF,CAF,Central African Republic
+TCD,TCD,TCD,Chad
+COM,COM,COM,Comoros
+COG,COG,COG,Congo
+COD,COD,COD,Congo DR
+CIV,CIV,CIV,Cote d Ivoire
+CUB,CUB,CUB,Cuba
+DJI,DJI,DJI,Djibouti
+ERI,ERI,ERI,Eritrea
+ETH,ETH,ETH,Ethiopia
+GMB,GMB,GMB,Gambia The
+GEO,GEO,GEO,Georgia
+GHA,GHA,GHA,Ghana
+GIN,GIN,GIN,Guinea
+GNB,GNB,GNB,Guinea-Bissau
+GUY,GUY,GUY,Guyana
+HTI,HTI,HTI,Haiti
+IND,IND,IND,India
+IDN,IDN,IDN,Indonesia
+KEN,KEN,KEN,Kenya
+KIR,KIR,KIR,Kiribati
+PRK,PRK,PRK,Korea DPR
+KGZ,KGZ,KGZ,Kyrgyzstan
+LAO,LAO,LAO,Lao PDR
+LSO,LSO,LSO,Lesotho
+LBR,LBR,LBR,Liberia
+MDG,MDG,MDG,Madagascar
+MWI,MWI,MWI,Malawi
+MLI,MLI,MLI,Mali
+MRT,MRT,MRT,Mauritania
+MDA,MDA,MDA,Moldova
+MOZ,MOZ,MOZ,Mozambique
+MMR,MMR,MMR,Myanmar
+NPL,NPL,NPL,Nepal
+NIC,NIC,NIC,Nicaragua
+NER,NER,NER,Niger
+NGA,NGA,NGA,Nigeria
+PAK,PAK,PAK,Pakistan
+PNG,PNG,PNG,Papua New Guinea
+RWA,RWA,RWA,Rwanda
+STP,STP,STP,Sao Tome & Principe
+SEN,SEN,SEN,Senegal
+SLE,SLE,SLE,Sierra Leone
+SLB,SLB,SLB,Solomon Islands
+SOM,SOM,SOM,Somalia
+SSD,SSD,SSD,South Sudan
+SDN,SDN,SDN,Sudan
+TJK,TJK,TJK,Tajikistan
+TZA,TZA,TZA,Tanzania
+TLS,TLS,TLS,Timor Leste
+TGO,TGO,TGO,Togo
+UGA,UGA,UGA,Uganda
+UZB,UZB,UZB,Uzbekistan
+VNM,VNM,VNM,Vietnam
+YEM,YEM,YEM,Yemen
+ZMB,ZMB,ZMB,Zambia
+ZWE,ZWE,ZWE,Zimbabwe

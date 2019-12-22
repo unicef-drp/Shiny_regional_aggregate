@@ -138,7 +138,7 @@ ui = fluidPage(
     
     # upload ISO
     fileInput('ISO_input', label = "(Optional) Upload a csv file of selected ISO3 Codes",
-              placeholder = "", accept = c(
+              placeholder = "Column name shall contain \"ISO\"", accept = c(
                 "text/csv",
                 "text/comma-separated-values,text/plain",
                 ".csv")
@@ -220,33 +220,28 @@ server = function(input, output, session) {
     file_path <- input$ISO_input$datapath
     tryCatch({
       if (file_type == "csv"){
-        dt_iso <- fread(file_path)
+        dt_iso <- fread(file_path, header = TRUE)
       } else if (file_type %in% c("xlsx", "xls")) {
         dt_iso <- setDT(readxl::read_excel(file_path))
       } else {
-        showModal(modalDialog(title == "Currently accept csv, xlsx, xls file.", "Please re-upload."))
+        showModal(modalDialog(title == "Currently accept csv, xlsx, or xls files.", "Please re-upload."))
         dt_iso <- NULL
       }
 
       if (!is.null(dt_iso)&length(colnames(dt_iso))!=0){
         message(paste("Read in", file_type ,"file"))
-        # find the column name cloest to "ISO", use the 1st column if not found
-        ISO_column_name <- colnames(dt_iso)[grep("ISO", toupper(colnames(dt_iso)))] 
+        # find the column names that contain "ISO", then used the cloest if have to guess
+        ISO_columns <- colnames(dt_iso)[grepl("ISO", toupper(colnames(dt_iso)))] 
+        ISO_column_name <- ISO_columns[which.min(adist("ISO", toupper(ISO_columns)))] 
         if(length(ISO_column_name) == 0){
-          ISO_column_name <- colnames(dt_iso)[1]
-          message("Couldn't match a column name that looks like \"ISO\". The first column is used. Please check if it is right.")
+          ISO_column_name <- colnames(dt_iso)[which.min(adist("ISO", toupper(colnames(dt_iso))))] 
+          message("Couldn't match a column name that looks like \"ISO\". Please check if the selected column is right.")
           message(paste("The name of the column is", ISO_column_name))
         }
-        if(length(ISO_column_name) > 1){
-          ISO_column_name <- ISO_column_name[1]
-          message("There are multiple columns that look like \"ISO\". The first column is used. Please check if it is right.")
-          message(paste("The name of the column is", ISO_column_name))
-        }
-        
         ISO_selected <- dt_iso[[ISO_column_name]]
         ISO_selected <- ISO_selected[ISO_selected%in%ISOs]
         if (ISO_column_name%in%ISOs){
-          message("I have included the column name, as an ISO is on the first row.")
+          message("The column name is included as an ISO.")
           ISO_selected <- c(ISO_column_name, ISO_selected)
         }
         
