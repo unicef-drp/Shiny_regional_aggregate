@@ -236,7 +236,7 @@ server = function(input, output, session) {
         if(length(ISO_column_name) == 0){
           ISO_column_name <- colnames(dt_iso)[which.min(adist("ISO", toupper(colnames(dt_iso))))] 
           message("Couldn't match a column name that looks like \"ISO\". Please check if the selected column is right.")
-          message(paste("The name of the column is", ISO_column_name))
+          message(paste("The column assumed is", ISO_column_name))
         }
         ISO_selected <- dt_iso[[ISO_column_name]]
         ISO_selected <- ISO_selected[ISO_selected%in%ISOs]
@@ -251,9 +251,11 @@ server = function(input, output, session) {
                               HTML("<br><br>You may click anywhere to dismiss this message"), easyClose = TRUE
                               ))
         
-        updatePickerInput(session, inputId = "country_input_select", 
-                          choices = if(input$input_by_region) input_country_list else countries,
-                          selected = dc[ISO3Code%in%ISO_selected, CountryName])
+        if(length(ISO_selected)!=0){
+          updatePickerInput(session, inputId = "country_input_select", 
+                            choices = if(input$input_by_region) input_country_list else countries,
+                            selected = dc[ISO3Code%in%ISO_selected, CountryName])
+        }
       }
       
     }, error = function(e){
