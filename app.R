@@ -244,6 +244,7 @@ server = function(input, output, session) {
           message("The column name is included as an ISO.")
           ISO_selected <- c(ISO_column_name, ISO_selected)
         }
+        ISO_selected <- unique(ISO_selected)
         
         showModal(modalDialog(title = paste("Uploaded and recognized ISOs in column", ISO_column_name ,"are:"), 
                               length(ISO_selected), " ISOs: ",  HTML("<br>"), 
