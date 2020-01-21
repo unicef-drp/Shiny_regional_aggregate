@@ -42,13 +42,13 @@ options(shiny.sanitize.errors = TRUE)
 
 # Language -------------------------------------------------------------------
 note_header <- p("This ShinyApp produces regional aggregates of child mortality
-estimates based on individually selected countries.", 
+estimates based on individually selected countries. The ", 
 a("UN IGME", href = "https://childmortality.org", target = "_blank"),
 "\'s latest estimates of neonatal, infant and under-five mortality are used. 
 Country data will also be included in the downloaded dataset from the \"Tables and Data Download\" panel
 after running the aggregates.")
 
-note_input <- "Please add countries by clicking the list, or typing names and press enter."
+note_input <- "Please add countries by clicking the list, or uploading a file of selected ISOs."
 default_select <- "Afghanistan"
 
 panel_title1   <- "Results of selected regional aggregates for"
@@ -120,11 +120,12 @@ ui = fluidPage(
     
     titlePanel("Aggregate Selected Countries"), # title
     br(),
-    p(note_header), 
+    wellPanel(p(note_header), style = "border: 0px"), 
     
+    # The country selection part
+    wellPanel(
     # country_input_select
-    p(note_input),
-    checkboxInput(inputId = "input_by_region", label = ("Group countries by the five continents"), value = FALSE),
+    helpText(note_input),
     shinyWidgets::pickerInput(
       inputId = "country_input_select", label = "Please Select Countries", 
       choices = countries, 
@@ -135,6 +136,7 @@ ui = fluidPage(
         `actions-box` = TRUE, 
         size = 10
       )),
+    checkboxInput(inputId = "input_by_region", label = ("Group countries by the five continents"), value = FALSE),
     
     # upload ISO
     fileInput('ISO_input', label = "(Optional) Upload a csv file of selected ISO3 Codes",
@@ -143,10 +145,12 @@ ui = fluidPage(
                 "text/comma-separated-values,text/plain",
                 ".csv")
               ),
-    br(),
+    style = "border: 0px"
+    ),
     
     # rename the group
     # p("To name the group: "),
+    wellPanel(
     textAreaInput(inputId = "adhoc_name", label = "(Optional) Name the selected group of countries",
                   value = adhoc_name, rows  = 1,
                   placeholder = "Default name is \"Selected Countries\" if leave as blank"),
@@ -156,7 +160,7 @@ ui = fluidPage(
     actionButton("click_run",  strong("Run the Aggregates"), width = '200px'), 
     br(),br(), 
     actionButton("click_reset",  ("Reset App"), width = '200px')
-  ),
+    )),
   
 
   # UI: main panel ----------------------------------------------------------
