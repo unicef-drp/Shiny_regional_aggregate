@@ -9,20 +9,33 @@
 #' get three types (Under-five Infant Neonatal) from Rates & Deaths summary
 #' @import data.table
 #' @importFrom readr parse_number
-#' @param year_range a vector of years we want, default to 2000:2018
+#'
+#' @param dt 
+#' @param year_min 
+#' @param year_max 
+#' @param gender is this reading sex-specific summary
 #' @param get_what "Deaths" or "Rate", default to "Rate": get the three CME rate
+#'
 #' @examples
 #' get.CME.data(year_range = c(2016:2018))
 #' @export get.CME.data
 #' @return dt of ISO3, UNcode, year, Under-five, Infant, Neonatal, one row for each country each year in year_range
 #'
-get.CME.data <- function(dt, year_range = c(2000:2018), get_what = "Rate", gender = FALSE){
-  # dt <- Rates_Deaths_Country_Summary_2019
+get.CME.data <- function(
+  dt, 
+  year_min = NULL, 
+  year_max = NULL,
+  get_what = "Rate", 
+  gender = FALSE
+  ){
   available_years <- readr::parse_number(grep("IMR", names(dt), value = TRUE))
+  if(is.null(year_min)) year_min <- min(available_years)
+  if(is.null(year_max)) year_max <- max(available_years)
+  year_range <- year_min:year_max
   if (!all(year_range%in%available_years)) {
     warning("Available years are between: ", paste(range(available_years), collapse = " and "),
-            ". Set years to default range.")
-    year_range <- c(2000:2018) # set to default range
+            ". Set years to this range.")
+    year_range <- 1990: max(available_years) # set to default range
   }
   
   if(get_what == "Rate") {
@@ -41,22 +54,47 @@ get.CME.data <- function(dt, year_range = c(2000:2018), get_what = "Rate", gende
                                     value.name = CME_types_full, variable.name = "year")
   levels(dt_death_long$year) <- year_range
   dt_death_long[, year:=as.numeric(levels(year)[year])]
-  dt_death_long[order(OfficialName)]
+  setorder(dt_death_long, OfficialName)
   return(dt_death_long)
 }
 
 
-get.data.all <- function(file, gender0 = FALSE, year_started, year_ended){
-  d1 = get.CME.data(fread(file), year_range = c(year_started:year_ended), "Rate", gender = gender0)
-  d2 = get.CME.data(fread(file), year_range = c(year_started:year_ended), "Deaths", gender = gender0)
-  setkey(d1, OfficialName, year)
-  setkey(d2, OfficialName, year)
-  d12 <- d1[d2]
+get.data.all <- function(dir_median,  
+                         year_started){
+  gender0 <- grepl("female|male", dir_median)
+  dir_file <- file.path(dir_median, "Rates & Deaths_Country Summary.csv")
+  if(!file.exists(dir_file)) stop("Check if directory is correct: ", dir_file)
+  d1 = get.CME.data(fread(dir_file), year_min = year_started, get_what = "Rate", gender = gender0)
+  d2 = get.CME.data(fread(dir_file), year_min = year_started, get_what =  "Deaths", gender = gender0)
+  d12 <- merge(d1, d2)
   setnames(d12, revise.name(names(d12), new_list = new_varname_list), skip_absent = TRUE)
   setnames(d12, "OfficialName", "Region")
-  return(d12[order(Region, -Year),])
+  if(grepl("female", dir_median)){
+    d12[,Sex:="Female"]
+  } else if (grepl("male", dir_median)){
+    d12[,Sex:="Male"]
+  } else {
+    d12[,Sex:="Total"]
+  }
+  setcolorder(d12, c("Region", "Year", "Sex")) # 2020.09 add Sex
+  setorder(d12, Region, -Year)
+  return(d12)
 }
 
+#' a function to select columns and define some format based on output of adhoc region
+get.table <- function(dt){
+  if(is.null(dt)) return(NULL)
+  # remove some columns
+  dt <- dt[, -(grep("Population|population", colnames(dt), value = TRUE)), with = FALSE]
+  dt <- dt[Year>=year_started]
+  setcolorder(dt, c("Region", "Year", "Sex")) # 2020.09 add Sex
+  dt[, Region2:= tolower(Region)]
+  setorder(dt, Region2, -Year) 
+  dt[, Region2:= NULL]
+  # rename 
+  colnames(dt) <- revise.name(colnames(dt), new_list = new_varname_list)
+  return(dt)
+}
 
 cp_UNICEF_div = c("#002759", "#0058AB", "#1CABE2", "#69DBFF", "#CFF4FF", "#FFF09C",
                         "#FFC20E", "#F26A21", "#E2231A", "#B50800")
@@ -156,6 +194,7 @@ new_varname_list <- list(
   "Neonatal deaths median"   = "Neonatal Deaths"
 )
 
+# required package version
 package_list <- list(
   "shiny" = "1.4.0",
   "DT" = "0.9",
@@ -163,9 +202,12 @@ package_list <- list(
 )
 
 update.package.version <- function(pkg){
-  if (packageVersion(pkg)< revise.name(pkg, new_list = package_list)) install.packages("shiny")
+  if (packageVersion(pkg)< revise.name(pkg, new_list = package_list)) install.packages(pkg)
 }
 
+check.dir.exists <- function(dir0){
+  if(!dir.exists(dir0)) stop("Check if the directory exists: ", dir0)
+}
 
 # get.results.file <- function(runname, pattern0 = "Results"){
 #   files <- list.files(here::here("output", runname), full.names = TRUE, pattern = pattern0)
