@@ -2147,7 +2147,7 @@ CalculateRegionalDeathsBWC <- function(
     load(file.path(output.dir.samplescombined, "info.rda"))
     list2env(info, envir = environment())
     load(file.path(output.dir.samplescombined, paste0("death0.ctj.", replace.rates.reg, "-replace.rda")))
-    load(file.path(output.dir.samplescombined,paste0("death1to4.ctj.", replace.rates.reg, "-replace.rda")))
+    load(file.path(output.dir.samplescombined, paste0("death1to4.ctj.", replace.rates.reg, "-replace.rda")))
     load(file.path(output.dir.samplescombined, paste0("deathu5.ctj.", replace.rates.reg, "-replace.rda")))
     
     nn.exists <- file.exists(file.path(output.dir.samplescombined, paste0("deathnn.ctj.", replace.rates.reg, "-replace.rda")))
@@ -2530,16 +2530,16 @@ CombineAndOutputRegionalResults <- function(
   }
   
   # delete samples
-  unlink(file.path(output.dir.samples.region, paste0("q0.rt_", 1:nsim, ".rda")))
-  unlink(file.path(output.dir.samples.region, paste0("q1to4.rt_", 1:nsim, ".rda")))
-  unlink(file.path(output.dir.samples.region, paste0("q5.rt_", 1:nsim, ".rda")))
-  unlink(file.path(output.dir.samples.region, paste0("death0.all.rt_", 1:nsim, ".rda")))
-  unlink(file.path(output.dir.samples.region, paste0("death1to4.all.rt_", 1:nsim, ".rda")))
-  unlink(file.path(output.dir.samples.region, paste0("deathu5.all.rt_", 1:nsim, ".rda")))
-  if(nn.exists){
-    unlink(file.path(output.dir.samples.region, paste0("qnn.rt_", 1:nsim, ".rda")))
-    unlink(file.path(output.dir.samples.region, paste0("deathnn.all.rt_", 1:nsim, ".rda")))
-  }
+  # unlink(file.path(output.dir.samples.region, paste0("q0.rt_", 1:nsim, ".rda")))
+  # unlink(file.path(output.dir.samples.region, paste0("q1to4.rt_", 1:nsim, ".rda")))
+  # unlink(file.path(output.dir.samples.region, paste0("q5.rt_", 1:nsim, ".rda")))
+  # unlink(file.path(output.dir.samples.region, paste0("death0.all.rt_", 1:nsim, ".rda")))
+  # unlink(file.path(output.dir.samples.region, paste0("death1to4.all.rt_", 1:nsim, ".rda")))
+  # unlink(file.path(output.dir.samples.region, paste0("deathu5.all.rt_", 1:nsim, ".rda")))
+  # if(nn.exists){
+  #   unlink(file.path(output.dir.samples.region, paste0("qnn.rt_", 1:nsim, ".rda")))
+  #   unlink(file.path(output.dir.samples.region, paste0("deathnn.all.rt_", 1:nsim, ".rda")))
+  # }
   
   # load population and coverage info
   load(file = file.path(output.dir.samplescombined, paste0(filename, "_popu5.orig.rt.rda")))

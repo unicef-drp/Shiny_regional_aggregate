@@ -41,6 +41,7 @@ suppressPackageStartupMessages({
   library("ggplot2")
   library("plotly")
   library("readr")
+  library("readxl")
 })
 
 # Sanitizing error messages
@@ -422,10 +423,11 @@ server = function(input, output, session) {
     }
     # where we run the aggregates:
     run.outputaggregates(year.lastestimatepublished)
-    
+    # source("6outputaggregates.R")
     if(input$run_gender){
       run.outputaggregates.gender(year.lastestimatepublished)
       adjust.death()
+      # source("6outputaggregates_gender.R")
     }
     
     removeModal()
