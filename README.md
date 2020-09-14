@@ -1,6 +1,6 @@
 # Shiny app to show regional aggregate
 
-Based on the BWC aggragating method, the app wraps the original `outputaggregates` code.
+Based on the BWC aggragating method, the app wraps the original `outputaggregates-BWC` code.
 
 To run the app directly from github (access to this group is required, so not applicable for most users):
 ```{r}
