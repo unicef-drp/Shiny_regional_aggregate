@@ -1,3 +1,6 @@
 .Rproj.user
 .Rhistory
 .Ruserdata
+*.csv
+test
+rsconnect

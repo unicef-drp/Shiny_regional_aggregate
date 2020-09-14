@@ -1,0 +1,24 @@
+# This is the only script that needs to be updated
+# Please also update all the files in the folders mentioned below
+
+# 0. The 7 files in the input folder except "country.info.CME_adhoc.csv", it doesn't matter.
+
+# 1. Aggregate results folder
+library("here")
+dir_median_total <- here::here("Aggregate results (median) 2019-08-15")
+dir_median_female <- here::here("Aggregate results (median) 2019-08-15 (female)")
+dir_median_male <- here::here("Aggregate results (median) 2019-08-15 (male)")
+
+# 2. Output folder
+# the folder names in output:
+runname.U5MR <- "GR20190311_all"
+runname.IMR <- "IMR20190314_all"
+runname.NMR <- "NMR_forDeathCalculation"
+
+# 3. Extra
+# Show data from: 
+year_started <- 1990 
+# year_end is set to the maximum available year in results.csv, no need to set manually
+
+# The release date in the `About` panel
+update_string0 <- "Last updated: September, 2019"
