@@ -9,6 +9,11 @@ dir_median_total <- here::here("median_results_total")
 dir_median_female <- here::here("median_results_female")
 dir_median_male <- here::here("median_results_male")
 
+# The name of the final results file:
+file_name_total <- "Rates & Deaths_Country Summary.csv"
+file_name_female <- "Rates & Deaths(ADJUSTED)_female_Country Summary (negative replaced).csv"
+file_name_male <- "Rates & Deaths(ADJUSTED)_male_Country Summary.csv"
+
 # 2. Output folder
 # the folder names in output:
 runname.U5MR <- "GR20190311_all"

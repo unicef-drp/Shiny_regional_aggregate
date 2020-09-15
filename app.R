@@ -17,7 +17,7 @@ check.and.install.pkgs <- function(pkgs){
 check.and.install.pkgs(c("shiny", "shinyWidgets", "shinyjs", "leaflet",
                          "maps", "maptools", "rgeos",
                          "DT","data.table", "dplyr", "here", 
-                         "ggplot2", "plotly", "readr", "readxl"))
+                         "ggplot2", "plotly", "readxl"))
 
 # source code
 invisible(sapply(list.files(here::here("R"), full.names = TRUE), source))
@@ -40,7 +40,6 @@ suppressPackageStartupMessages({
   library("dplyr")
   library("ggplot2")
   library("plotly")
-  library("readr")
   library("readxl")
 })
 
@@ -97,9 +96,9 @@ world_map <- get.world.map()
 
 # median results by country 
 # (results for each country will be included in the download as well)
-c_median_all <- get.data.all(dir_median = dir_median_total, year_started = year_started)
-c_median_f <- get.data.all(dir_median = dir_median_female, year_started = year_started)
-c_median_m <- get.data.all(dir_median = dir_median_male, year_started = year_started)
+c_median_all <- read.country.summary(dir_dt_cs = file.path(dir_median_total, file_name_total), year_wanted = year_started:2030)
+c_median_f <- read.country.summary(dir_dt_cs = file.path(dir_median_female, file_name_female), year_wanted = year_started:2030)
+c_median_m <- read.country.summary(dir_dt_cs = file.path(dir_median_male, file_name_male), year_wanted = year_started:2030)
 
 year_ended <- floor(max(c_median_all$Year))
 year.lastestimatepublished <- year_ended + 0.5  # e.g. 2019.5 for IGME 2020

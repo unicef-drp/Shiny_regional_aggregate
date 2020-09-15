@@ -1,84 +1,58 @@
 # helper.R for shiny
 
-# runname.U5MR <- "GR20190311_all"
-# runname.IMR <- "IMR20190314_all"
-# runname.NMR <- "NMR_forDeathCalculation"
-
-# Load results data -------------------------------------------------------
-
-#' get three types (Under-five Infant Neonatal) from Rates & Deaths summary
-#' @import data.table
-#' @importFrom readr parse_number
-#'
-#' @param dt 
-#' @param year_min 
-#' @param year_max 
-#' @param gender is this reading sex-specific summary
-#' @param get_what "Deaths" or "Rate", default to "Rate": get the three CME rate
-#'
-#' @examples
-#' get.CME.data(year_range = c(2016:2018))
-#' @export get.CME.data
-#' @return dt of ISO3, UNcode, year, Under-five, Infant, Neonatal, one row for each country each year in year_range
-#'
-get.CME.data <- function(
-  dt, 
-  year_min = NULL, 
-  year_max = NULL,
-  get_what = "Rate", 
-  gender = FALSE
-  ){
-  available_years <- readr::parse_number(grep("IMR", names(dt), value = TRUE))
-  if(is.null(year_min)) year_min <- min(available_years)
-  if(is.null(year_max)) year_max <- max(available_years)
-  year_range <- year_min:year_max
-  if (!all(year_range%in%available_years)) {
-    warning("Available years are between: ", paste(range(available_years), collapse = " and "),
-            ". Set years to this range.")
-    year_range <- 1990: max(available_years) # set to default range
-  }
-  
-  if(get_what == "Rate") {
-    CME_types_full <- if (gender) c("U5MR", "IMR") else c("U5MR", "IMR", "NMR")
-    vars_wanted <- c("OfficialName",
-                     do.call(paste, expand.grid(CME_types_full, year_range)))
+#' function to read "Rates & Deaths_Country Summary.csv" and output long format
+read.country.summary <- function(
+  dir_dt_cs,      # fread("Rates & Deaths_Country Summary.csv)
+  year_wanted = NULL, # e.g. c(1990:2019)
+  sex = NULL
+){    
+  if(!file.exists(dir_dt_cs)) stop("File doesn't exist: ", dir_dt_cs)
+  dt_cs <- fread(dir_dt_cs)[ISO3Code!="LIE"]
+  setnames(dt_cs, gsub(" ", ".", colnames(dt_cs)))
+  setnames(dt_cs, gsub("-", ".", colnames(dt_cs)))
+  # find the Quantie column: 
+  if("X"%in%colnames(dt_cs))setnames(dt_cs, "X", "Quantile")
+  if("V99"%in%colnames(dt_cs))setnames(dt_cs, "V99", "Quantile") # in case leave as blank
+  if("Quintile"%in%colnames(dt_cs))setnames(dt_cs, "Quintile", "Quantile")
+  # get all the variables available in the datasets: 
+  # e.g. c("X5q15", "X10q15", "X5q20")
+  vars <- grep(".2018", colnames(dt_cs), value = TRUE, fixed = TRUE)
+  vars <- gsub(".2018", "", vars)
+  # available years
+  year_available <- grep(vars[1], colnames(dt_cs), value = TRUE, fixed = TRUE)
+  year_available <- as.numeric(gsub(paste0(vars[1], "."), "", year_available))
+  if(is.null(year_wanted)){
+    year_wanted <- year_available
   } else {
-    CME_types_full <- if (gender) c("Under-five", "Infant") else c("Under-five", "Infant", "Neonatal")
-    # get all the combination for variable names: e.g. Under-five Deaths 2000, 19*3 = 57 variables
-    vars_wanted <- c("OfficialName",
-                     do.call(paste, expand.grid(CME_types_full, "Deaths", year_range)))
+    year_wanted <- year_wanted[year_wanted%in%year_available]
   }
-  # melt by CME_types_full using `patterns`
-  dt_death_long <- data.table::melt(dt[,..vars_wanted],
-                                    measure = patterns(paste0("^", CME_types_full)),
-                                    value.name = CME_types_full, variable.name = "year")
-  levels(dt_death_long$year) <- year_range
-  dt_death_long[, year:=as.numeric(levels(year)[year])]
-  setorder(dt_death_long, OfficialName)
-  return(dt_death_long)
-}
-
-
-get.data.all <- function(dir_median,  
-                         year_started){
-  gender0 <- grepl("female|male", dir_median)
-  dir_file <- file.path(dir_median, "Rates & Deaths_Country Summary.csv")
-  if(!file.exists(dir_file)) stop("Check if directory is correct: ", dir_file)
-  d1 = get.CME.data(fread(dir_file), year_min = year_started, get_what = "Rate", gender = gender0)
-  d2 = get.CME.data(fread(dir_file), year_min = year_started, get_what =  "Deaths", gender = gender0)
-  d12 <- merge(d1, d2)
-  setnames(d12, revise.name(names(d12), new_list = new_varname_list), skip_absent = TRUE)
-  setnames(d12, "OfficialName", "Region")
-  if(grepl("female", dir_median)){
-    d12[,Sex:="Female"]
-  } else if (grepl("male", dir_median)){
-    d12[,Sex:="Male"]
-  } else {
-    d12[,Sex:="Total"]
+  vars_wanted <- do.call(paste0, expand.grid(vars, ".", year_wanted))
+  dt_cs <- dt_cs[, c("OfficialName", "Quantile", vars_wanted), with = FALSE]
+  dt_cs[, (vars_wanted):=lapply(.SD, as.numeric), .SDcols = vars_wanted]
+  dt_long <- melt.data.table(dt_cs, id.vars = c("OfficialName", "Quantile"),
+                             variable.factor = FALSE)
+  dt_long[, year := as.numeric(substr(variable, nchar(variable)-3, nchar(variable)))]
+  dt_long[, ind := substr(variable, 1, nchar(variable)-5)]
+  dt_long[, variable:= NULL]
+  # determine sex from dir
+  if(is.null(sex)){
+    if(grepl("female", dir_dt_cs)){
+      sex <- "Female"
+    } else if (grepl("male", dir_dt_cs)) {
+      sex <- "Male"
+    } else {
+      sex <- "Total"
+    }
   }
-  setcolorder(d12, c("Region", "Year", "Sex")) # 2020.09 add Sex
-  setorder(d12, Region, -Year)
-  return(d12)
+  dt_long[, Sex:= sex]
+  dt_long[, ind:=revise.name(ind, new_list = new_varname_list)]
+  setnames(dt_long, "OfficialName", "Region")
+  setnames(dt_long, "year", "Year")
+  dt_long <- dt_long[Quantile=="Median"]
+  dt_wide <- dcast.data.table(dt_long, Region + Year + Sex ~ ind)
+  vars_new <- revise.name(vars, new_list = new_varname_list)
+  setcolorder(dt_wide, c("Region", "Year", "Sex", vars_new))
+  return(dt_wide)
 }
 
 #' a function to select columns and define some format based on output of adhoc region
@@ -191,7 +165,10 @@ new_varname_list <- list(
   "Neonatal"   = "Neonatal Deaths",
   "Under-five deaths median" = "Under-five Deaths",
   "Infant deaths median"     = "Infant Deaths",
-  "Neonatal deaths median"   = "Neonatal Deaths"
+  "Neonatal deaths median"   = "Neonatal Deaths",
+  "Under.five.Deaths" = "Under-five Deaths",
+  "Infant.Deaths"     = "Infant Deaths",
+  "Neonatal.Deaths"   = "Neonatal Deaths"
 )
 
 # required package version
