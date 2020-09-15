@@ -72,7 +72,7 @@ adhoc_name <- "Selected Countries"
 
 
 # dc: country.info.CME dataset
-dc <- fread(here::here("input", "country.info.CME.csv"))
+dc <- country.info <- fread(here::here("input", "country.info.CME.csv"))
 
 # Define region
 dc[, UNICEF_region:= ifelse(UNICEFReportRegion2 == "", UNICEFReportRegion1, UNICEFReportRegion2)]

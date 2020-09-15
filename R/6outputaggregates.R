@@ -3,8 +3,6 @@
 # David Sharrow, 2019
 
 
-# country.info <- read.csv(dir_CME.info, as.is = TRUE)
-
 
 #The following part is just for double-check Note: if replace.rates.reg and
 #replace.rates.cat are NULL, Outputaggregates will calculate aggregates in the
@@ -34,7 +32,7 @@ if(!file.exists(file.path(dir_median_total, "Rates & Deaths_M49Region.csv")))
   {
   OutputAggregates(results.U5MR.file = here::here("output", runname.U5MR, "Results.csv"),
                    results.IMR.file = here::here("output", runname.IMR, "Results.csv"),
-                   results.NMR.file = here::here("output", runname.NMR, "Results_NMR_2019-08-15.csv"),
+                   results.NMR.file = here::here("output", file_name_NMR),
                    run.on.server = FALSE,
                    year4 = year.lastestimatepublished,
                    output.dir = dir_median_total,
@@ -51,7 +49,7 @@ if(!file.exists(file.path(dir_median_total, "Rates & Deaths_M49Region.csv")))
 # 2. Generate aggregates specifiying the replacement aggregate and categories
 OutputAggregates(results.U5MR.file = here::here("output", runname.U5MR, "Results.csv"),
                  results.IMR.file = here::here("output", runname.IMR, "Results.csv"),
-                 results.NMR.file = here::here("output", runname.NMR, "Results_NMR_2019-08-15.csv"),
+                 results.NMR.file = here::here("output", file_name_NMR),
                  country.info.file = here::here("input", "country.info.CME_adhoc.csv"),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,

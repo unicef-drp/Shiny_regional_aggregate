@@ -26,10 +26,11 @@ read.country.summary <- function(
   } else {
     year_wanted <- year_wanted[year_wanted%in%year_available]
   }
+  vars_id <- if("Quantile"%in%colnames(dt_cs))c("OfficialName", "Quantile") else "OfficialName"
   vars_wanted <- do.call(paste0, expand.grid(vars, ".", year_wanted))
-  dt_cs <- dt_cs[, c("OfficialName", "Quantile", vars_wanted), with = FALSE]
+  dt_cs <- dt_cs[, c(vars_id, vars_wanted), with = FALSE]
   dt_cs[, (vars_wanted):=lapply(.SD, as.numeric), .SDcols = vars_wanted]
-  dt_long <- melt.data.table(dt_cs, id.vars = c("OfficialName", "Quantile"),
+  dt_long <- melt.data.table(dt_cs, id.vars = vars_id,
                              variable.factor = FALSE)
   dt_long[, year := as.numeric(substr(variable, nchar(variable)-3, nchar(variable)))]
   dt_long[, ind := substr(variable, 1, nchar(variable)-5)]
@@ -48,7 +49,7 @@ read.country.summary <- function(
   dt_long[, ind:=revise.name(ind, new_list = new_varname_list)]
   setnames(dt_long, "OfficialName", "Region")
   setnames(dt_long, "year", "Year")
-  dt_long <- dt_long[Quantile=="Median"]
+  if("Quantile"%in%colnames(dt_long)) dt_long <- dt_long[Quantile=="Median"]
   dt_wide <- dcast.data.table(dt_long, Region + Year + Sex ~ ind)
   vars_new <- revise.name(vars, new_list = new_varname_list)
   setcolorder(dt_wide, c("Region", "Year", "Sex", vars_new))

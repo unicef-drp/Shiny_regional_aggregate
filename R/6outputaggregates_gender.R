@@ -90,6 +90,8 @@ OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/
                  replace.rates.cat=replace(country.info$M49Region1, country.info$M49Region1=="Americas", country.info$M49Region2[country.info$M49Region1=="Americas"]))
 }
 
+
+
 # Adjust death for regional aggregates ----
 adjust.death <- function(){
   # print(file)

@@ -2429,7 +2429,7 @@ CalculateRegionalDeathsBWC <- function(
       if(nn.exists) deathnn.all.rt <- deathnn.rt
     } # else 
     
-    
+    # message("output.dir.samples.region is: ", output.dir.samples.region)
     
     save(q0.rt, file = file.path(output.dir.samples.region, paste0("q0.rt_", j, ".rda")))
     save(q1to4.rt, file = file.path(output.dir.samples.region, paste0("q1to4.rt_", j, ".rda")))
