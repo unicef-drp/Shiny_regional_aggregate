@@ -14,8 +14,11 @@ To run the app directly from github (not working now since the repo is private)
 ```{r}
 shiny::runGitHub("unicef-drp/Shiny_regional_aggregate.git", "liuyanguu")
 ```
+## How to update
+Please use `update_me_every_year.R`
+The data that needs updating are described in the script too
 
-## App Updates  
+## News  
 January 2020  
 - Allow uploading a list of ISO countries as countries to be selected,
 - Allow renaming the new selected group of countries (default as "selected countries")
