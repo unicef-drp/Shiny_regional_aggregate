@@ -17,7 +17,7 @@
 #following steps: 1. If generating aggregates for the first time this round,
 #generate aggregates in the conventional way to get country deaths and deaths
 #for the aggregate region (i.e. set replace.rates.reg=NULL and
-#replace.rates.cat=NULL) 2. Generate aggregates specifiying the replacement
+#replace.rates.cat=NULL) 2. Generate aggregates specifying the replacement
 #aggregate and categories (samples files for the replacement aggregate will have
 #"-replace" in the file names)
 

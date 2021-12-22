@@ -216,6 +216,7 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
 
     
     # save
+    if(!dir.exists(output.dir.samplescombined)) dir.create(output.dir.samplescombined, recursive = TRUE)
     save(u5mr.ctj, file = file.path(output.dir.samplescombined, "u5mr.ctj.rda"))
     save(imr.ctj, file = file.path(output.dir.samplescombined, "imr.ctj.rda"))
     cat(paste0("Processed trajectories saved to ", output.dir.samplescombined, "\n"))
@@ -733,6 +734,7 @@ CalculateCountryDeathsBWC <- function(
                  year4 = year4,
                  year.target = year.target,
                  factor.target = factor.target)
+    if(!dir.exists(output.dir)) dir.create(output.dir, recursive = TRUE)
     save(info, file = file.path(output.dir, "info.rda"))
     cat(paste0("Information about the aggregates have been saved to ", output.dir, ".\n"))
   }
@@ -2429,8 +2431,8 @@ CalculateRegionalDeathsBWC <- function(
       if(nn.exists) deathnn.all.rt <- deathnn.rt
     } # else 
     
+    if(!dir.exists(output.dir.samples.region)) dir.create(output.dir.samples.region, recursive = TRUE)
     # message("output.dir.samples.region is: ", output.dir.samples.region)
-    
     save(q0.rt, file = file.path(output.dir.samples.region, paste0("q0.rt_", j, ".rda")))
     save(q1to4.rt, file = file.path(output.dir.samples.region, paste0("q1to4.rt_", j, ".rda")))
     save(q5.rt, file = file.path(output.dir.samples.region, paste0("q5.rt_", j, ".rda")))

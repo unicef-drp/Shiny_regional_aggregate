@@ -8,7 +8,7 @@ Or just open the `app.R` and run.
 ```{r}
 git clone https://github.com/UnicefDAPM/Shiny_regional_aggregate.git
 ```
-It is also on Dropbox under the folder `Shiny2020`. 
+It is also on Dropbox under the folder `Shiny202x`. 
 
 To run the app directly from github (not working now since the repo is private)
 ```{r}

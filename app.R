@@ -10,7 +10,8 @@ source("update_me_every_year.R")
 
 # Libraries
 check.and.install.pkgs <- function(pkgs){
-  new.packages <- pkgs[!pkgs %in% installed.packages()[,"Package"]]
+  search_package <- sapply(pkgs, find.package, quiet = TRUE) # return a string or character(0)
+  new.packages <- pkgs[sapply(search_package, function(x)length(x)==0)]
   if(length(new.packages)) install.packages(new.packages, dependencies = TRUE)
   suppressPackageStartupMessages(invisible(lapply(pkgs, library, character.only = TRUE)))
 }
@@ -208,7 +209,7 @@ theme = "bootstrap.css"
 
 # Server ------------------------------------------------------------------
 
-server = function(input, output, session) {
+server <- function(input, output, session) {
   # Reset session 
   observe({
     if (input$click_reset) {
