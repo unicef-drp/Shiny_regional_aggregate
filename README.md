@@ -3,6 +3,8 @@
 Based on the BWC aggragating method, the app wraps the original `outputaggregates-BWC` code.
 Update the script `update_me_every_year.R` to update yearly estimates.
 
+Depolyed on shinyapps.io: https://u5met2017.shinyapps.io/Shiny_regional_aggregate/
+
 To run the code locally, download the repo and launch it as R project using the __`Rporj`__ file,
 Or just open the `app.R` and run.
 ```{r}
@@ -18,7 +20,7 @@ shiny::runGitHub("unicef-drp/Shiny_regional_aggregate.git", "liuyanguu")
 Please use `update_me_every_year.R`
 The data that needs updating are described in the script too
 
-## News  
+## New features  
 January 2020  
 - Allow uploading a list of ISO countries as countries to be selected,
 - Allow renaming the new selected group of countries (default as "selected countries")
