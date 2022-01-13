@@ -1,6 +1,9 @@
 # helper.R for shiny
 
 #' function to read "Rates & Deaths_Country Summary.csv" and output long format
+#' `OfficialName` column named as `Region` for easier binding later in the
+#' downloaded file
+#' 
 read.country.summary <- function(
   dir_dt_cs,      # fread("Rates & Deaths_Country Summary.csv)
   year_wanted = NULL, # e.g. c(1990:2019)
@@ -74,6 +77,8 @@ get.table <- function(dt){
 cp_UNICEF_div = c("#002759", "#0058AB", "#1CABE2", "#69DBFF", "#CFF4FF", "#FFF09C",
                         "#FFC20E", "#F26A21", "#E2231A", "#B50800")
 
+# revise name, the `default_labels` inside is used to rename country names for the map
+# the `default_labels` is used if `new_list` = NULL
 revise.name <- function(x, new_list = NULL, no_line_break = FALSE){
     default_labels <- list(
       "Antigua" = "Antigua and Barbuda",
@@ -152,11 +157,12 @@ SDG_list <- list(
   "South-eastern Asia" = "South-Eastern Asia"
 )
 
+# a list used to rename column names in output 
 new_varname_list <- list(
   "year" = "Year",
   "U5MR" = "Under-five Mortality Rate",
-    "IMR" = "Infant Mortality Rate",
-    "NMR" = "Neonatal Mortality Rate",
+  "IMR" = "Infant Mortality Rate",
+  "NMR" = "Neonatal Mortality Rate",
   "U5MR median" = "Under-five Mortality Rate",
   "IMR median"  = "Infant Mortality Rate",
   "NMR median"  = "Neonatal Mortality Rate",
@@ -180,7 +186,7 @@ package_list <- list(
 )
 
 update.package.version <- function(pkg){
-  if (packageVersion(pkg)< revise.name(pkg, new_list = package_list)) install.packages(pkg)
+  if (packageVersion(pkg) < revise.name(pkg, new_list = package_list)) install.packages(pkg)
 }
 
 check.dir.exists <- function(dir0){

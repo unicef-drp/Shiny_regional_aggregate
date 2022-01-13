@@ -47,7 +47,7 @@ suppressPackageStartupMessages({
 # Sanitizing error messages
 options(shiny.sanitize.errors = TRUE)
 
-# Language -------------------------------------------------------------------
+# Texts -------------------------------------------------------------------
 note_header <- p("This ShinyApp produces regional aggregates of child mortality
 estimates based on individually selected countries. The ", 
 a("UN IGME", href = "https://childmortality.org", target = "_blank"),
@@ -55,13 +55,15 @@ a("UN IGME", href = "https://childmortality.org", target = "_blank"),
 Country data will also be included in the downloaded dataset from the \"Tables and Data Download\" panel
 after running the aggregates.")
 
-note_input <- "Please add countries by clicking the list, or uploading a file of selected ISOs."
+note_input     <- "Please add countries by clicking the list, or uploading a file of selected ISOs."
 default_select <- "Afghanistan"
 
-panel_title1   <- "Results of selected regional aggregates for"
-panel_title1.2 <- "Tables of selected regional aggregates"
-panel_note1.2 <- "Regional, world, and country data are available for download."
-panel_title2 <- "Sex-specific results for selected regional aggregates"
+panel_title1.1 <- "Results of selected regional aggregates for"
+panel_title1.2 <- "Sex-specific results for selected regional aggregates"
+panel_title2.1 <- "Table of selected regional aggregates"
+panel_title2.2 <- "Sex-specific results for selected regional aggregates"
+panel_note1    <- "Regional, world, and country data are available for download:"
+panel_note2    <- "Regional, world, and country data (including sex-specific results) are available for download:"
 
 note_map <- "Note: This map is stylized and not to scale and does not reflect 
 a position by UNICEF on the legal status of any country or territory or the delimitation 
@@ -95,11 +97,11 @@ ISOs <- sort(dc[,unique(ISO3Code)])
 # Get world map with modified country names 
 world_map <- get.world.map()
 
-# median results by country 
-# (results for each country will be included in the download as well)
+# median results for country 
+# median results for the selected countries will be included in the downloaded file, but won't be shown in the app
 c_median_all <- read.country.summary(dir_dt_cs = file.path(dir_median_total, file_name_total), year_wanted = year_started:2030)
-c_median_f <- read.country.summary(dir_dt_cs = file.path(dir_median_female, file_name_female), year_wanted = year_started:2030)
-c_median_m <- read.country.summary(dir_dt_cs = file.path(dir_median_male, file_name_male), year_wanted = year_started:2030)
+c_median_f   <- read.country.summary(dir_dt_cs = file.path(dir_median_female, file_name_female), year_wanted = year_started:2030)
+c_median_m   <- read.country.summary(dir_dt_cs = file.path(dir_median_male, file_name_male), year_wanted = year_started:2030)
 
 year_ended <- floor(max(c_median_all$Year))
 year.lastestimatepublished <- year_ended + 0.5  # e.g. 2019.5 for IGME 2020
@@ -145,7 +147,7 @@ ui = fluidPage(
     checkboxInput(inputId = "input_by_region", label = ("Group countries by the five continents"), value = FALSE),
     
     # upload ISO
-    fileInput('ISO_input', label = p("(Optional) Upload a csv file of selected", a("ISO3 country code", href = "https://unstats.un.org/unsd/tradekb/knowledgebase/country-code", target = "_blank")),
+    fileInput('ISO_input', label = p("(Optional) Upload a csv file of selected", a("ISO3 country code", href = "https://unstats.un.org/unsd/methodology/m49/", target = "_blank")),
               placeholder = "Column name shall contain \"ISO\"", accept = c(
                 "text/csv",
                 "text/comma-separated-values,text/plain",
@@ -173,10 +175,10 @@ ui = fluidPage(
   mainPanel(
   # plots (and map)
     tabsetPanel(
-      tabPanel("Plots",
+      tabPanel("Plot",
                
                # print results 
-               h4("The list of selected countries:"),
+               h4("The selected countries:"),
                (textOutput("text_selected_countries")),
                br(),
 
@@ -194,10 +196,9 @@ ui = fluidPage(
         h6(note_map)
       ),
   # tables
-      tabPanel("Tables and Data Download",
+      tabPanel("Table and Data Download",
         uiOutput("panel_results_table"),
         br(),br(),
-        
         uiOutput("panel_results_table_gender") 
       ),      
   # About
@@ -294,7 +295,9 @@ server <- function(input, output, session) {
           paste(sort(cs), collapse = ", "))
   })
   
-  # reactive: record countries for the click_run, and render Text
+  # reactive: record countries after the click_run, and render Text because the
+  # `text_selected_countries` could change, but after click_run, there will be a
+  # fixed selected group of countries
   reactive.selected.countries <- eventReactive(input$click_run, {
     input$country_input_select
   })
@@ -320,14 +323,14 @@ server <- function(input, output, session) {
       return()
     }
     fluidRow(
-      h4(strong(panel_title1)),
+      h4(strong(panel_title1.1)),
       h5(strong(textOutput(outputId = "selected_countries_click_run"))),
       br(),
       # show_world
       checkboxInput(inputId = "show_world", label = "Show results for the world in plots", value = FALSE),
-      plotlyOutput("plot_rate"),
+      plotly::plotlyOutput("plot_rate"),
       br(),
-      plotlyOutput("plot_death"),
+      plotly::plotlyOutput("plot_death"),
       br(),br()
     )
   })
@@ -338,26 +341,26 @@ server <- function(input, output, session) {
     }
     if(!input$run_gender) return()
     fluidRow(
-      h3(panel_title2),
+      h4(strong(panel_title1.2)),
       
 
       if (length(input$show_world != 0)){
         if (input$show_world) {
-          plotlyOutput("plot_rate_gender", height = "800px", width = "80%")
+          plotly::plotlyOutput("plot_rate_gender", height = "800px", width = "80%")
         } else {
-          plotlyOutput("plot_rate_gender", width = "80%")
+          plotly::plotlyOutput("plot_rate_gender", width = "80%")
         }}
     )
   })
   
-  # renderUI:tables
+  # renderUI: tables
   output$panel_results_table <- renderUI({
     if (is.null(reactive.run())){
       return()
     }
     fluidRow(
-      h4(panel_title1.2),
-      p(panel_note1.2),
+      h4(strong(panel_title2.1)),
+      if(input$run_gender) p(panel_note2) else p(panel_note1),
       # optional to download
       downloadButton("download_table_all", "Download"),
       br(),br(),
@@ -371,7 +374,7 @@ server <- function(input, output, session) {
     }
     if(!input$run_gender) return()
     fluidRow(            
-      h3(panel_title2),
+      h4(strong(panel_title2.2)),
       p(strong("Data for the female")),
       downloadButton("download_table_f", "Download"),
       br(),br(),
@@ -396,44 +399,45 @@ server <- function(input, output, session) {
   reactive.run <- eventReactive(input$click_run, {
     if (length(input$country_input_select)==0) {
       showModal(modalDialog(title = "Please select countries first.",  
-                            "You may click anywhere to dismiss this message", easyClose = TRUE))
+                            footer = "You may click anywhere to dismiss this message", 
+                            easyClose = TRUE))
     } else {
-    
+    # run aggregates for the selected countries
     dc[,AdhocCountries:=""]
     dc[OfficialName %in% input$country_input_select, AdhocCountries:="Adhoc"]
     write.csv(dc, file = here::here("input", "country.info.CME_adhoc.csv"))
+    cs <- input$country_input_select # country list
     time0 <- Sys.time()
-    # sex-specific?
-    cs <- input$country_input_select
+    
     if(!input$run_gender){
       # showModal will show that the scripe is running, and removed when scripts are done 
-      paste()
-      
       showModal(modalDialog(title = paste("Running aggregate for", 
                                           length(cs), 
                                           if(length(cs)==1) "country:" else "countries:", 
-                                          paste(sort(cs), collapse = ", ")),
-                            HTML("<br> It takes about 10 - 20 seconds."), footer=NULL))
+                                          paste(sort(cs), collapse = ", ")), 
+                            HTML("<br> It takes about 10 - 20 seconds."), 
+                            footer=NULL))
     } else {
+      # sex-specific
       showModal(modalDialog(title = paste("Running sex-specific aggregate for", 
                                           length(cs), 
                                           if(length(cs)==1) "country:" else "countries:", 
                                           paste(sort(cs), collapse = ", ")), 
-                            HTML("<br> It takes about 20 - 30 seconds."), footer=NULL))
+                            HTML("<br> It takes about 20 - 30 seconds."), 
+                            footer=NULL))
     }
+    
     # where we run the aggregates:
     run.outputaggregates(year.lastestimatepublished)
-    # source("6outputaggregates.R")
     if(input$run_gender){
       run.outputaggregates.gender(year.lastestimatepublished)
       adjust.death()
-      # source("6outputaggregates_gender.R")
     }
     
     removeModal()
     message("Time spent is ", round(Sys.time() - time0, 1), " seconds.")
     
-    # Add the use-defined `adhoc_name`:
+    # Add the user-defined `adhoc_name`:
     change.dt.name <- function(dt){
       setnames(dt, gsub("\\.", " ", colnames(dt))) # revise colnames from adjusted sex-specific output
       setnames(dt, gsub("Under five", "Under-five", colnames(dt)))
@@ -442,7 +446,7 @@ server <- function(input, output, session) {
     }
     
     if(!input$run_gender){
-      # only total sex
+      # only total
       return(list(
                   all = change.dt.name(fread(file.path(dir_median_total, "Rates & Deaths_AdhocCountries.csv"))),
                   c_median_all = c_median_all[Region%in%input$country_input_select,],
@@ -600,32 +604,64 @@ server <- function(input, output, session) {
   })
 
 
-  # Make results available for downloading, this is a function to make `downloadHandler` 
-   down.load.dt <- function(dt, name0){
-    downloadHandler(
-      filename = function() {
-        paste0("Results",name0,"_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
-      },
-      content = function(file) {
-        write.csv(dt, file, row.names = FALSE, na = "")
-    }
-  )}
+  # Download ----------------------------------------------------------------
+  # Make results available for downloading
+  
+  # note: using a function to make `downloadHandler` creates a hidden bug that
+  # the reactive inside is only activated once and won't refresh when a new run
+  # is clicked. This would cause a bug that the downloaded content won't change
+  # after new run --- removed 2022.01
+  # 
+  #  down.load.dt <- function(dt, name0){
+  #   downloadHandler(
+  #     filename = function() {
+  #       paste0("Results",name0,"_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
+  #     },
+  #     content = function(file) {
+  #       write.csv(dt, file, row.names = FALSE, na = "")
+  #   }
+  # )}
 
-  output$download_table_all <- down.load.dt(dt = 
-                                      rbindlist(list(get.table(reactive.run()$all), 
-                                                     reactive.run()$c_median_all,
-                                                     get.table(reactive.run()$f),
-                                                     reactive.run()$c_median_f,
-                                                     get.table(reactive.run()$m),
-                                                     reactive.run()$c_median_m), 
-                                                fill = TRUE),
-                                            name0 = "_total")
-  output$download_table_f <- down.load.dt(dt = rbind(get.table(reactive.run()$f),
-                                                     reactive.run()$c_median_f), 
-                                          name0 = "_female")
-  output$download_table_m <- down.load.dt(dt = rbind(get.table(reactive.run()$m),
-                                                     reactive.run()$c_median_m), 
-                                          name0 = "_male")
+  # download incl sex.specific data if run sex-specific
+  output$download_table_all <- downloadHandler(
+    filename = function() {
+      paste0("Results_all_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
+    },
+    content = function(file) {
+      dtout <- rbindlist(list(get.table(reactive.run()$all),
+                              reactive.run()$c_median_all,
+                              get.table(reactive.run()$f),
+                              reactive.run()$c_median_f,
+                              get.table(reactive.run()$m),
+                              reactive.run()$c_median_m
+                              ), fill = TRUE)
+      write.csv(dtout, file, row.names = FALSE, na = "")
+    }
+  )
+  
+  output$download_table_f <- downloadHandler(
+    filename = function() {
+      paste0("Results_female_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
+    },
+    content = function(file) {
+      dtout <- rbindlist(list(get.table(reactive.run()$f),
+                              reactive.run()$c_median_f
+                              ), fill = TRUE)
+      write.csv(dtout, file, row.names = FALSE, na = "")
+    }
+  )
+    
+  output$download_table_m <- downloadHandler(
+    filename = function() {
+      paste0("Results_male_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
+    },
+    content = function(file) {
+      dtout <- rbindlist(list(get.table(reactive.run()$m),
+                              reactive.run()$c_median_m
+                              ), fill = TRUE)
+      write.csv(dtout, file, row.names = FALSE, na = "")
+    }
+  )
   
 }
 # Run App ---------------------------------------------------------------------

@@ -33,7 +33,7 @@ file_name_NMR  <- "NMR/Results.csv"
 
 # 3. Extra
 # Show data from: 
-year_started <- 1990 # maybe no need to change, this is starting year to show
+year_started <- 1990 # no need to change, this is starting year to show
 # year_end is set to be the maximum available year in results.csv, which is the latest year. There is no need to set manually
 
 # The release date in the `About` panel
