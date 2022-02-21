@@ -24,17 +24,16 @@ file_name_male   <- "Rates & Deaths(ADJUSTED)_male_Country Summary.csv"
 # run "update/2.Create M49 regions and initiate app.R"
 
 # 2. "Results.csv" in the "output" folder 
-# folder names: (can remain unchanged)
+# results.csv files are already updated earlier in the script "update/1.Update median agg and results.csv.R" folder
+# folder names (can remain unchanged):
 runname.U5MR   <- "U5MR"
 runname.IMR    <- "IMR"
 file_name_NMR  <- "NMR/Results.csv"
-# Update results.csv
-# results.csv files are already updated earlier in the script "update/Update median agg and results.csv.R"
 
 # 3. Extra
-# Show data from: 
+# Show data from (usually remain unchanged): 
 year_started <- 1990 # no need to change, this is starting year to show
 # year_end is set to be the maximum available year in results.csv, which is the latest year. There is no need to set manually
 
-# The release date in the `About` panel
+# The release date in the `About` panel, please revise every year: 
 update_string0 <- "Last updated: December, 2021"
