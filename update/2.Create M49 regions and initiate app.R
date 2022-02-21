@@ -1,5 +1,5 @@
 # Initializing app after updating every year
-
+# run the whole script
 
 # The only script to update:
 source("update_me_every_year.R")

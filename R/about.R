@@ -32,7 +32,7 @@ get.about.panel <- function(update_string){
               so forth. Under-five deaths in each calendar year are calculated by summing up
               all the deaths under age 5 across all age group cohorts in that year. The
               annual estimate of the number of live births in each country from the World
-              Population Prospects 2020 is used to calculate the number of deaths.
+              Population Prospects 2019 is used to calculate the number of deaths.
              "),
            
            
