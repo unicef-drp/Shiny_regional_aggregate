@@ -314,7 +314,7 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
       }
     }
     cat(paste0("Combining and outputting country results...\n"))
-    CombineAndOutputCountryResults(u5mr.ctj = u5mr.ctj, imr.ctj = imr.ctj, nmr.ctj = nmr.ctj,
+    CombineAndOutputCountryResultsBWC(u5mr.ctj = u5mr.ctj, imr.ctj = imr.ctj, nmr.ctj = nmr.ctj,
                                    country.info = country.info,
                                    percentiles = percentiles, ndigits = ndigits,
                                    output.dir = output.dir,
@@ -389,7 +389,7 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
       }
     }
     cat(paste0("Combining and outputting country results (missing rates replaced with ", replace.rates.reg, ")...\n"))
-    CombineAndOutputCountryResults.replacemissingrates(u5mr.ctj = u5mr.ctj, imr.ctj = imr.ctj, nmr.ctj = nmr.ctj,
+    CombineAndOutputCountryResultsBWC.replacemissingrates(u5mr.ctj = u5mr.ctj, imr.ctj = imr.ctj, nmr.ctj = nmr.ctj,
                                    country.info = country.info,
                                    percentiles = percentiles, ndigits = ndigits,
                                    output.dir = output.dir,
@@ -701,62 +701,62 @@ CalculateCountryDeathsBWC <- function(
   # deathu5.ct[arr.ind.select] <- NA
   
   # calculate country rates of decline
-  ARR.year1.year4.c <- CalculateARR(u5mr = u5mr.ct, years = est.years, year.start = year1, year.end = year4)
-  ARR.year1.year2.c <- CalculateARR(u5mr = u5mr.ct, years = est.years, year.start = year1, year.end = year2)
-  ARR.year2.year4.c <- CalculateARR(u5mr = u5mr.ct, years = est.years, year.start = year2, year.end = year4)
-  required.ARR.c <- ifelse(year4 < year.target,
-                           1/(year.target-year4)*
-                             log(roundoff(u5mr.ct[, est.years == year1]*factor.target, digits = ndigits)/
-                                   u5mr.ct[, est.years == year4])*-100, NA)
-  changeinARR.c <- ARR.year2.year4.c - ARR.year1.year2.c
-  decline.year1.year4.c <- CalculateDecline(u5mr = u5mr.ct, years = est.years, year.start = year1, year.end = year4)
-  decline.year1.year2.c <- CalculateDecline(u5mr = u5mr.ct, years = est.years, year.start = year1, year.end = year2)
-  decline.year2.year4.c <- CalculateDecline(u5mr = u5mr.ct, years = est.years, year.start = year2, year.end = year4)
-  
-  if (!file.exists(file.path(output.dir, "info.rda"))) {
-    info <- list(iso.c = iso.c,
-                 C = C,
-                 est.years = est.years,
-                 est.years.floor = est.years-0.5,
-                 year1.est.nn = year1.est.nn, ## will be NA if no nmr
-                 year1.est.u1 = year1.est.u1,
-                 year1.est.u5 = year1.est.u5,
-                 nyears = nyears,
-                 a0.c = a0.c,
-                 a1to4.c = a1to4.c,
-                 pop0.ct = pop0.ct,
-                 pop1to4.ct = pop1to4.ct,
-                 pop0.orig.ct = pop0.orig.ct,
-                 pop1to4.orig.ct = pop1to4.orig.ct,
-                 livebirths.ct = livebirths.ct,
-                 year1 = year1,
-                 year2 = year2,
-                 year4 = year4,
-                 year.target = year.target,
-                 factor.target = factor.target)
-    if(!dir.exists(output.dir)) dir.create(output.dir, recursive = TRUE)
-    save(info, file = file.path(output.dir, "info.rda"))
-    cat(paste0("Information about the aggregates have been saved to ", output.dir, ".\n"))
-  }
-  # save samples
-  save(death0.ct, file = file.path(output.dir, paste0("death0.ct_", j, ".rda")))
-  save(death1to4.ct, file = file.path(output.dir, paste0("death1to4.ct_", j, ".rda")))
-  save(deathu5.ct, file = file.path(output.dir, paste0("deathu5.ct_", j, ".rda")))
-  save(dx.array.by.c, file = file.path(output.dir, paste0("dx.array.ct_", j, ".rda")))
-  save(lx.array.by.c, file = file.path(output.dir, paste0("lx.array.ct_", j, ".rda")))
-  if(!is.null(nmr.ctj)){
-    save(deathnn.ct, file = file.path(output.dir, paste0("deathnn.ct_", j, ".rda")))
-    save(dx.nn.array.by.c, file = file.path(output.dir, paste0("dx.nn.array.ct_", j, ".rda")))
-    save(lx.nn.array.by.c, file = file.path(output.dir, paste0("lx.nn.array.ct_", j, ".rda")))
-  }
-  save(ARR.year1.year4.c, file = file.path(output.dir, paste0("ARR.year1.year4.c_", j, ".rda")))
-  save(ARR.year1.year2.c, file = file.path(output.dir, paste0("ARR.year1.year2.c_", j, ".rda")))
-  save(ARR.year2.year4.c, file = file.path(output.dir, paste0("ARR.year2.year4.c_", j, ".rda")))
-  save(required.ARR.c, file = file.path(output.dir, paste0("required.ARR.c_", j, ".rda")))
-  save(changeinARR.c, file = file.path(output.dir, paste0("changeinARR.c_", j, ".rda")))
-  save(decline.year1.year4.c, file = file.path(output.dir, paste0("decline.year1.year4.c_", j, ".rda")))
-  save(decline.year1.year2.c, file = file.path(output.dir, paste0("decline.year1.year2.c_", j, ".rda")))
-  save(decline.year2.year4.c, file = file.path(output.dir, paste0("decline.year2.year4.c_", j, ".rda")))
+  # ARR.year1.year4.c <- CalculateARR(u5mr = u5mr.ct, years = est.years, year.start = year1, year.end = year4)
+  # ARR.year1.year2.c <- CalculateARR(u5mr = u5mr.ct, years = est.years, year.start = year1, year.end = year2)
+  # ARR.year2.year4.c <- CalculateARR(u5mr = u5mr.ct, years = est.years, year.start = year2, year.end = year4)
+  # required.ARR.c <- ifelse(year4 < year.target,
+  #                          1/(year.target-year4)*
+  #                            log(roundoff(u5mr.ct[, est.years == year1]*factor.target, digits = ndigits)/
+  #                                  u5mr.ct[, est.years == year4])*-100, NA)
+  # changeinARR.c <- ARR.year2.year4.c - ARR.year1.year2.c
+  # decline.year1.year4.c <- CalculateDecline(u5mr = u5mr.ct, years = est.years, year.start = year1, year.end = year4)
+  # decline.year1.year2.c <- CalculateDecline(u5mr = u5mr.ct, years = est.years, year.start = year1, year.end = year2)
+  # decline.year2.year4.c <- CalculateDecline(u5mr = u5mr.ct, years = est.years, year.start = year2, year.end = year4)
+  # 
+  # if (!file.exists(file.path(output.dir, "info.rda"))) {
+  #   info <- list(iso.c = iso.c,
+  #                C = C,
+  #                est.years = est.years,
+  #                est.years.floor = est.years-0.5,
+  #                year1.est.nn = year1.est.nn, ## will be NA if no nmr
+  #                year1.est.u1 = year1.est.u1,
+  #                year1.est.u5 = year1.est.u5,
+  #                nyears = nyears,
+  #                a0.c = a0.c,
+  #                a1to4.c = a1to4.c,
+  #                pop0.ct = pop0.ct,
+  #                pop1to4.ct = pop1to4.ct,
+  #                pop0.orig.ct = pop0.orig.ct,
+  #                pop1to4.orig.ct = pop1to4.orig.ct,
+  #                livebirths.ct = livebirths.ct,
+  #                year1 = year1,
+  #                year2 = year2,
+  #                year4 = year4,
+  #                year.target = year.target,
+  #                factor.target = factor.target)
+  #   if(!dir.exists(output.dir)) dir.create(output.dir, recursive = TRUE)
+  #   save(info, file = file.path(output.dir, "info.rda"))
+  #   cat(paste0("Information about the aggregates have been saved to ", output.dir, ".\n"))
+  # }
+  # # save samples
+  # save(death0.ct, file = file.path(output.dir, paste0("death0.ct_", j, ".rda")))
+  # save(death1to4.ct, file = file.path(output.dir, paste0("death1to4.ct_", j, ".rda")))
+  # save(deathu5.ct, file = file.path(output.dir, paste0("deathu5.ct_", j, ".rda")))
+  # save(dx.array.by.c, file = file.path(output.dir, paste0("dx.array.ct_", j, ".rda")))
+  # save(lx.array.by.c, file = file.path(output.dir, paste0("lx.array.ct_", j, ".rda")))
+  # if(!is.null(nmr.ctj)){
+  #   save(deathnn.ct, file = file.path(output.dir, paste0("deathnn.ct_", j, ".rda")))
+  #   save(dx.nn.array.by.c, file = file.path(output.dir, paste0("dx.nn.array.ct_", j, ".rda")))
+  #   save(lx.nn.array.by.c, file = file.path(output.dir, paste0("lx.nn.array.ct_", j, ".rda")))
+  # }
+  # save(ARR.year1.year4.c, file = file.path(output.dir, paste0("ARR.year1.year4.c_", j, ".rda")))
+  # save(ARR.year1.year2.c, file = file.path(output.dir, paste0("ARR.year1.year2.c_", j, ".rda")))
+  # save(ARR.year2.year4.c, file = file.path(output.dir, paste0("ARR.year2.year4.c_", j, ".rda")))
+  # save(required.ARR.c, file = file.path(output.dir, paste0("required.ARR.c_", j, ".rda")))
+  # save(changeinARR.c, file = file.path(output.dir, paste0("changeinARR.c_", j, ".rda")))
+  # save(decline.year1.year4.c, file = file.path(output.dir, paste0("decline.year1.year4.c_", j, ".rda")))
+  # save(decline.year1.year2.c, file = file.path(output.dir, paste0("decline.year1.year2.c_", j, ".rda")))
+  # save(decline.year2.year4.c, file = file.path(output.dir, paste0("decline.year2.year4.c_", j, ".rda")))
 }
 #-------------------------------------------------------------------------
 CalculateCountryDeathsBWC.replacemissingrates <- function( # DJS add 2018-07-24 for using defined historical regional rates to replace missing country rates -- this function requires existing regional aggregate output for replacement
@@ -1025,7 +1025,7 @@ CalculateCountryDeathsBWC.replacemissingrates <- function( # DJS add 2018-07-24 
   # save(decline.year2.year4.c, file = file.path(output.dir, paste0("decline.year2.year4.c_", j, ".rda")))
 }
 #-------------------------------------------------------------------------
-CombineAndOutputCountryResults <- function(
+CombineAndOutputCountryResultsBWC <- function(
   u5mr.ctj,
   imr.ctj,
   nmr.ctj=NULL,
@@ -1208,35 +1208,35 @@ CombineAndOutputCountryResults <- function(
   
   #----------------------------------------------------------------------
   # output country summaries - ARR
-  ARR.year1.year4.ui <- apply(ARR.year1.year4.cj, 1, quantile, probs = percentiles, na.rm = T)
-  ARR.year1.year2.ui <- apply(ARR.year1.year2.cj, 1, quantile, probs = percentiles, na.rm = T)
-  ARR.year2.year4.ui <- apply(ARR.year2.year4.cj, 1, quantile, probs = percentiles, na.rm = T)
-  required.ARR.ui <- apply(required.ARR.cj, 1, quantile, probs = percentiles, na.rm = T)
-  changeinARR.ui <- apply(changeinARR.cj, 1, quantile, probs = percentiles, na.rm = T)
-  decline.year1.year4.ui <- apply(decline.year1.year4.cj, 1, quantile, probs = percentiles, na.rm = T)
-  decline.year1.year2.ui <- apply(decline.year1.year2.cj, 1, quantile, probs = percentiles, na.rm = T)
-  decline.year2.year4.ui <- apply(decline.year2.year4.cj, 1, quantile, probs = percentiles, na.rm = T)
-  country.RoDs.ui <- cbind(t(ARR.year1.year4.ui), t(ARR.year1.year2.ui), t(ARR.year2.year4.ui),
-                           t(required.ARR.ui), t(changeinARR.ui), t(decline.year1.year4.ui),
-                           t(decline.year1.year2.ui), t(decline.year2.year4.ui))
-  # output to .csv
-  ui.colnames <- c(" lower bound", " median", " upper bound")
-  colnames(country.RoDs.ui) <- c(paste0("ARR ", year1-0.5, "-", year4-0.5, ui.colnames),
-                                 paste0("ARR ", year1-0.5, "-", year2-0.5, ui.colnames),
-                                 paste0("ARR ", year2-0.5, "-", year4-0.5, ui.colnames),
-                                 paste0("Required ARR", ui.colnames),
-                                 paste0("Change in ARR", ui.colnames),
-                                 paste0("Percentage decline ", year1-0.5, "-", year4-0.5, ui.colnames),
-                                 paste0("Percentage decline ", year1-0.5, "-", year2-0.5, ui.colnames),
-                                 paste0("Percentage decline ", year2-0.5, "-", year4-0.5, ui.colnames))
-  if (nsim == 1)
-    country.RoDs.ui <- country.RoDs.ui[, !grepl("bound", colnames(country.RoDs.ui))]
-  write.csv(cbind(country.info, country.RoDs.ui),
-            file = file.path(output.dir, "Rates of Decline_Country Summary.csv"),
-            row.names = FALSE, na = "")
+  # ARR.year1.year4.ui <- apply(ARR.year1.year4.cj, 1, quantile, probs = percentiles, na.rm = T)
+  # ARR.year1.year2.ui <- apply(ARR.year1.year2.cj, 1, quantile, probs = percentiles, na.rm = T)
+  # ARR.year2.year4.ui <- apply(ARR.year2.year4.cj, 1, quantile, probs = percentiles, na.rm = T)
+  # required.ARR.ui <- apply(required.ARR.cj, 1, quantile, probs = percentiles, na.rm = T)
+  # changeinARR.ui <- apply(changeinARR.cj, 1, quantile, probs = percentiles, na.rm = T)
+  # decline.year1.year4.ui <- apply(decline.year1.year4.cj, 1, quantile, probs = percentiles, na.rm = T)
+  # decline.year1.year2.ui <- apply(decline.year1.year2.cj, 1, quantile, probs = percentiles, na.rm = T)
+  # decline.year2.year4.ui <- apply(decline.year2.year4.cj, 1, quantile, probs = percentiles, na.rm = T)
+  # country.RoDs.ui <- cbind(t(ARR.year1.year4.ui), t(ARR.year1.year2.ui), t(ARR.year2.year4.ui),
+  #                          t(required.ARR.ui), t(changeinARR.ui), t(decline.year1.year4.ui),
+  #                          t(decline.year1.year2.ui), t(decline.year2.year4.ui))
+  # # output to .csv
+  # ui.colnames <- c(" lower bound", " median", " upper bound")
+  # colnames(country.RoDs.ui) <- c(paste0("ARR ", year1-0.5, "-", year4-0.5, ui.colnames),
+  #                                paste0("ARR ", year1-0.5, "-", year2-0.5, ui.colnames),
+  #                                paste0("ARR ", year2-0.5, "-", year4-0.5, ui.colnames),
+  #                                paste0("Required ARR", ui.colnames),
+  #                                paste0("Change in ARR", ui.colnames),
+  #                                paste0("Percentage decline ", year1-0.5, "-", year4-0.5, ui.colnames),
+  #                                paste0("Percentage decline ", year1-0.5, "-", year2-0.5, ui.colnames),
+  #                                paste0("Percentage decline ", year2-0.5, "-", year4-0.5, ui.colnames))
+  # if (nsim == 1)
+  #   country.RoDs.ui <- country.RoDs.ui[, !grepl("bound", colnames(country.RoDs.ui))]
+  # write.csv(cbind(country.info, country.RoDs.ui),
+  #           file = file.path(output.dir, "Rates of Decline_Country Summary.csv"),
+  #           row.names = FALSE, na = "")
 }
 #-------------------------------------------------------------------------
-CombineAndOutputCountryResults.replacemissingrates <- function(
+CombineAndOutputCountryResultsBWC.replacemissingrates <- function(
   u5mr.ctj,
   imr.ctj,
   nmr.ctj=NULL,
@@ -1987,54 +1987,54 @@ CalculateWorldDeathsBWC <- function(
   }
   
   # world summary - rates of decline
-  ARR.year1.year4.j <- CalculateARR(u5mr = u5mr.wtj[1, , ], years = est.years,
-                                    year.start = year1, year.end = year4)
-  ARR.year1.year2.j <- CalculateARR(u5mr = u5mr.wtj[1, , ], years = est.years,
-                                    year.start = year1, year.end = year2)
-  ARR.year2.year4.j <- CalculateARR(u5mr = u5mr.wtj[1, , ], years = est.years,
-                                    year.start = year2, year.end = year4)
-  required.ARR.j <- ifelse(year4 < year.target,
-                           1/(year.target-year4)*
-                             log(roundoff(u5mr.wtj[1, est.years == year1, ]*factor.target, digits = ndigits)/
-                                   u5mr.wtj[1, est.years == year4, ])*-100, NA)
-  changeinARR.j <- ARR.year2.year4.j - ARR.year1.year2.j
-  decline.year1.year4.j <- CalculateDecline(u5mr = u5mr.wtj[1, , ], years = est.years,
-                                            year.start = year1, year.end = year4)
-  decline.year1.year2.j <- CalculateDecline(u5mr = u5mr.wtj[1, , ], years = est.years,
-                                            year.start = year1, year.end = year2)
-  decline.year2.year4.j <- CalculateDecline(u5mr = u5mr.wtj[1, , ], years = est.years,
-                                            year.start = year2, year.end = year4)
-  ARR.year1.year4.ui <- quantile(ARR.year1.year4.j, probs = percentiles)
-  ARR.year1.year2.ui <- quantile(ARR.year1.year2.j, probs = percentiles)
-  ARR.year2.year4.ui <- quantile(ARR.year2.year4.j, probs = percentiles)
-  # change JR, 20150605: set na.rm = TRUE if all required.ARR are NAs,
-  # indicating that year4 = year.target
-  required.ARR.ui <- quantile(required.ARR.j, probs = percentiles,
-                              na.rm = all(is.na(required.ARR.j)))
-  changeinARR.ui <- quantile(changeinARR.j, probs = percentiles)
-  decline.year1.year4.ui <- quantile(decline.year1.year4.j, probs = percentiles)
-  decline.year1.year2.ui <- quantile(decline.year1.year2.j, probs = percentiles)
-  decline.year2.year4.ui <- quantile(decline.year2.year4.j, probs = percentiles)
-  global.RoDs.ui <- rbind(c(ARR.year1.year4.ui, ARR.year1.year2.ui, ARR.year2.year4.ui,
-                            required.ARR.ui, changeinARR.ui, decline.year1.year4.ui,
-                            decline.year1.year2.ui, decline.year2.year4.ui))
-  colnames(global.RoDs.ui) <- c(paste0("ARR ", year1-0.5, "-", year4-0.5, ui.colnames),
-                                paste0("ARR ", year1-0.5, "-", year2-0.5, ui.colnames),
-                                paste0("ARR ", year2-0.5, "-", year4-0.5, ui.colnames),
-                                paste0("Required ARR", ui.colnames),
-                                paste0("Change in ARR", ui.colnames),
-                                paste0("Percentage decline ", year1-0.5, "-", year4-0.5, ui.colnames),
-                                paste0("Percentage decline ", year1-0.5, "-", year2-0.5, ui.colnames),
-                                paste0("Percentage decline ", year2-0.5, "-", year4-0.5, ui.colnames))
-  save(global.RoDs.ui, file = file.path(output.dir.samplescombined, "global.RoDs.ui.rda"))
-  if (nsim == 1) {
-    global.RoDs.ui <- global.RoDs.ui[, !grepl("bound", colnames(global.RoDs.ui))]
-    global.RoDs.ui.output <- rbind(colnames(global.RoDs.ui), global.RoDs.ui)
-  } else {
-    global.RoDs.ui.output <- cbind(data.frame(Region = "World"), global.RoDs.ui)
-  }
-  write.csv(global.RoDs.ui.output,
-            file = file.path(output.dir, "Rates of Decline_World.csv"), row.names = F, na = "")
+  # ARR.year1.year4.j <- CalculateARR(u5mr = u5mr.wtj[1, , ], years = est.years,
+  #                                   year.start = year1, year.end = year4)
+  # ARR.year1.year2.j <- CalculateARR(u5mr = u5mr.wtj[1, , ], years = est.years,
+  #                                   year.start = year1, year.end = year2)
+  # ARR.year2.year4.j <- CalculateARR(u5mr = u5mr.wtj[1, , ], years = est.years,
+  #                                   year.start = year2, year.end = year4)
+  # required.ARR.j <- ifelse(year4 < year.target,
+  #                          1/(year.target-year4)*
+  #                            log(roundoff(u5mr.wtj[1, est.years == year1, ]*factor.target, digits = ndigits)/
+  #                                  u5mr.wtj[1, est.years == year4, ])*-100, NA)
+  # changeinARR.j <- ARR.year2.year4.j - ARR.year1.year2.j
+  # decline.year1.year4.j <- CalculateDecline(u5mr = u5mr.wtj[1, , ], years = est.years,
+  #                                           year.start = year1, year.end = year4)
+  # decline.year1.year2.j <- CalculateDecline(u5mr = u5mr.wtj[1, , ], years = est.years,
+  #                                           year.start = year1, year.end = year2)
+  # decline.year2.year4.j <- CalculateDecline(u5mr = u5mr.wtj[1, , ], years = est.years,
+  #                                           year.start = year2, year.end = year4)
+  # ARR.year1.year4.ui <- quantile(ARR.year1.year4.j, probs = percentiles)
+  # ARR.year1.year2.ui <- quantile(ARR.year1.year2.j, probs = percentiles)
+  # ARR.year2.year4.ui <- quantile(ARR.year2.year4.j, probs = percentiles)
+  # # change JR, 20150605: set na.rm = TRUE if all required.ARR are NAs,
+  # # indicating that year4 = year.target
+  # required.ARR.ui <- quantile(required.ARR.j, probs = percentiles,
+  #                             na.rm = all(is.na(required.ARR.j)))
+  # changeinARR.ui <- quantile(changeinARR.j, probs = percentiles)
+  # decline.year1.year4.ui <- quantile(decline.year1.year4.j, probs = percentiles)
+  # decline.year1.year2.ui <- quantile(decline.year1.year2.j, probs = percentiles)
+  # decline.year2.year4.ui <- quantile(decline.year2.year4.j, probs = percentiles)
+  # global.RoDs.ui <- rbind(c(ARR.year1.year4.ui, ARR.year1.year2.ui, ARR.year2.year4.ui,
+  #                           required.ARR.ui, changeinARR.ui, decline.year1.year4.ui,
+  #                           decline.year1.year2.ui, decline.year2.year4.ui))
+  # colnames(global.RoDs.ui) <- c(paste0("ARR ", year1-0.5, "-", year4-0.5, ui.colnames),
+  #                               paste0("ARR ", year1-0.5, "-", year2-0.5, ui.colnames),
+  #                               paste0("ARR ", year2-0.5, "-", year4-0.5, ui.colnames),
+  #                               paste0("Required ARR", ui.colnames),
+  #                               paste0("Change in ARR", ui.colnames),
+  #                               paste0("Percentage decline ", year1-0.5, "-", year4-0.5, ui.colnames),
+  #                               paste0("Percentage decline ", year1-0.5, "-", year2-0.5, ui.colnames),
+  #                               paste0("Percentage decline ", year2-0.5, "-", year4-0.5, ui.colnames))
+  # save(global.RoDs.ui, file = file.path(output.dir.samplescombined, "global.RoDs.ui.rda"))
+  # if (nsim == 1) {
+  #   global.RoDs.ui <- global.RoDs.ui[, !grepl("bound", colnames(global.RoDs.ui))]
+  #   global.RoDs.ui.output <- rbind(colnames(global.RoDs.ui), global.RoDs.ui)
+  # } else {
+  #   global.RoDs.ui.output <- cbind(data.frame(Region = "World"), global.RoDs.ui)
+  # }
+  # write.csv(global.RoDs.ui.output,
+  #           file = file.path(output.dir, "Rates of Decline_World.csv"), row.names = F, na = "")
 }
 
 # GetRegionalResultsBWC ------------------------------------------------
@@ -2103,7 +2103,7 @@ GetRegionalResultsBWC <- function(
     }
   }
   cat(paste0("Combining and outputting regional results...\n"))
-  CombineAndOutputRegionalResults(output.dir = output.dir,
+  CombineAndOutputRegionalResultsBWC(output.dir = output.dir,
                                   output.dir.samples = output.dir.samples,
                                   output.dir.samplescombined = output.dir.samplescombined,
                                   regiontypes = regiontypes,
@@ -2446,7 +2446,7 @@ CalculateRegionalDeathsBWC <- function(
   } # r loop regions
 }
 #----------------------------------------------------------------------
-CombineAndOutputRegionalResults <- function(
+CombineAndOutputRegionalResultsBWC <- function(
   output.dir,
   output.dir.samples,
   output.dir.samplescombined,
@@ -2473,7 +2473,7 @@ CombineAndOutputRegionalResults <- function(
   world.results.exist <- file.exists(file.path(output.dir.samplescombined, "res.world.rda"))
   if(world.results.exist){
   load(file = file.path(output.dir.samplescombined, "res.world.rda"))
-  load(file = file.path(output.dir.samplescombined, "global.RoDs.ui.rda"))
+  # load(file = file.path(output.dir.samplescombined, "global.RoDs.ui.rda"))
   }
   
   # create separate directory for each region type
@@ -2709,57 +2709,57 @@ CombineAndOutputRegionalResults <- function(
   }
   
   # regional summary - rates of decline
-  region.RoDs.ui <- NULL
-  for (r in 1:nregs) {
-    ARR.year1.year4.j <- CalculateARR(u5mr = u5mr.rtj[r, , ], years = est.years,
-                                      year.start = year1, year.end = year4)
-    ARR.year1.year2.j <- CalculateARR(u5mr = u5mr.rtj[r, , ], years = est.years,
-                                      year.start = year1, year.end = year2)
-    ARR.year2.year4.j <- CalculateARR(u5mr = u5mr.rtj[r, , ], years = est.years,
-                                      year.start = year2, year.end = year4)
-    required.ARR.j <- ifelse(year4 < year.target,
-                             1/(year.target-year4)*
-                               log(roundoff(u5mr.rtj[r, est.years == year1, ]*factor.target, digits = ndigits)/
-                                     u5mr.rtj[1, est.years == year4, ])*-100, NA)
-    changeinARR.j <- ARR.year2.year4.j - ARR.year1.year2.j
-    decline.year1.year4.j <- CalculateDecline(u5mr = u5mr.rtj[r, , ], years = est.years,
-                                              year.start = year1, year.end = year4)
-    decline.year1.year2.j <- CalculateDecline(u5mr = u5mr.rtj[r, , ], years = est.years,
-                                              year.start = year1, year.end = year2)
-    decline.year2.year4.j <- CalculateDecline(u5mr = u5mr.rtj[r, , ], years = est.years,
-                                              year.start = year2, year.end = year4)
-    ARR.year1.year4.ui <- quantile(ARR.year1.year4.j, probs = percentiles)
-    ARR.year1.year2.ui <- quantile(ARR.year1.year2.j, probs = percentiles)
-    ARR.year2.year4.ui <- quantile(ARR.year2.year4.j, probs = percentiles)
-    # change JR, 20150605: set na.rm = TRUE if all required.ARR are NAs,
-    # indicating that year4 = year.target
-    required.ARR.ui <- quantile(required.ARR.j, probs = percentiles,
-                                na.rm = all(is.na(required.ARR.j)))
-    changeinARR.ui <- quantile(changeinARR.j, probs = percentiles)
-    decline.year1.year4.ui <- quantile(decline.year1.year4.j, probs = percentiles)
-    decline.year1.year2.ui <- quantile(decline.year1.year2.j, probs = percentiles)
-    decline.year2.year4.ui <- quantile(decline.year2.year4.j, probs = percentiles)
-    region.RoDs.ui <- rbind(region.RoDs.ui,
-                            c(ARR.year1.year4.ui, ARR.year1.year2.ui, ARR.year2.year4.ui,
-                              required.ARR.ui, changeinARR.ui, decline.year1.year4.ui,
-                              decline.year1.year2.ui, decline.year2.year4.ui))
-    
-  }
-  colnames(region.RoDs.ui) <- c(paste0("ARR ", year1-0.5, "-", year4-0.5, ui.colnames),
-                                paste0("ARR ", year1-0.5, "-", year2-0.5, ui.colnames),
-                                paste0("ARR ", year2-0.5, "-", year4-0.5, ui.colnames),
-                                paste0("Required ARR", ui.colnames),
-                                paste0("Change in ARR", ui.colnames),
-                                paste0("Percentage decline ", year1-0.5, "-", year4-0.5, ui.colnames),
-                                paste0("Percentage decline ", year1-0.5, "-", year2-0.5, ui.colnames),
-                                paste0("Percentage decline ", year2-0.5, "-", year4-0.5, ui.colnames))
-  ifelse(world.results.exist,
-  region.RoDs <- data.frame(Region = c(regiontypes, "World"), rbind(region.RoDs.ui, global.RoDs.ui)),
-  region.RoDs <- data.frame(Region = c(regiontypes), region.RoDs.ui)
-  )
-  if (nsim == 1)
-    region.RoDs <- region.RoDs[, !grepl("bound", colnames(region.RoDs))]
-  write.csv(region.RoDs, file = file.path(output.dir, paste0("Rates of Decline_", filename, ".csv")),
-            row.names = F, na = "")
+  # region.RoDs.ui <- NULL
+  # for (r in 1:nregs) {
+  #   ARR.year1.year4.j <- CalculateARR(u5mr = u5mr.rtj[r, , ], years = est.years,
+  #                                     year.start = year1, year.end = year4)
+  #   ARR.year1.year2.j <- CalculateARR(u5mr = u5mr.rtj[r, , ], years = est.years,
+  #                                     year.start = year1, year.end = year2)
+  #   ARR.year2.year4.j <- CalculateARR(u5mr = u5mr.rtj[r, , ], years = est.years,
+  #                                     year.start = year2, year.end = year4)
+  #   required.ARR.j <- ifelse(year4 < year.target,
+  #                            1/(year.target-year4)*
+  #                              log(roundoff(u5mr.rtj[r, est.years == year1, ]*factor.target, digits = ndigits)/
+  #                                    u5mr.rtj[1, est.years == year4, ])*-100, NA)
+  #   changeinARR.j <- ARR.year2.year4.j - ARR.year1.year2.j
+  #   decline.year1.year4.j <- CalculateDecline(u5mr = u5mr.rtj[r, , ], years = est.years,
+  #                                             year.start = year1, year.end = year4)
+  #   decline.year1.year2.j <- CalculateDecline(u5mr = u5mr.rtj[r, , ], years = est.years,
+  #                                             year.start = year1, year.end = year2)
+  #   decline.year2.year4.j <- CalculateDecline(u5mr = u5mr.rtj[r, , ], years = est.years,
+  #                                             year.start = year2, year.end = year4)
+  #   ARR.year1.year4.ui <- quantile(ARR.year1.year4.j, probs = percentiles)
+  #   ARR.year1.year2.ui <- quantile(ARR.year1.year2.j, probs = percentiles)
+  #   ARR.year2.year4.ui <- quantile(ARR.year2.year4.j, probs = percentiles)
+  #   # change JR, 20150605: set na.rm = TRUE if all required.ARR are NAs,
+  #   # indicating that year4 = year.target
+  #   required.ARR.ui <- quantile(required.ARR.j, probs = percentiles,
+  #                               na.rm = all(is.na(required.ARR.j)))
+  #   changeinARR.ui <- quantile(changeinARR.j, probs = percentiles)
+  #   decline.year1.year4.ui <- quantile(decline.year1.year4.j, probs = percentiles)
+  #   decline.year1.year2.ui <- quantile(decline.year1.year2.j, probs = percentiles)
+  #   decline.year2.year4.ui <- quantile(decline.year2.year4.j, probs = percentiles)
+  #   region.RoDs.ui <- rbind(region.RoDs.ui,
+  #                           c(ARR.year1.year4.ui, ARR.year1.year2.ui, ARR.year2.year4.ui,
+  #                             required.ARR.ui, changeinARR.ui, decline.year1.year4.ui,
+  #                             decline.year1.year2.ui, decline.year2.year4.ui))
+  #   
+  # }
+  # colnames(region.RoDs.ui) <- c(paste0("ARR ", year1-0.5, "-", year4-0.5, ui.colnames),
+  #                               paste0("ARR ", year1-0.5, "-", year2-0.5, ui.colnames),
+  #                               paste0("ARR ", year2-0.5, "-", year4-0.5, ui.colnames),
+  #                               paste0("Required ARR", ui.colnames),
+  #                               paste0("Change in ARR", ui.colnames),
+  #                               paste0("Percentage decline ", year1-0.5, "-", year4-0.5, ui.colnames),
+  #                               paste0("Percentage decline ", year1-0.5, "-", year2-0.5, ui.colnames),
+  #                               paste0("Percentage decline ", year2-0.5, "-", year4-0.5, ui.colnames))
+  # ifelse(world.results.exist,
+  # region.RoDs <- data.frame(Region = c(regiontypes, "World"), rbind(region.RoDs.ui, global.RoDs.ui)),
+  # region.RoDs <- data.frame(Region = c(regiontypes), region.RoDs.ui)
+  # )
+  # if (nsim == 1)
+  #   region.RoDs <- region.RoDs[, !grepl("bound", colnames(region.RoDs))]
+  # write.csv(region.RoDs, file = file.path(output.dir, paste0("Rates of Decline_", filename, ".csv")),
+  #           row.names = F, na = "")
   cat(paste0("Output generated for ", filename, ".\n"))
 }

@@ -58,7 +58,7 @@ UNICEFProgRegionAll <- c("Africa",
                      "Latin America and Caribbean", # 2021/7: changed from "Latin America and the Caribbean"
                      "Europe and Central Asia",     # 2021/7: changed from "CEE/CIS"
                      "Non-programme countries",     # 2021/7: changed from "Industrialized countries"
-                     # "Developing countries",      # 2022/1: remove developing / developed regions
+                     "Developing countries",
                      "Least developed countries")
 ChooseUNICEFProgRegion <- function(region) {
   UNICEFProgRegs1 <- c("Eastern and Southern Africa",
@@ -72,15 +72,16 @@ ChooseUNICEFProgRegion <- function(region) {
                    )
   UNICEFProgRegs2 <- "Sub-Saharan Africa"
   UNICEFProgRegs3 <- c("Africa", "Asia")
-  # UNICEFProgRegs4 <- "Developing countries"
-  UNICEFProgRegs4 <- "Least developed countries"
-  UNICEFProgRegs5 <- c("Middle East", "North Africa")
+  UNICEFProgRegs4 <- "Developing countries"
+  UNICEFProgRegs5 <- "Least developed countries"
+  UNICEFProgRegs6 <- c("Middle East", "North Africa")
   r <- ifelse(is.element(region, UNICEFProgRegs1), 1,
               ifelse(is.element(region, UNICEFProgRegs2), 2,
                      ifelse(is.element(region, UNICEFProgRegs3), 3,
-                                   ifelse(is.element(region, UNICEFProgRegs4), 4,
-                                          ifelse(is.element(region, UNICEFProgRegs5), 5,
-                                                 NA)))))
+                            ifelse(is.element(region, UNICEFProgRegs4), 4,
+                                   ifelse(is.element(region, UNICEFProgRegs5), 5,
+                                          ifelse(is.element(region, UNICEFProgRegs6), 6,
+                                                 NA))))))
   return(r)
 }
 #----------------------------------------------------------------------
@@ -175,8 +176,7 @@ ChooseAURegion <- function(region) {
   return(r)
 }
 #----------------------------------------------------------------------
-MDGRegionAll <- c(
-                  # "Developed regions", "Developing regions", # removed 2022.01
+MDGRegionAll <- c("Developed regions", "Developing regions",
                   "Northern Africa", "Sub-Saharan Africa",
                   "Latin America and the Caribbean",
                   "Latin America", "Caribbean",
@@ -190,8 +190,7 @@ MDGRegionAll <- c(
                   "Oceania",
                   "Least developed countries")
 ChooseMDGRegion <- function(region) {
-  MDGRegs1 <- c(
-    # "Developed regions",
+  MDGRegs1 <- c("Developed regions",
                 "Northern Africa", "Sub-Saharan Africa",
                 "Latin America and the Caribbean",
                 "Caucasus and Central Asia",
@@ -201,17 +200,17 @@ ChooseMDGRegion <- function(region) {
                 "Western Asia",
                 "Oceania")
   MDGRegs1excl <- c("Eastern Asia excluding China", "Southern Asia excluding India")
-  # MDGRegs2 <- "Developing regions"
+  MDGRegs2 <- "Developing regions"
   MDGRegs3 <- c("North Africa", "South Africa", "Eastern Africa", "West Africa", "Central Africa")
   MDGRegs4 <- "Least developed countries"
   MDGRegs5 <- c("Latin America", "Caribbean")
   r <- ifelse(is.element(region, MDGRegs1), 1,
               ifelse(is.element(region, MDGRegs1excl), "1excl",
-                     # ifelse(is.element(region, MDGRegs2), 2,
+                     ifelse(is.element(region, MDGRegs2), 2,
                             ifelse(is.element(region, MDGRegs3), 3,
                                    ifelse(is.element(region, MDGRegs4), 4,
                                           ifelse(is.element(region, MDGRegs5), 5,
-                                                 NA)))))
+                                                 NA))))))
   return(r)
 }
 #----------------------------------------------------------------------
@@ -243,8 +242,7 @@ ChooseWBRegion <- function(region) {
 }
 
 #----------------------------------------------------------------------
-UNPDRegionAll <- c(
-                   # "More developed regions", "Less developed regions", # removed 2022.01
+UNPDRegionAll <- c("More developed regions", "Less developed regions",
                    "Least developed countries", "Excluding least developed countries", "Excluding China",
                    "Sub-Saharan Africa", "Africa", "Asia", "Europe", "Latin America and the Caribbean",
                    "Northern America", "Oceania")
@@ -252,15 +250,15 @@ ChooseUNPDRegion <- function(region) {
   UNPDRegs1 <- c("Africa", "Asia", "Europe", "Latin America and the Caribbean",
                  "Northern America", "Oceania")
   UNPDRegs2 <- "Sub-Saharan Africa"
-  # UNPDRegs3 <- c("More developed regions", "Less developed regions")
+  UNPDRegs3 <- c("More developed regions", "Less developed regions")
   UNPDRegs4 <- c("Least developed countries", "Excluding least developed countries")
   UNPDRegs5 <- "Excluding China"
   r <- ifelse(is.element(region, UNPDRegs1), 1,
               ifelse(is.element(region, UNPDRegs2), 2,
-                     # ifelse(is.element(region, UNPDRegs3), 3,
+                     ifelse(is.element(region, UNPDRegs3), 3,
                             ifelse(is.element(region, UNPDRegs4), 4,
                                    ifelse(is.element(region, UNPDRegs5), 5,
-                                          NA))))
+                                          NA)))))
   return(r)
 }
 #----------------------------------------------------------------------
@@ -332,8 +330,7 @@ ChooseM49Region <- function(region) {
 }
 
 #----------------------------------------------------------------------
-SDGRegionAll <- c(
-                  # "Developed regions (MDG)", ("Developing regions (MDG)"), # removed 2022.01
+SDGRegionAll <- c("Developed regions (MDG)", ("Developing regions (MDG)"),
                   "Least developed countries (LDCs)","Landlocked developing countries (LLDCs)",
                   "Small island developing States (SIDS)","Northern America (M49) and Europe (M49)",
                   "Northern America (M49)","Europe (M49)","Latin America and the Caribbean (MDG=M49)",
@@ -364,13 +361,12 @@ ChooseSDGRegion <- function(region) {
                "South-eastern Asia (MDG=M49)","Southern Africa (M49)",
                "Eastern Asia (M49)","Polynesia (M49)","Northern Europe (M49)",
                "Melanesia (M49)","Micronesia (M49)","Central Asia (M49)")
- SDGRegs4 <- c("Sub-Saharan Africa (MDG)" ,
-               # "Developed regions (MDG)" ,
+ SDGRegs4 <- c("Sub-Saharan Africa (MDG)" ,"Developed regions (MDG)" ,
                "Western Asia (MDG)","Caucasus and Central Asia (MDG)",
                "Eastern Asia (MDG)","Northern Africa (MDG)")
  SDGRegs5 <- c("Least developed countries (LDCs)")
  SDGRegs6 <- c("Landlocked developing countries (LLDCs)","Small island developing States (SIDS)")
- # SDGRegs7 <- c("Developing regions (MDG)")
+ SDGRegs7 <- c("Developing regions (MDG)")
 
  r <- ifelse(is.element(region, SDGRegs1), 1,
              ifelse(is.element(region, SDGRegs2), 2,
@@ -378,7 +374,8 @@ ChooseSDGRegion <- function(region) {
                            ifelse(is.element(region, SDGRegs4), 4,
                                   ifelse(is.element(region, SDGRegs5), 5,
                                          ifelse(is.element(region, SDGRegs6), 6,
-                           NA))))))
+                                                ifelse(is.element(region, SDGRegs7), 7,
+                           NA)))))))
  return(r)
 }
 
@@ -625,12 +622,13 @@ WealthdataGlobalAll <- WealthallGlobalAll <- "Low and middle income"
 AfricanEconomicCommunityAll  <- c("Economic Community of Central African States", "Economic Community of West African States")
 ECAAll <- "Eastern Caribbean Area"
 GAVIAll <- "GAVI"
-SPhumanitarianAll <- c("Humanitarian","Non-humanitarian")
+SPhumanitarianAll <- c("Humanitarian", "Non-humanitarian")
+SPhighburdenAll <- c("High burden", "Non-high burden") # for SP 2022, YL added 2022.02
 JHUAll<-c("Eastern and Southern Africa","West and Central Africa","Middle East and North Africa","East Asia and the Pacific",
                  "South Asia","Latin America and Caribbean", "Eastern Europe and Central Asia","High Income Countries")
 LiST_allAll<-"LiST"
 MENAEMRORegionAll<-"MENAEMRO"
-EECARegionAll<-"EECA"
+
 # NewWorldBankAll <- c("East Asia and Pacific", "Europe and Central Asia", "Latin America and the Caribbean", "Middle East and North Africa", "North America", "South Asia", "Sub-Saharan Africa")
 # WorldBankReg2All <- c("East Asia and Pacific", "Europe and Central Asia",
 #                          "Latin America and the Caribbean", "Middle East and North Africa",

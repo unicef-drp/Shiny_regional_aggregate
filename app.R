@@ -1,11 +1,11 @@
-#
-# Shiny app to aggregate selected countries in each region
-# Please click "Run App" or type shiny::runApp() to run. Don't run all the code (slow).
-# On ShinyApp.io: https://u5met2017.shinyapps.io/Shiny_regional_aggregate/
+# Shiny app to aggregate selected countries
+# Please click "Run App" or type shiny::runApp() to run. 
+# Deployed on Shinyapps.io: https://u5met2017.shinyapps.io/Shiny_regional_aggregate/
 # Yang Liu, 
-# Oct.11, 2019
+# Oct.11, 2019 - 2022
 
-# The only script to update:
+# Open this script to go through the updating process every year
+# No need to update anything in this `app.R`
 source("update_me_every_year.R")
 
 # Libraries
@@ -21,24 +21,25 @@ check.and.install.pkgs(c("shiny", "shinyWidgets", "shinyjs", "leaflet",
                          "ggplot2", "plotly", "readxl"))
 
 # source code
-invisible(sapply(list.files(here::here("R"), full.names = TRUE), source))
+invisible(sapply(list.files(here::here("R"), full.names = TRUE, recursive = TRUE), source))
 
 # update packages if certain visions are required
 invisible(sapply(c("shiny", "DT", "data.table"), update.package.version))
 
 suppressPackageStartupMessages({
-  # it seems listing the libraries is necessary if want to publish on shinyapps.io
+  # it seems listing the libraries is still necessary if want to publish the app
+  # on shinyapps.io
   library("here")
-  library("shiny")    # for shiny apps
+  library("shiny")
   library("shinyWidgets")
-  library("shinyjs")  # for  reset
+  library("shinyjs")  # for reset app
   library("leaflet")  # for openstreetmap
-  library("maps")     # provide shap files for selected countries
-  library("maptools") # modify shap files
+  library("maps")     # provide shape files for selected countries
+  library("maptools") # modify shape files
   library("rgeos")
   library("DT")       # for shiny table 
   library("data.table") 
-  library("dplyr")
+  library("dplyr")    
   library("ggplot2")
   library("plotly")
   library("readxl")
@@ -60,8 +61,10 @@ default_select <- "Afghanistan"
 
 panel_title1.1 <- "Results of selected regional aggregates for"
 panel_title1.2 <- "Sex-specific results for selected regional aggregates"
+panel_title1.3 <- "Older children and adolescents results for selected regional aggregates"
 panel_title2.1 <- "Table of selected regional aggregates"
 panel_title2.2 <- "Sex-specific results for selected regional aggregates"
+panel_title2.3 <- "Older children and adolescents results for selected regional aggregates"
 panel_note1    <- "Regional, world, and country data are available for download:"
 panel_note2    <- "Regional, world, and country data (including sex-specific results) are available for download:"
 
@@ -75,15 +78,18 @@ adhoc_name <- "Selected Countries"
 
 
 # dc: country.info.CME dataset
-dc <- country.info <- fread(here::here("input", "country.info.CME.csv"))
+dc <- fread(here::here("input/country.info.CME.csv"))
+dc.5.14 <- fread(here::here("input/country.info.CME.5_14.csv"))
+dc.15.24 <- fread(here::here("input/country.info.CME.15_24.csv"))
 
 # Define region
 dc[, UNICEF_region:= ifelse(UNICEFReportRegion2 == "", UNICEFReportRegion1, UNICEFReportRegion2)]
 dc[, SDG_region:= ifelse(SDGSimpleRegion1 != "Oceania", SDGSimpleRegion1, SDGSimpleRegion2)]
-dc$SDG_region <- revise.name(dc$SDG_region, new_list = SDG_list)
+dc$SDG_region <- dplyr::recode(dc$SDG_region, !!!SDG_name_list)
 regions_1 <- sort(dc[, unique(UNICEF_region)])
 regions_2 <- sort(dc[, unique(SDG_region)])
 regions_3 <- sort(dc[, unique(M49Region1)])
+
 # a list by countries grouped by regions for shinyWidgets::pickerInput(country_input)
 input_country_list <- list()
 for (i in 1:length(regions_3)){
@@ -94,16 +100,22 @@ for (i in 1:length(regions_3)){
 countries <- sort(dc[,unique(OfficialName)])
 ISOs <- sort(dc[,unique(ISO3Code)])
 
-# Get world map with modified country names 
+# Get world map with modified country names, a `sp` object supplied to leaflet later
 world_map <- get.world.map()
 
-# median results for country 
-# median results for the selected countries will be included in the downloaded file, but won't be shown in the app
-c_median_all <- read.country.summary(dir_dt_cs = file.path(dir_median_total, file_name_total), year_wanted = year_started:2030)
-c_median_f   <- read.country.summary(dir_dt_cs = file.path(dir_median_female, file_name_female), year_wanted = year_started:2030)
-c_median_m   <- read.country.summary(dir_dt_cs = file.path(dir_median_male, file_name_male), year_wanted = year_started:2030)
-
-year_ended <- floor(max(c_median_all$Year))
+# median results for selected countries will be included in the downloaded data
+# but won't be shown in the app. Rates are not rounded in the downloaded data
+c_median_total <- read.country.summary(dir_dt_cs = file.path(dir_median_total, file_name_total), year_wanted = year_started:2030)
+c_median_f     <- read.country.summary(dir_dt_cs = file.path(dir_median_female, file_name_female), year_wanted = year_started:2030)
+c_median_m     <- read.country.summary(dir_dt_cs = file.path(dir_median_male, file_name_male), year_wanted = year_started:2030)
+c_median_total_5_14  <- read.country.summary(dir_dt_cs = file.path(dir_median_total_5_14, file_name_total), year_wanted = year_started:2030)
+c_median_total_15_24 <- read.country.summary(dir_dt_cs = file.path(dir_median_total_15_24, file_name_total), year_wanted = year_started:2030)
+c_median_total_older <- merge(recode_ind_5_14(c_median_total_5_14), 
+                              recode_ind_15_24(c_median_total_15_24))
+c_median_total_older <- calculate.10q10(c_median_total_older)
+col_order_older_children <- colnames(c_median_total_older)
+col_order_older_children_all_rate <- col_order_older_children[grepl("X", col_order_older_children)]
+year_ended <- floor(max(c_median_total$Year))
 year.lastestimatepublished <- year_ended + 0.5  # e.g. 2019.5 for IGME 2020
 
 # for the reset function
@@ -144,10 +156,15 @@ ui = fluidPage(
         `actions-box` = TRUE, 
         size = 10
       )),
+    # if `input_by_region` update the choices in `country_input_select`
     checkboxInput(inputId = "input_by_region", label = ("Group countries by the five continents"), value = FALSE),
     
     # upload ISO
-    fileInput('ISO_input', label = p("(Optional) Upload a csv file of selected", a("ISO3 country code", href = "https://unstats.un.org/unsd/methodology/m49/", target = "_blank")),
+    fileInput('ISO_input', label = p("(Optional) Upload a csv file", 
+                                     a("(example)", href = "Upload_ISO3Code_example.csv", target = "_blank"),
+                                     "of selected", 
+                                     a("ISO3 country code", href = "https://unstats.un.org/unsd/methodology/m49/", target = "_blank")
+                                     ),
               placeholder = "Column name shall contain \"ISO\"", accept = c(
                 "text/csv",
                 "text/comma-separated-values,text/plain",
@@ -163,7 +180,11 @@ ui = fluidPage(
                   value = adhoc_name, rows  = 1,
                   placeholder = "Default name is \"Selected Countries\" if leave as blank"),
     # run_gender
-    checkboxInput(inputId = "run_gender", label = strong("Run sex-specific results?"), value = FALSE),
+    checkboxInput(inputId = "run_gender", label = strong("Run sex-specific results?"),
+                  value = TRUE),
+    # run_older_total
+    checkboxInput(inputId = "run_older_total", label = strong("Run older children and adolescents results?"),
+                  value = TRUE),
     # click_run
     actionButton("click_run",  strong("Run the Aggregates"), width = '200px'), 
     br(),br(), 
@@ -188,6 +209,9 @@ ui = fluidPage(
         
         # Plot of Sex-specific Aggregated Results
         uiOutput("panel_plot_rate_gender"),
+        
+        # Plot of older children
+        uiOutput("panel_plot_older_children"),
         # end conditionalPanel
         
         br(),br(),
@@ -199,7 +223,9 @@ ui = fluidPage(
       tabPanel("Table and Data Download",
         uiOutput("panel_results_table"),
         br(),br(),
-        uiOutput("panel_results_table_gender") 
+        uiOutput("panel_results_table_gender"),
+        br(),br(),
+        uiOutput("panel_results_table_older_total") 
       ),      
   # About
     get.about.panel(update_string = update_string0)
@@ -242,11 +268,11 @@ server <- function(input, output, session) {
 
       if (!is.null(dt_iso)&length(colnames(dt_iso))!=0){
         message(paste("Read in", file_type ,"file"))
-        # find the column names that contain "ISO", then used the cloest if have to guess
+        # find the column names that contain "ISO", then used the closest if have to guess
         ISO_columns <- colnames(dt_iso)[grepl("ISO", toupper(colnames(dt_iso)))] 
-        ISO_column_name <- ISO_columns[which.min(adist("ISO", toupper(ISO_columns)))] 
+        ISO_column_name <- ISO_columns[which.min(utils::adist("ISO", toupper(ISO_columns)))] 
         if(length(ISO_column_name) == 0){
-          ISO_column_name <- colnames(dt_iso)[which.min(adist("ISO", toupper(colnames(dt_iso))))] 
+          ISO_column_name <- colnames(dt_iso)[which.min(utils::adist("ISO", toupper(colnames(dt_iso))))] 
           message("Couldn't match a column name that looks like \"ISO\". Please check if the selected column is right.")
           message(paste("The column assumed is", ISO_column_name))
         }
@@ -274,7 +300,7 @@ server <- function(input, output, session) {
     }, error = function(e){
       message("The uploaded file is not correct.")
       },
-    warning = function(e){
+      warning = function(e){
       message("The uploaded file is not correct.")
       }
     )
@@ -284,6 +310,7 @@ server <- function(input, output, session) {
   observeEvent(input$click_reset,{
     updatePickerInput(session, inputId = "country_input", selected = default_select)
     updateCheckboxInput(session, inputId = "run_gender", value = FALSE)
+    updateCheckboxInput(session, inputId = "run_older_total", value = FALSE)
   })
 
   # renderUI: main panel ----------------------------------------------------------------
@@ -353,6 +380,23 @@ server <- function(input, output, session) {
     )
   })
   
+  # renderUI: plots by sex
+  output$panel_plot_older_children <- renderUI({
+    if (is.null(reactive.run()$both_5_24)){
+      return()
+    }
+    if(!input$run_older_total) return()
+    fluidRow(
+      h4(strong(panel_title1.3)),
+        plotly::plotlyOutput("plot_rate_older1"),
+        br(),
+        plotly::plotlyOutput("plot_rate_older2", width = "80%"),
+        br(),
+        plotly::plotlyOutput("plot_rate_older3", width = "80%"),
+        br(), br()
+    )
+  })
+  
   # renderUI: tables
   output$panel_results_table <- renderUI({
     if (is.null(reactive.run())){
@@ -369,10 +413,8 @@ server <- function(input, output, session) {
   })
   # renderUI:tables by sex
   output$panel_results_table_gender <- renderUI({
-    if (is.null(reactive.run()$m)){
-      return()
-    }
-    if(!input$run_gender) return()
+    if (is.null(reactive.run()$m)) return()
+    if (!input$run_gender) return()
     fluidRow(            
       h4(strong(panel_title2.2)),
       p(strong("Data for the female")),
@@ -385,6 +427,18 @@ server <- function(input, output, session) {
       downloadButton("download_table_m", "Download"),
       br(),br(),
       DT::dataTableOutput("results_table_m", width = "80%")      
+    )
+  })
+  
+  output$panel_results_table_older_total <- renderUI({
+    if (is.null(reactive.run())) return()
+    if (!input$run_older_total) return()
+    
+    fluidRow(
+      h4(strong(panel_title2.3)),
+      downloadButton("download_table_older_total", "Download"),
+      br(),br(),
+      DT::dataTableOutput("results_table_older_total", width = "80%")
     )
   })
   
@@ -406,18 +460,22 @@ server <- function(input, output, session) {
     dc[,AdhocCountries:=""]
     dc[OfficialName %in% input$country_input_select, AdhocCountries:="Adhoc"]
     write.csv(dc, file = here::here("input", "country.info.CME_adhoc.csv"))
+
+    if(input$run_older_total){
+      dc.5.14[,AdhocCountries:=""]
+      dc.5.14[OfficialName %in% input$country_input_select, AdhocCountries:="Adhoc"]
+      write.csv(dc.5.14, file = here::here("input", "country.info.CME.5_14_adhoc.csv"))
+      dc.15.24[,AdhocCountries:=""]
+      dc.15.24[OfficialName %in% input$country_input_select, AdhocCountries:="Adhoc"]
+      write.csv(dc.15.24, file = here::here("input", "country.info.CME.15_24_adhoc.csv"))
+    }
+    
     cs <- input$country_input_select # country list
     time0 <- Sys.time()
     
-    if(!input$run_gender){
-      # showModal will show that the scripe is running, and removed when scripts are done 
-      showModal(modalDialog(title = paste("Running aggregate for", 
-                                          length(cs), 
-                                          if(length(cs)==1) "country:" else "countries:", 
-                                          paste(sort(cs), collapse = ", ")), 
-                            HTML("<br> It takes about 10 - 20 seconds."), 
-                            footer=NULL))
-    } else {
+    # showModal
+    # showModal will show that the scripe is running, and removed when scripts are done 
+    if(input$run_gender){
       # sex-specific
       showModal(modalDialog(title = paste("Running sex-specific aggregate for", 
                                           length(cs), 
@@ -425,50 +483,98 @@ server <- function(input, output, session) {
                                           paste(sort(cs), collapse = ", ")), 
                             HTML("<br> It takes about 20 - 30 seconds."), 
                             footer=NULL))
+    } else if (input$run_older_total) {
+      # if no sex-specific, but incl older children
+      showModal(modalDialog(title = paste("Running aggregate for under-five and older children", 
+                                          length(cs), 
+                                          if(length(cs)==1) "country:" else "countries:", 
+                                          paste(sort(cs), collapse = ", ")), 
+                            HTML("<br> It takes about 20 - 30 seconds."), 
+                            footer=NULL))
+    } else {
+      showModal(modalDialog(title = paste("Running aggregate for", 
+                                          length(cs), 
+                                          if(length(cs)==1) "country:" else "countries:", 
+                                          paste(sort(cs), collapse = ", ")), 
+                            HTML("<br> It takes about 10 - 20 seconds."), 
+                            footer=NULL))
     }
     
     # where we run the aggregates:
-    run.outputaggregates(year.lastestimatepublished)
+    run.outputaggregates(year.lastestimatepublished) # (always run the under-five total)
+    
     if(input$run_gender){
       run.outputaggregates.gender(year.lastestimatepublished)
       adjust.death()
+    }
+    if(input$run_older_total){
+      run.outputaggregates.5.24()
     }
     
     removeModal()
     message("Time spent is ", round(Sys.time() - time0, 1), " seconds.")
     
     # Add the user-defined `adhoc_name`:
-    change.dt.name <- function(dt){
+    change.adhoc.name <- function(dt){
       setnames(dt, gsub("\\.", " ", colnames(dt))) # revise colnames from adjusted sex-specific output
       setnames(dt, gsub("Under five", "Under-five", colnames(dt)))
       dt[Region=="Adhoc", Region:= if(is.null(input$adhoc_name)|input$adhoc_name=="") adhoc_name else input$adhoc_name]
       return(dt)
     }
     
-    if(!input$run_gender){
-      # only total
-      return(list(
-                  all = change.dt.name(fread(file.path(dir_median_total, "Rates & Deaths_AdhocCountries.csv"))),
-                  c_median_all = c_median_all[Region%in%input$country_input_select,],
-                  f = NULL,
-                  m = NULL,
-                  c_median_f = NULL,
-                  c_median_m = NULL
-                  ))
-        } else {
-          # incl. sex-specific
-          return(
-              list(
-                  all = change.dt.name(fread(file.path(dir_median_total, "Rates & Deaths_AdhocCountries.csv"))),
-                  f = change.dt.name(fread(file.path(dir_median_female, "Rates & Deaths(ADJUSTED)_female_AdhocCountries.csv"))),
-                  m = change.dt.name(fread(file.path(dir_median_male, "Rates & Deaths(ADJUSTED)_male_AdhocCountries.csv"))),
-                  c_median_all = c_median_all[Region%in%input$country_input_select,],
-                  c_median_f = c_median_f[Region%in%input$country_input_select,],
-                  c_median_m = c_median_m[Region%in%input$country_input_select,]
-                  ))
-        }
-     
-    } # for the length!=0 check
+    both.5.24 <- NULL
+    if(input$run_older_total){
+      dt5_14  <- change.adhoc.name(fread(file.path(dir_median_total_5_14,  "Rates & Deaths_AdhocCountries.csv")))
+      dt15_24 <- change.adhoc.name(fread(file.path(dir_median_total_15_24, "Rates & Deaths_AdhocCountries.csv")))
+      # dt5_14  <- (fread(file.path(dir_median_total_5_14,  "Rates & Deaths_AdhocCountries.csv")))
+      # dt15_24 <- (fread(file.path(dir_median_total_15_24, "Rates & Deaths_AdhocCountries.csv")))
+      setnames(dt5_14, gsub(" median", "", colnames(dt5_14)))
+      setnames(dt15_24, gsub(" median", "", colnames(dt15_24)))
+      dt5_14  <- recode_ind_5_14(dt5_14)
+      dt15_24 <- recode_ind_15_24(dt15_24)
+      setkey(dt5_14, Region, Year)
+      setkey(dt15_24, Region, Year)
+      dt15_24 <- dt15_24[dt5_14]
+      dt15_24 <- calculate.10q10(dt15_24)[, Sex := "Both"]
+      both_5_24 <- dt15_24[Year >= 1990,..col_order_older_children]
+    }
+    
+    # output ----
+    if(input$run_gender){
+      output_list <- list(
+        both = change.adhoc.name(fread(file.path(dir_median_total,  "Rates & Deaths_AdhocCountries.csv"))),
+        f    = change.adhoc.name(fread(file.path(dir_median_female, "Rates & Deaths(ADJUSTED)_female_AdhocCountries.csv"))),
+        m    = change.adhoc.name(fread(file.path(dir_median_male,   "Rates & Deaths(ADJUSTED)_male_AdhocCountries.csv"))),
+        both_5_24 = both_5_24, 
+        c_median_total = c_median_total[Region%in%input$country_input_select,],
+        c_median_f     = c_median_f[Region%in%input$country_input_select,],
+        c_median_m     = c_median_m[Region%in%input$country_input_select,],
+        c_median_total_older = c_median_total_older[Region%in%input$country_input_select,]
+      )
+    } else {
+      output_list <- list(
+        both = change.adhoc.name(fread(file.path(dir_median_total,  "Rates & Deaths_AdhocCountries.csv"))),
+        f    = NULL,
+        m    = NULL,
+        both_5_24 = both_5_24, 
+        c_median_total = c_median_total[Region%in%input$country_input_select,],
+        c_median_f     = NULL,
+        c_median_m     = NULL,
+        c_median_total_older = c_median_total_older[Region%in%input$country_input_select,]
+      )
+    }
+    
+    # another option is: 
+    # if(!input$run_gender){
+    #   output_list$f <- NULL
+    #   output_list$m <- NULL
+    #   output_list$c_median_f <- NULL
+    #   output_list$c_median_m <- NULL
+    # }
+    
+    return(output_list)
+    
+    } # for the `length(input$country_input_select)==0` check
   })
   
   # Figure 1 Rate by Year ---------------------------------------------------
@@ -476,43 +582,61 @@ server <- function(input, output, session) {
   get.long <- function(dt, vars0){
     dt <- dt[Year>=year_started,]
     dt_long <- data.table::melt(dt, measure.vars = vars0, 
-                                value.name = "rate", variable.name = "type_of_rate")
-    return(dt_long[,.(Region, Year, rate, type_of_rate)])
+                                value.name = "rate", variable.name = "Indicator")
+    return(dt_long[,.(Region, Year, rate, Indicator)])
   }
   
-  plot.rate <- function(dt, vars0){
+  plot.rate <- function(dt, vars0, title0 = "Deaths per 1,000 live births"){
     dt_long <- get.long(dt, vars0)[!is.na(rate), Rate:=round(rate,2)]
-    levels(dt_long$type_of_rate) <- revise.name(levels(dt_long$type_of_rate), new_list = new_varname_list)
+    levels(dt_long$Indicator) <- dplyr::recode(levels(dt_long$Indicator), !!!new_varname_list)
     p <- ggplot(dt_long, aes(x = Year, y = Rate, color = Region, type = Region)) +
       geom_line(size = 1) + 
       theme_bw() + 
       labs(y = "", x = "", color = "", type = "") +
-      facet_wrap(~ type_of_rate) +
+      facet_wrap(~ Indicator) +
       scale_color_manual(values = cp_UNICEF_div[(1:uniqueN(dt_long$Region))*2]) +
       scale_x_continuous(breaks = c(1990, 2000, 2010, year_ended))
 
-    return(plotly::ggplotly(p, tooltip = c("Year", "Rate"))%>% 
-             layout(yaxis = list(title = "Deaths per 1,000 live births"),
+    return(plotly::ggplotly(p, tooltip = c("Year", "Rate")) %>% 
+             layout(yaxis = list(title = title0),
                     legend = list(orientation = "h", x = 0.4, y = -0.1)))
   }
   
   output$plot_rate <- plotly::renderPlotly({
-    if (is.null(reactive.run())){
-      return()
-    }
-    vars0 <- c("U5MR median", "IMR median", "NMR median")
-    dt <- reactive.run()$all
+    if (is.null(reactive.run())) return()
+    dt <- reactive.run()$both
     if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
-    plot.rate(dt, vars0)
+    plot.rate(dt, vars0 = c("U5MR median", "IMR median", "NMR median"))
   })
   
-
+  output$plot_rate_older1 <- plotly::renderPlotly({
+    if (is.null(reactive.run())) return()
+    dt <- reactive.run()$both_5_24
+    if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
+    plot.rate(dt, vars0 = c("X20q5", "X10q5", "X5q5"), title0 = "Deaths per 1000 children aged 5")
+  })
+  
+  output$plot_rate_older2 <- plotly::renderPlotly({
+    if (is.null(reactive.run())) return()
+    dt <- reactive.run()$both_5_24
+    if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
+    plot.rate(dt, vars0 = c("X10q15",  "X5q15"), title0 = "Deaths per 1000 children aged 15")
+  })
+  
+  output$plot_rate_older3 <- plotly::renderPlotly({
+    if (is.null(reactive.run())) return()
+    dt <- reactive.run()$both_5_24
+    if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
+    plot.rate(dt, vars0 = c("X10q10", "X5q10"), title0 = "Deaths per 1000 children aged 10")
+  })
+  
   # Figure 2. Death by year -------------------------------------------------
+  # separate plot function for death to modify tooltip, legend, etc, function is similar
   plot.death <- function(dt){
     dt <- dt[Year>=year_started,]
     dt_long <- data.table::melt(dt, measure.vars = grep("deaths", colnames(dt), value = TRUE), 
                                   value.name = "Deaths", variable.name = "type")
-    levels(dt_long$type) <- revise.name(levels(dt_long$type), new_list = new_varname_list)
+    levels(dt_long$type) <- dplyr::recode(levels(dt_long$type),!!!new_varname_list)
     # dt_long[, Death_Number_1K := round(Deaths/1E3)]
     p <- ggplot(dt_long[!is.na(Deaths),], aes(x = Year, y = Deaths, color = Region)) +
         geom_line(size = 1) + 
@@ -523,23 +647,24 @@ server <- function(input, output, session) {
         scale_color_manual(values = cp_UNICEF_div[(1:uniqueN(dt_long$Region))*2])+
         scale_x_continuous(breaks = c(1990, 2000, 2010, year_ended)) +
         facet_wrap(facets= ~ type) + 
-        theme(legend.position="bottom") 
-      
-    plotly::ggplotly(p, tooltip = c("Year", "Deaths"))%>% 
+        theme(legend.position = "bottom")
+    
+    plotly::ggplotly(p, tooltip = c("Year", "Deaths")) %>% 
                                   layout(yaxis = list(title =  "Number of Deaths"),
                                          legend = list(orientation = "h", x = 0.4, y = -0.1))
   }
 
   output$plot_death <- plotly::renderPlotly({
     if (!is.null(reactive.run())){
-    dt <- reactive.run()$all
+    dt <- reactive.run()$both
     if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
     plot.death(dt)
     }
   })
 
 
-  # Figure 3. Rate by Sex ---------------------------------------------------
+  # Figure 3. by Sex by year --------------------------------------------------
+  # U5MR and IMR 
   output$plot_rate_gender <- plotly::renderPlotly({
     if (is.null(reactive.run()$m)){
       return()
@@ -553,7 +678,7 @@ server <- function(input, output, session) {
     dt_long$Region <- as.factor(dt_long$Region)
     # show world or not? 
     if(!input$show_world) dt_long <- dt_long[Region==reactive.adhoc.name(),]
-    levels(dt_long$type_of_rate) <- revise.name(levels(dt_long$type_of_rate), new_list = new_varname_list)
+    levels(dt_long$Indicator) <- dplyr::recode(levels(dt_long$Indicator), !!!new_varname_list)
     
     p <- ggplot(dt_long[!is.na(rate), Rate := round(rate,2)], aes(x = Year, y = Rate, color = gender)) +
       geom_line(size = 1) + 
@@ -561,7 +686,7 @@ server <- function(input, output, session) {
       # ggtitle("U5MR and IMR by Gender and Year", subtitle = "Selected Region vs. the World") + 
       labs(y = "", x = "",  color = "") +
       scale_x_continuous(breaks = c(1990, 2000, 2010, year_ended)) +
-      facet_wrap(facets = ~ type_of_rate + Region) +
+      facet_wrap(facets = ~ Indicator + Region) +
       # increase margin to avoid flattened strip when pass to `plotly`
       theme(strip.text.x = element_text(margin = margin(.3, 0, .3, 0, "cm")))
 
@@ -573,10 +698,9 @@ server <- function(input, output, session) {
   # Tables ------------------------------------------------------------------
   output$results_table <- DT::renderDT({
     if (!is.null(reactive.run())){
-    dt <- reactive.run()$all
-    dt[, Sex:= "Total"]
+    dt <- reactive.run()$both
     DT::formatRound(
-      DT::datatable( get.table(dt) ),
+      DT::datatable( clean.table(dt) ),
       columns = c("Under-five Mortality Rate", "Infant Mortality Rate", "Neonatal Mortality Rate"), digits = 2)
     }
   })
@@ -587,7 +711,7 @@ server <- function(input, output, session) {
     dt[, Sex:= "Male"]
     
     DT::formatRound(
-      DT::datatable( get.table(dt) ),
+      DT::datatable( clean.table(dt) ),
       columns = c("Under-five Mortality Rate", "Infant Mortality Rate"), digits = 2)
     }
   })
@@ -598,11 +722,19 @@ server <- function(input, output, session) {
     dt[, Sex:= "Female"]
     
     DT::formatRound(
-      DT::datatable( get.table(dt) ),
+      DT::datatable( clean.table(dt) ),
       columns = c("Under-five Mortality Rate", "Infant Mortality Rate"), digits = 2)
     }
   })
 
+  output$results_table_older_total <- DT::renderDT({
+    if (!is.null(reactive.run()$both_5_24)){
+      dt <- reactive.run()$both_5_24
+      DT::formatRound(
+        DT::datatable( clean.table(dt) ),
+        columns = col_order_older_children_all_rate, digits = 2)
+    }
+  })
 
   # Download ----------------------------------------------------------------
   # Make results available for downloading
@@ -625,14 +757,14 @@ server <- function(input, output, session) {
   # download incl sex.specific data if run sex-specific
   output$download_table_all <- downloadHandler(
     filename = function() {
-      paste0("Results_all_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
+      paste0("Results_under_five_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
     },
     content = function(file) {
-      dtout <- rbindlist(list(get.table(reactive.run()$all),
-                              reactive.run()$c_median_all,
-                              get.table(reactive.run()$f),
+      dtout <- rbindlist(list(clean.table(reactive.run()$both),
+                              reactive.run()$c_median_total,
+                              clean.table(reactive.run()$f),
                               reactive.run()$c_median_f,
-                              get.table(reactive.run()$m),
+                              clean.table(reactive.run()$m),
                               reactive.run()$c_median_m
                               ), fill = TRUE)
       write.csv(dtout, file, row.names = FALSE, na = "")
@@ -644,7 +776,7 @@ server <- function(input, output, session) {
       paste0("Results_female_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
     },
     content = function(file) {
-      dtout <- rbindlist(list(get.table(reactive.run()$f),
+      dtout <- rbindlist(list(clean.table(reactive.run()$f),
                               reactive.run()$c_median_f
                               ), fill = TRUE)
       write.csv(dtout, file, row.names = FALSE, na = "")
@@ -656,13 +788,26 @@ server <- function(input, output, session) {
       paste0("Results_male_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
     },
     content = function(file) {
-      dtout <- rbindlist(list(get.table(reactive.run()$m),
+      dtout <- rbindlist(list(clean.table(reactive.run()$m),
                               reactive.run()$c_median_m
                               ), fill = TRUE)
       write.csv(dtout, file, row.names = FALSE, na = "")
     }
   )
   
+  
+  output$download_table_older_total <- downloadHandler(
+    filename = function() {
+      paste0("Results_older_children_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
+    },
+    content = function(file) {
+      dtout <- rbindlist(list(clean.table(reactive.run()$both_5_24),
+                              reactive.run()$c_median_total_older
+      ), fill = TRUE)
+      write.csv(dtout, file, row.names = FALSE, na = "")
+    }
+  )
 }
+
 # Run App ---------------------------------------------------------------------
 shinyApp(ui, server)
