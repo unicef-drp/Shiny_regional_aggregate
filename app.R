@@ -160,10 +160,9 @@ ui = fluidPage(
     checkboxInput(inputId = "input_by_region", label = ("Group countries by the five continents"), value = FALSE),
     
     # upload ISO
-    fileInput('ISO_input', label = p("(Optional) Upload a csv file", 
-                                     a("(example)", href = "Upload_ISO3Code_example.csv", target = "_blank"),
-                                     "of selected", 
-                                     a("ISO3 country code", href = "https://unstats.un.org/unsd/methodology/m49/", target = "_blank")
+    fileInput('ISO_input', label = p("(Optional) Upload selected", 
+                                     a("ISO3 country code", href = "https://unstats.un.org/unsd/methodology/m49/", target = "_blank"),
+                                     a("(example file)", href = "Upload_ISO3Code_example_single_region.xlsx", target = "_blank")
                                      ),
               placeholder = "Column name shall contain \"ISO\"", accept = c(
                 "text/csv",
@@ -266,7 +265,7 @@ server <- function(input, output, session) {
         dt_iso <- NULL
       }
 
-      if (!is.null(dt_iso)&length(colnames(dt_iso))!=0){
+      if (!is.null(dt_iso) & length(colnames(dt_iso))!=0){
         message(paste("Read in", file_type ,"file"))
         # find the column names that contain "ISO", then used the closest if have to guess
         ISO_columns <- colnames(dt_iso)[grepl("ISO", toupper(colnames(dt_iso)))] 
@@ -283,7 +282,7 @@ server <- function(input, output, session) {
           ISO_selected <- c(ISO_column_name, ISO_selected)
         }
         ISO_selected <- unique(ISO_selected)
-        
+ 
         showModal(modalDialog(title = paste("Uploaded and recognized ISOs in column", ISO_column_name ,"are:"), 
                               length(ISO_selected), " ISOs: ",  HTML("<br>"), 
                                      paste0(ISO_selected, collapse = ", "), ".",
@@ -294,6 +293,13 @@ server <- function(input, output, session) {
           updatePickerInput(session, inputId = "country_input_select", 
                             choices = if(input$input_by_region) input_country_list else countries,
                             selected = dc[ISO3Code%in%ISO_selected, OfficialName])
+        }
+        
+        # use region name if available
+        Region_name <- unique(dt_iso$Region)[1]
+        
+        if(length(Region_name)!=0){
+          updateTextAreaInput(session, inputId = "adhoc_name", value = Region_name)
         }
       }
       
@@ -476,23 +482,34 @@ server <- function(input, output, session) {
     # showModal
     # showModal will show that the scripe is running, and removed when scripts are done 
     if(input$run_gender){
-      # sex-specific
-      showModal(modalDialog(title = paste("Running sex-specific aggregate for", 
-                                          length(cs), 
-                                          if(length(cs)==1) "country:" else "countries:", 
-                                          paste(sort(cs), collapse = ", ")), 
-                            HTML("<br> It takes about 20 - 30 seconds."), 
-                            footer=NULL))
+      if(input$run_older_total){
+        # sex-specific
+        showModal(modalDialog(title = paste("Running aggregate for sex-specific under-five and older children for ", 
+                                            length(cs), 
+                                            if(length(cs)==1) "country:" else "countries:", 
+                                            paste(sort(cs), collapse = ", ")), 
+                              HTML("<br> It takes about 30 - 40 seconds."), 
+                              footer=NULL))
+      } else {
+        # sex-specific
+        showModal(modalDialog(title = paste("Running sex-specific under-five aggregate for ", 
+                                            length(cs), 
+                                            if(length(cs)==1) "country:" else "countries:", 
+                                            paste(sort(cs), collapse = ", ")), 
+                              HTML("<br> It takes about 20 - 30 seconds."), 
+                              footer=NULL))
+      }
+     
     } else if (input$run_older_total) {
       # if no sex-specific, but incl older children
-      showModal(modalDialog(title = paste("Running aggregate for under-five and older children", 
+      showModal(modalDialog(title = paste("Running aggregate for under-five and older children for ", 
                                           length(cs), 
                                           if(length(cs)==1) "country:" else "countries:", 
                                           paste(sort(cs), collapse = ", ")), 
                             HTML("<br> It takes about 20 - 30 seconds."), 
                             footer=NULL))
     } else {
-      showModal(modalDialog(title = paste("Running aggregate for", 
+      showModal(modalDialog(title = paste("Running under-five aggregate for ", 
                                           length(cs), 
                                           if(length(cs)==1) "country:" else "countries:", 
                                           paste(sort(cs), collapse = ", ")), 
@@ -522,7 +539,7 @@ server <- function(input, output, session) {
       return(dt)
     }
     
-    both.5.24 <- NULL
+    both_5_24 <- NULL
     if(input$run_older_total){
       dt5_14  <- change.adhoc.name(fread(file.path(dir_median_total_5_14,  "Rates & Deaths_AdhocCountries.csv")))
       dt15_24 <- change.adhoc.name(fread(file.path(dir_median_total_15_24, "Rates & Deaths_AdhocCountries.csv")))

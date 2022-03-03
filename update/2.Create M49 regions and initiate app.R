@@ -128,6 +128,7 @@ OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/
                  replace.rates.reg=NULL,
                  replace.rates.cat=NULL)
 
+
 # run aggregates for the selected countries
 init_select <- "Afghanistan"
 dc[,AdhocCountries:=""]
@@ -170,56 +171,58 @@ output_list <- list(
 )
 
 
-# to test script for older children: -------------------------------------------
-OutputAggregates.ori(results.U5MR.file = file.path("output", "10q5", "Results.csv"),
-                     results.IMR.file  = file.path("output", "5q5",  "Results.csv"),
-                     country.info.file = file.path("input", "country.info.CME.5_14.csv"),
-                     population.file   = file.path("input", "country.info.CME.5_14.csv"),
-                     output.dir = dir_median_total_5_14,
-                     regiontypes.select = c("SDGSimple"))
 
-OutputAggregates.ori(results.U5MR.file = file.path("output", "10q15", "Results.csv"),
-                     results.IMR.file  = file.path("output", "5q15",  "Results.csv"),
-                     country.info.file = file.path("input", "country.info.CME.15_24.csv"),
-                     population.file   = file.path("input", "country.info.CME.15_24.csv"),
-                     output.dir = dir_median_total_15_24,
-                     regiontypes.select = c("SDGSimple"))
-
-
-
-# check
-leading_path <- "C:/Users/lyhel" # leading dir to Dropbox
-dir_IGME_5_14 <- file.path(leading_path, "Dropbox/IGME 5-14/2021 Round Estimation/Final estimates")
-dirold <- file.path(dir_IGME_5_14, "Aggregate results (median) 2021-11-18/Rates & Deaths_SDGSimpleRegion.csv")
-dirnew <- file.path(here::here("median_results_total_5_14/Rates & Deaths_SDGSimpleRegion.csv"))
-dt1 <- CME.assistant::read.region.summary(dirold)
-dt2 <- CME.assistant::read.region.summary(dirnew)
-recode5_14 <- c("U5MR" = "X10q5", "IMR" = "X5q5", "CMR" = "X5q10",
-                "10q5" = "X10q5", "5q5" = "X5q5", "5q10" = "X5q10",
-                "Under.five.deaths" = "deaths.age.5to14",
-                "Infant.deaths" = "deaths.age.5to9",
-                "Child.deaths" = "deaths.age.10to14"
-)
-dt2[, Shortind := dplyr::recode(Shortind, !!!recode5_14)]
-setnames(dt2, "value", "value2")
-dtc <- merge(dt1, dt2)
-dtc[, diff:= round(value- value2, 4)]
-dtc[diff!=0 & Shortind == "deaths.age.5to14"]
-
-dir_IGME_15_24 <- file.path(leading_path, "Dropbox/IGME 15-24/2021 Round Estimation/Final estimates")
-dirold <- file.path(dir_IGME_15_24, "Aggregate results (median) 2021-11-18/Rates & Deaths_SDGSimpleRegion.csv")
-dirnew <- file.path(here::here("median_results_total_15_24/Rates & Deaths_SDGSimpleRegion.csv"))
-dt1 <- CME.assistant::read.region.summary(dirold)
-dt2 <- CME.assistant::read.region.summary(dirnew)
-recode15_24 <- c("U5MR" = "X10q15", "IMR" = "X5q15", "CMR" = "X5q20",
-                 "10q15" = "X10q15", "5q15" = "X5q15", "5q20" = "X5q20",
-                 "Under.five.deaths" = "deaths.age.15to24",
-                 "Infant.deaths" = "deaths.age.15to19",
-                 "Child.deaths" = "deaths.age.20to24"
-)
-dt1[, Shortind := dplyr::recode(Shortind, !!!recode15_24)]
-dt2[, Shortind := dplyr::recode(Shortind, !!!recode15_24)]
-setnames(dt2, "value", "value2")
-dtc <- merge(dt1, dt2)
-dtc[, diff:= round(value- value2, 4)]
-dtc[diff!=0]
+# 
+# # to test script for older children: -------------------------------------------
+# OutputAggregates.ori(results.U5MR.file = file.path("output", "10q5", "Results.csv"),
+#                      results.IMR.file  = file.path("output", "5q5",  "Results.csv"),
+#                      country.info.file = file.path("input", "country.info.CME.5_14.csv"),
+#                      population.file   = file.path("input", "country.info.CME.5_14.csv"),
+#                      output.dir = dir_median_total_5_14,
+#                      regiontypes.select = c("SDGSimple"))
+# 
+# OutputAggregates.ori(results.U5MR.file = file.path("output", "10q15", "Results.csv"),
+#                      results.IMR.file  = file.path("output", "5q15",  "Results.csv"),
+#                      country.info.file = file.path("input", "country.info.CME.15_24.csv"),
+#                      population.file   = file.path("input", "country.info.CME.15_24.csv"),
+#                      output.dir = dir_median_total_15_24,
+#                      regiontypes.select = c("SDGSimple"))
+# 
+# 
+# 
+# # check if results match
+# leading_path <- "C:/Users/lyhel" # leading dir to Dropbox
+# dir_IGME_5_14 <- file.path(leading_path, "Dropbox/IGME 5-14/2021 Round Estimation/Final estimates")
+# dirold <- file.path(dir_IGME_5_14, "Aggregate results (median) 2021-11-18/Rates & Deaths_SDGSimpleRegion.csv")
+# dirnew <- file.path(here::here("median_results_total_5_14/Rates & Deaths_SDGSimpleRegion.csv"))
+# dt1 <- CME.assistant::read.region.summary(dirold)
+# dt2 <- CME.assistant::read.region.summary(dirnew)
+# recode5_14 <- c("U5MR" = "X10q5", "IMR" = "X5q5", "CMR" = "X5q10",
+#                 "10q5" = "X10q5", "5q5" = "X5q5", "5q10" = "X5q10",
+#                 "Under.five.deaths" = "deaths.age.5to14",
+#                 "Infant.deaths" = "deaths.age.5to9",
+#                 "Child.deaths" = "deaths.age.10to14"
+# )
+# dt2[, Shortind := dplyr::recode(Shortind, !!!recode5_14)]
+# setnames(dt2, "value", "value2")
+# dtc <- merge(dt1, dt2)
+# dtc[, diff:= round(value- value2, 4)]
+# dtc[diff!=0 & Shortind == "deaths.age.5to14"]
+# 
+# dir_IGME_15_24 <- file.path(leading_path, "Dropbox/IGME 15-24/2021 Round Estimation/Final estimates")
+# dirold <- file.path(dir_IGME_15_24, "Aggregate results (median) 2021-11-18/Rates & Deaths_SDGSimpleRegion.csv")
+# dirnew <- file.path(here::here("median_results_total_15_24/Rates & Deaths_SDGSimpleRegion.csv"))
+# dt1 <- CME.assistant::read.region.summary(dirold)
+# dt2 <- CME.assistant::read.region.summary(dirnew)
+# recode15_24 <- c("U5MR" = "X10q15", "IMR" = "X5q15", "CMR" = "X5q20",
+#                  "10q15" = "X10q15", "5q15" = "X5q15", "5q20" = "X5q20",
+#                  "Under.five.deaths" = "deaths.age.15to24",
+#                  "Infant.deaths" = "deaths.age.15to19",
+#                  "Child.deaths" = "deaths.age.20to24"
+# )
+# dt1[, Shortind := dplyr::recode(Shortind, !!!recode15_24)]
+# dt2[, Shortind := dplyr::recode(Shortind, !!!recode15_24)]
+# setnames(dt2, "value", "value2")
+# dtc <- merge(dt1, dt2)
+# dtc[, diff:= round(value- value2, 4)]
+# dtc[diff!=0]

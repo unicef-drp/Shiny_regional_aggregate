@@ -88,4 +88,6 @@ file.copy(file.path(dir_15_24.median, file_name_total),    to = file.path(dir_me
 library("data.table")
 # Run WB Low Income countries and compared to IGME results 
 dc <- fread(file.path(dir_IGME_u5, "input/country.info.CME.csv"))
-fwrite(dc[WBRegion4 == "Low income", .(ISO3Code, OfficialName)], here::here("Upload_ISO_example_WBLIC.csv"))
+dcWBLIC <- dc[WBRegion4 == "Low income", .(ISO3Code, OfficialName)]
+dcWBLIC[, Region := "WB Low income countries"]
+fwrite(dcWBLIC, here::here("Upload_ISO_example_WBLIC.csv"))
