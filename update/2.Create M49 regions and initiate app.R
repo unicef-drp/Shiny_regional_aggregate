@@ -1,5 +1,6 @@
 # Initializing app after updating every year
 # run the whole script
+# I also use this script to help debugging, basically it runs everything without running the app.
 
 source("update_me_every_year.R")
 
@@ -66,16 +67,22 @@ ISOs <- sort(dc[,unique(ISO3Code)])
 # Get world map with modified country names 
 world_map <- get.world.map()
 
-# median results by country 
-# (results for each country will be included in the download as well)
-c_median_all <- read.country.summary(dir_dt_cs = file.path(dir_median_total, file_name_total), year_wanted = year_started:2030)
-c_median_f <- read.country.summary(dir_dt_cs = file.path(dir_median_female, file_name_female), year_wanted = year_started:2030)
-c_median_m <- read.country.summary(dir_dt_cs = file.path(dir_median_male, file_name_male), year_wanted = year_started:2030)
-
-year_ended <- floor(max(c_median_all$Year))
+# median results for selected countries will be included in the downloaded data
+# but won't be shown in the app. Rates are not rounded in the downloaded data
+c_median_total <- read.country.summary(dir_dt_cs = file.path(dir_median_total, file_name_total), year_wanted = year_started:2030)
+c_median_f     <- read.country.summary(dir_dt_cs = file.path(dir_median_female, file_name_female), year_wanted = year_started:2030)
+c_median_m     <- read.country.summary(dir_dt_cs = file.path(dir_median_male, file_name_male), year_wanted = year_started:2030)
+c_median_total_5_14  <- read.country.summary(dir_dt_cs = file.path(dir_median_total_5_14, file_name_total), year_wanted = year_started:2030)
+c_median_total_15_24 <- read.country.summary(dir_dt_cs = file.path(dir_median_total_15_24, file_name_total), year_wanted = year_started:2030)
+c_median_total_older <- merge(recode_ind_5_14(c_median_total_5_14), 
+                              recode_ind_15_24(c_median_total_15_24))
+c_median_total_older <- calculate.10q10(c_median_total_older)
+col_order_older_children <- copy(colnames(c_median_total_older)) # colnames containing "X"
+setnames(c_median_total_older, dplyr::recode(col_order_older_children, !!!new_varname_list))
+col_order_older_children_all_rate <- colnames(c_median_total_older)[grepl("Mortality rate", colnames(c_median_total_older))]
+year_ended <- floor(max(c_median_total$Year))
+setorder(c_median_total_older, Region, -Year)
 year.lastestimatepublished <- year_ended + 0.5  # e.g. 2019.5 for IGME 2020
-
-
 
 # for under-five, run M49 in advance
 OutputAggregates(results.U5MR.file = here::here("output", runname.U5MR, "Results.csv"),

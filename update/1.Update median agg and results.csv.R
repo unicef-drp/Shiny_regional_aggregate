@@ -89,5 +89,6 @@ library("data.table")
 # Run WB Low Income countries and compared to IGME results 
 dc <- fread(file.path(dir_IGME_u5, "input/country.info.CME.csv"))
 dcWBLIC <- dc[WBRegion4 == "Low income", .(ISO3Code, OfficialName)]
-dcWBLIC[, Region := "WB Low income countries"]
+dcWBLIC[, Region := "Low income countries"]
 fwrite(dcWBLIC, here::here("Upload_ISO_example_WBLIC.csv"))
+fwrite(dcWBLIC, here::here("www/Upload_ISO3Code_example_single_region.csv"))

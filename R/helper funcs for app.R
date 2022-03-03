@@ -56,10 +56,11 @@ read.country.summary <- function(
   dt_wide <- dcast.data.table(dt_long, Region + Year + Sex ~ ind)
   vars_new <- dplyr::recode(vars, !!!new_varname_list)
   setcolorder(dt_wide, c("Region", "Year", "Sex", vars_new))
+  setorder(dt_wide, Region, -Year) 
   return(dt_wide)
 }
 
-#' select columns and define some format based on output of adhoc region
+#' select, rename columns and define some format based on output of adhoc region
 #' by default add Sex = "Total"
 #' 
 clean.table <- function(dt){
@@ -69,17 +70,19 @@ clean.table <- function(dt){
   dt <- dt[, -(grep("Population|population", colnames(dt), value = TRUE)), with = FALSE]
   dt <- dt[Year>=year_started]
   setcolorder(dt, c("Region", "Year", "Sex")) # 2020.09 add Sex
-  dt[, Region2:= tolower(Region)]
+  dt[, Region2 := tolower(Region)]
   setorder(dt, Region2, -Year) 
-  dt[, Region2:= NULL]
+  dt[, Region2 := NULL]
   # rename 
   colnames(dt) <- dplyr::recode(colnames(dt), !!!new_varname_list)
   return(dt)
 }
 
+# scales::show_col(cp_UNICEF_div)
 cp_UNICEF_div = c("#002759", "#0058AB", "#1CABE2", "#69DBFF", "#CFF4FF", "#FFF09C",
-                        "#FFC20E", "#F26A21", "#E2231A", "#B50800")
+                             "#FFC20E", "#F26A21", "#E2231A", "#B50800")
 
+# for revising the country names for the map
 new_country_name_list <- c(
   "Antigua" = "Antigua and Barbuda",
   "Bolivia" = "Bolivia (Plurinational State of)",
@@ -121,6 +124,7 @@ get.world.map <- function(){
   world_map
 }
 
+# revise SDG region names 
 SDG_name_list <- c(
   "Western Asia and Northern Africa" = "Northern Africa and Western Asia",
   "Eastern Asia and South-eastern Asia" = "Eastern and South-Eastern Asia",
@@ -132,7 +136,7 @@ SDG_name_list <- c(
   "South-eastern Asia" = "South-Eastern Asia"
 )
 
-# a list used to rename column names in output 
+# a list used to rename column names in output and plot
 new_varname_list <- c(
   "year" = "Year",
   "U5MR" = "Under-five Mortality Rate",
@@ -150,7 +154,16 @@ new_varname_list <- c(
   "Neonatal deaths median"   = "Neonatal Deaths",
   "Under.five.Deaths" = "Under-five Deaths",
   "Infant.Deaths"     = "Infant Deaths",
-  "Neonatal.Deaths"   = "Neonatal Deaths"
+  "Neonatal.Deaths"   = "Neonatal Deaths",
+  
+  "X10q5"   =   "Mortality rate age 5-14",
+  "X5q5"    =   "Mortality rate age 5-9",
+  "X5q10"   =   "Mortality rate age 10-14",
+  "X10q15"  =   "Mortality rate age 15-24",
+  "X5q15"   =   "Mortality rate age 15-19",
+  "X5q20"   =   "Mortality rate age 20-24",
+  "X10q10"  =   "Mortality rate age 10-19",
+  "X20q5"   =   "Mortality rate age 5-24"
 )
 
 # required package version, will update library if version is too low. Could add

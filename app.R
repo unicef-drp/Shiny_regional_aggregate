@@ -113,8 +113,9 @@ c_median_total_15_24 <- read.country.summary(dir_dt_cs = file.path(dir_median_to
 c_median_total_older <- merge(recode_ind_5_14(c_median_total_5_14), 
                               recode_ind_15_24(c_median_total_15_24))
 c_median_total_older <- calculate.10q10(c_median_total_older)
-col_order_older_children <- colnames(c_median_total_older)
-col_order_older_children_all_rate <- col_order_older_children[grepl("X", col_order_older_children)]
+col_order_older_children <- copy(colnames(c_median_total_older)) # colnames containing "X"
+setnames(c_median_total_older, dplyr::recode(col_order_older_children, !!!new_varname_list))
+col_order_older_children_all_rate <- colnames(c_median_total_older)[grepl("Mortality rate", colnames(c_median_total_older))]
 year_ended <- floor(max(c_median_total$Year))
 year.lastestimatepublished <- year_ended + 0.5  # e.g. 2019.5 for IGME 2020
 
@@ -396,9 +397,11 @@ server <- function(input, output, session) {
       h4(strong(panel_title1.3)),
         plotly::plotlyOutput("plot_rate_older1"),
         br(),
-        plotly::plotlyOutput("plot_rate_older2", width = "80%"),
+        plotly::plotlyOutput("plot_rate_older2", width = "70%"),
         br(),
-        plotly::plotlyOutput("plot_rate_older3", width = "80%"),
+        plotly::plotlyOutput("plot_rate_older3", width = "70%"),
+        br(), 
+        plotly::plotlyOutput("plot_rate_older4", width = "35%"),
         br(), br()
     )
   })
@@ -605,6 +608,7 @@ server <- function(input, output, session) {
   
   plot.rate <- function(dt, vars0, title0 = "Deaths per 1,000 live births"){
     dt_long <- get.long(dt, vars0)[!is.na(rate), Rate:=round(rate,2)]
+    # note that the final indicator names are matched here: 
     levels(dt_long$Indicator) <- dplyr::recode(levels(dt_long$Indicator), !!!new_varname_list)
     p <- ggplot(dt_long, aes(x = Year, y = Rate, color = Region, type = Region)) +
       geom_line(size = 1) + 
@@ -637,16 +641,23 @@ server <- function(input, output, session) {
     if (is.null(reactive.run())) return()
     dt <- reactive.run()$both_5_24
     if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
-    plot.rate(dt, vars0 = c("X10q15",  "X5q15"), title0 = "Deaths per 1000 children aged 15")
+    plot.rate(dt, vars0 = c("X10q10", "X5q10"), title0 = "Deaths per 1000 children aged 10")
   })
   
   output$plot_rate_older3 <- plotly::renderPlotly({
     if (is.null(reactive.run())) return()
     dt <- reactive.run()$both_5_24
     if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
-    plot.rate(dt, vars0 = c("X10q10", "X5q10"), title0 = "Deaths per 1000 children aged 10")
+    plot.rate(dt, vars0 = c("X10q15",  "X5q15"), title0 = "Deaths per 1000 children aged 15")
   })
   
+  output$plot_rate_older4 <- plotly::renderPlotly({
+    if (is.null(reactive.run())) return()
+    dt <- reactive.run()$both_5_24
+    if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
+    plot.rate(dt, vars0 = c("X5q20"), title0 = "Deaths per 1000 children aged 20")
+  })
+
   # Figure 2. Death by year -------------------------------------------------
   # separate plot function for death to modify tooltip, legend, etc, function is similar
   plot.death <- function(dt){
@@ -790,7 +801,7 @@ server <- function(input, output, session) {
   
   output$download_table_f <- downloadHandler(
     filename = function() {
-      paste0("Results_female_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
+      paste0("Results_u5_female_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
     },
     content = function(file) {
       dtout <- rbindlist(list(clean.table(reactive.run()$f),
@@ -802,7 +813,7 @@ server <- function(input, output, session) {
     
   output$download_table_m <- downloadHandler(
     filename = function() {
-      paste0("Results_male_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
+      paste0("Results_u5_male_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
     },
     content = function(file) {
       dtout <- rbindlist(list(clean.table(reactive.run()$m),
