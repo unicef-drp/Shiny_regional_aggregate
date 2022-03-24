@@ -18,7 +18,7 @@ check.and.install.pkgs <- function(pkgs){
 check.and.install.pkgs(c("shiny", "shinyWidgets", "shinyjs", "leaflet",
                          "maps", "maptools", "rgeos",
                          "DT","data.table", "dplyr", "here", 
-                         "ggplot2", "plotly", "readxl"))
+                         "ggplot2", "scales", "plotly", "readxl"))
 
 # source code
 invisible(sapply(list.files(here::here("R"), full.names = TRUE, recursive = TRUE), source))
@@ -41,6 +41,7 @@ suppressPackageStartupMessages({
   library("data.table") 
   library("dplyr")    
   library("ggplot2")
+  library("scales")
   library("plotly")
   library("readxl")
 })
@@ -56,7 +57,7 @@ a("UN IGME", href = "https://childmortality.org", target = "_blank"),
 Country data will also be included in the downloaded dataset from the \"Tables and Data Download\" panel
 after running the aggregates.")
 
-note_input     <- "Please add countries by clicking the list, or uploading a file of selected ISOs."
+note_input     <- "Please select countries from the drop-down list, or by uploading a file of countries' ISO-alpha3 codes."
 default_select <- "Afghanistan"
 
 panel_title1.1 <- "Results of selected regional aggregates for"
@@ -163,7 +164,7 @@ ui = fluidPage(
     # upload ISO
     fileInput('ISO_input', label = p("(Optional) Upload selected", 
                                      a("ISO3 country code", href = "https://unstats.un.org/unsd/methodology/m49/", target = "_blank"),
-                                     a("(example file)", href = "Upload_ISO3Code_example_single_region.xlsx", target = "_blank")
+                                     a("(download an example)", href = "Upload_ISO3Code_example_single_region.xlsx", target = "_blank")
                                      ),
               placeholder = "Column name shall contain \"ISO\"", accept = c(
                 "text/csv",
@@ -181,10 +182,10 @@ ui = fluidPage(
                   placeholder = "Default name is \"Selected Countries\" if leave as blank"),
     # run_gender
     checkboxInput(inputId = "run_gender", label = strong("Run sex-specific results?"),
-                  value = TRUE),
+                  value = FALSE),
     # run_older_total
     checkboxInput(inputId = "run_older_total", label = strong("Run older children and adolescents results?"),
-                  value = TRUE),
+                  value = FALSE),
     # click_run
     actionButton("click_run",  strong("Run the Aggregates"), width = '200px'), 
     br(),br(), 
@@ -360,8 +361,10 @@ server <- function(input, output, session) {
       h4(strong(panel_title1.1)),
       h5(strong(textOutput(outputId = "selected_countries_click_run"))),
       br(),
+      # download definition
       # show_world
       checkboxInput(inputId = "show_world", label = "Show results for the world in plots", value = FALSE),
+      h5(a("Download definition of indicators", href = "Indicator definition and unit.xlsx", target = "_blank")),
       plotly::plotlyOutput("plot_rate"),
       br(),
       plotly::plotlyOutput("plot_death"),
@@ -380,9 +383,9 @@ server <- function(input, output, session) {
 
       if (length(input$show_world != 0)){
         if (input$show_world) {
-          plotly::plotlyOutput("plot_rate_gender", height = "800px", width = "80%")
+          plotly::plotlyOutput("plot_rate_gender", height = "800px")
         } else {
-          plotly::plotlyOutput("plot_rate_gender", width = "80%")
+          plotly::plotlyOutput("plot_rate_gender")
         }}
     )
   })
@@ -397,11 +400,9 @@ server <- function(input, output, session) {
       h4(strong(panel_title1.3)),
         plotly::plotlyOutput("plot_rate_older1"),
         br(),
-        plotly::plotlyOutput("plot_rate_older2", width = "70%"),
+        plotly::plotlyOutput("plot_rate_older2"),
         br(),
-        plotly::plotlyOutput("plot_rate_older3", width = "70%"),
-        br(), 
-        plotly::plotlyOutput("plot_rate_older4", width = "35%"),
+        plotly::plotlyOutput("plot_rate_older3"),
         br(), br()
     )
   })
@@ -534,7 +535,7 @@ server <- function(input, output, session) {
     removeModal()
     message("Time spent is ", round(Sys.time() - time0, 1), " seconds.")
     
-    # Add the user-defined `adhoc_name`:
+    # Modify colnames and add the user-defined `adhoc_name`:
     change.adhoc.name <- function(dt){
       setnames(dt, gsub("\\.", " ", colnames(dt))) # revise colnames from adjusted sex-specific output
       setnames(dt, gsub("Under five", "Under-five", colnames(dt)))
@@ -606,6 +607,7 @@ server <- function(input, output, session) {
     return(dt_long[,.(Region, Year, rate, Indicator)])
   }
   
+  titlefont0 <- 14 # xlab size
   plot.rate <- function(dt, vars0, title0 = "Deaths per 1,000 live births"){
     dt_long <- get.long(dt, vars0)[!is.na(rate), Rate:=round(rate,2)]
     # note that the final indicator names are matched here: 
@@ -616,11 +618,12 @@ server <- function(input, output, session) {
       labs(y = "", x = "", color = "", type = "") +
       facet_wrap(~ Indicator) +
       scale_color_manual(values = cp_UNICEF_div[(1:uniqueN(dt_long$Region))*2]) +
-      scale_x_continuous(breaks = c(1990, 2000, 2010, year_ended))
-
+      scale_x_continuous(breaks = c(1990, 2000, 2010, year_ended))  
+    
     return(plotly::ggplotly(p, tooltip = c("Year", "Rate")) %>% 
-             layout(yaxis = list(title = title0),
-                    legend = list(orientation = "h", x = 0.4, y = -0.1)))
+             # layout(yaxis = list(title = title0), font_size = 9,
+             layout(yaxis = list(title = title0, titlefont = list(size = titlefont0)), 
+                    legend = list(orientation = "h", x = 0.4, y = -0.1))) # legend.position = "bottom"
   }
   
   output$plot_rate <- plotly::renderPlotly({
@@ -634,29 +637,23 @@ server <- function(input, output, session) {
     if (is.null(reactive.run())) return()
     dt <- reactive.run()$both_5_24
     if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
-    plot.rate(dt, vars0 = c("X20q5", "X10q5", "X5q5"), title0 = "Deaths per 1000 children aged 5")
+    plot.rate(dt, vars0 = c("X20q5", "X10q10"), title0 = "Deaths per 1,000")
   })
   
   output$plot_rate_older2 <- plotly::renderPlotly({
     if (is.null(reactive.run())) return()
     dt <- reactive.run()$both_5_24
     if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
-    plot.rate(dt, vars0 = c("X10q10", "X5q10"), title0 = "Deaths per 1000 children aged 10")
+    plot.rate(dt, vars0 = c("X10q5", "X5q5", "X5q10"), title0 = "Deaths per 1,000")
   })
   
   output$plot_rate_older3 <- plotly::renderPlotly({
     if (is.null(reactive.run())) return()
     dt <- reactive.run()$both_5_24
     if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
-    plot.rate(dt, vars0 = c("X10q15",  "X5q15"), title0 = "Deaths per 1000 children aged 15")
+    plot.rate(dt, vars0 = c("X10q15", "X5q15", "X5q20"), title0 = "Deaths per 1,000")
   })
-  
-  output$plot_rate_older4 <- plotly::renderPlotly({
-    if (is.null(reactive.run())) return()
-    dt <- reactive.run()$both_5_24
-    if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
-    plot.rate(dt, vars0 = c("X5q20"), title0 = "Deaths per 1000 children aged 20")
-  })
+
 
   # Figure 2. Death by year -------------------------------------------------
   # separate plot function for death to modify tooltip, legend, etc, function is similar
@@ -671,14 +668,15 @@ server <- function(input, output, session) {
         theme_bw() + 
         # ggtitle("Deaths of U5MR, IMR, and NMR by Year") + 
         labs(y = "", x = "", color = "") +
-        # scale_y_continuous(label=scales::comma) + 
-        scale_color_manual(values = cp_UNICEF_div[(1:uniqueN(dt_long$Region))*2])+
-        scale_x_continuous(breaks = c(1990, 2000, 2010, year_ended)) +
         facet_wrap(facets= ~ type) + 
-        theme(legend.position = "bottom")
+        scale_color_manual(values = cp_UNICEF_div[(1:uniqueN(dt_long$Region))*2])+
+        scale_x_continuous(breaks = c(1990, 2000, 2010, year_ended)) + 
+        scale_y_continuous(labels = scales::label_number(suffix = "k", scale = 1E-3, big.mark = ","))
     
     plotly::ggplotly(p, tooltip = c("Year", "Deaths")) %>% 
-                                  layout(yaxis = list(title =  "Number of Deaths"),
+                                  layout(yaxis = list(title =  "Number of deaths", 
+                                                      titlefont = list(size = titlefont0),
+                                                      tickfont = list(size = 10)),
                                          legend = list(orientation = "h", x = 0.4, y = -0.1))
   }
 
@@ -700,26 +698,28 @@ server <- function(input, output, session) {
     vars0 <- c("U5MR median", "IMR median")
     dt_long_m <- get.long(reactive.run()$m, vars0)
     dt_long_f <- get.long(reactive.run()$f, vars0)
-    dt_long_m$gender <- "Male"
-    dt_long_f$gender <- "Female"
+    dt_long_m$Sex <- "Male"
+    dt_long_f$Sex <- "Female"
     dt_long <- rbind(dt_long_f, dt_long_m)
     dt_long$Region <- as.factor(dt_long$Region)
+    dt_long$Sex <- factor(as.factor(dt_long$Sex), levels = c("Male", "Female"))
     # show world or not? 
     if(!input$show_world) dt_long <- dt_long[Region==reactive.adhoc.name(),]
     levels(dt_long$Indicator) <- dplyr::recode(levels(dt_long$Indicator), !!!new_varname_list)
     
-    p <- ggplot(dt_long[!is.na(rate), Rate := round(rate,2)], aes(x = Year, y = Rate, color = gender)) +
+    p <- ggplot(dt_long[!is.na(rate), Rate := round(rate,2)], aes(x = Year, y = Rate, color = Sex)) +
       geom_line(size = 1) + 
       theme_bw() + 
-      # ggtitle("U5MR and IMR by Gender and Year", subtitle = "Selected Region vs. the World") + 
+      # ggtitle("U5MR and IMR by Sex and Year", subtitle = "Selected Region vs. the World") + 
       labs(y = "", x = "",  color = "") +
       scale_x_continuous(breaks = c(1990, 2000, 2010, year_ended)) +
       facet_wrap(facets = ~ Indicator + Region) +
-      # increase margin to avoid flattened strip when pass to `plotly`
+      # increase margin to increase height of the title strip of `facet_wrap` when passed to `plotly`
       theme(strip.text.x = element_text(margin = margin(.3, 0, .3, 0, "cm")))
 
     plotly::ggplotly(p, tooltip = c("Year", "Rate"))%>% 
-      layout(yaxis = list(title = "Deaths per 1,000 live births"))
+      layout(yaxis = list(title = "Deaths per 1,000 live births", titlefont = list(size = titlefont0)),
+             legend = list(orientation = "h", x = 0.4, y = -0.1))  # legend.position = "bottom"
   })
   
 

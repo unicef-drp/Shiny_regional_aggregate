@@ -60,6 +60,77 @@ read.country.summary <- function(
   return(dt_wide)
 }
 
+#' function to read "Rates & Deaths_(region name).csv" and output long format
+#' data
+read.region.summary <- function(
+  dir_file,      # regional summary in aggregate results
+  year_range = NULL,# e.g. c(1990, 2019)
+  sex = NULL,
+  add_regional_grouping = FALSE
+){
+  if(!file.exists(dir_file)) stop("File doesn't exist: ", dir_file)
+  dt_cs <- fread(dir_file)
+  # What region is it?
+  
+  if(grepl("SDG", dir_file)) Regional_Grouping <- "SDG"
+  if(grepl("UNICEF", dir_file)) Regional_Grouping <- "UNICEF"
+  if(grepl("WB", dir_file)) Regional_Grouping <- "World Bank"
+  
+  # clean up the col names
+  setnames(dt_cs, gsub(" ", ".", colnames(dt_cs)))
+  setnames(dt_cs, gsub("-", ".", colnames(dt_cs)))
+  #
+  vars0 <- colnames(dt_cs)
+  vars0 <- vars0[!grepl("Population", vars0, ignore.case = TRUE)]
+  vars_wanted <- vars0[!vars0%in%c("Region", "Year")]
+  # available years
+  available_years <- sort(unique(dt_cs$Year))
+  if(!is.null(year_range)){
+    # so it is OK to supply years by mistake like year_range = 2000.4, match by
+    # flooring
+    year_range <- available_years[floor(available_years)%in%floor(as.numeric(year_range))]
+    if(length(year_range)==0){
+      message("Supplied `year_range` is not in available years.\n",
+              "Available years are between ", paste(range(available_years), collapse = " and "),
+              " --- will use all available years")
+      year_range <- available_years
+    }
+  } else {
+    message("`year_range` set to NULL: use all available years in the dataset: ", paste(range(available_years), collapse = "-"))
+    year_range <- available_years
+  }
+  dt_cs <- dt_cs[Year%in%year_range]
+  dt_cs[, (vars_wanted):=lapply(.SD, as.numeric), .SDcols = vars_wanted]
+  if("Region" %in% colnames(dt_cs)){
+    id_vars <- c("Region", "Year")
+  } else {
+    id_vars <- c("Year")
+    message("There is no `Region` column, assume this is world results")
+  }
+  dt_long <- melt.data.table(dt_cs[,..vars0], id.vars = id_vars, variable.factor = FALSE)
+  dt_long[grepl("upper", variable, ignore.case = TRUE), Quantile := "Upper"]
+  dt_long[grepl("median", variable, ignore.case = TRUE), Quantile := "Median"]
+  dt_long[grepl("lower", variable, ignore.case = TRUE), Quantile := "Lower"]
+  dt_long[, Shortind := gsub("X|.lower.bound|.upper.bound|.median", "", variable)]
+  dt_long[, Shortind := gsub("Deaths", "deaths", Shortind)]
+  
+  dt_long[, variable:= NULL]
+  if(add_regional_grouping) dt_long[, Regional_Grouping:= Regional_Grouping]
+  dt_long[, Year:= floor(Year) + 0.5]
+  # determine sex from dir
+  if(is.null(sex)){
+    if(grepl("female", dir_file, ignore.case = TRUE)){
+      sex <- "Female"
+    } else if (grepl("male", dir_file, ignore.case = TRUE)) {
+      sex <- "Male"
+    } else {
+      sex <- "Total"
+    }
+  }
+  dt_long[, Sex:= sex]
+  return(dt_long)
+}
+
 #' select, rename columns and define some format based on output of adhoc region
 #' by default add Sex = "Total"
 #' 

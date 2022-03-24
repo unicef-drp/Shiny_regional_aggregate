@@ -202,8 +202,8 @@ output_list <- list(
 # dir_IGME_5_14 <- file.path(leading_path, "Dropbox/IGME 5-14/2021 Round Estimation/Final estimates")
 # dirold <- file.path(dir_IGME_5_14, "Aggregate results (median) 2021-11-18/Rates & Deaths_SDGSimpleRegion.csv")
 # dirnew <- file.path(here::here("median_results_total_5_14/Rates & Deaths_SDGSimpleRegion.csv"))
-# dt1 <- CME.assistant::read.region.summary(dirold)
-# dt2 <- CME.assistant::read.region.summary(dirnew)
+# dt1 <- read.region.summary(dirold)
+# dt2 <- read.region.summary(dirnew)
 # recode5_14 <- c("U5MR" = "X10q5", "IMR" = "X5q5", "CMR" = "X5q10",
 #                 "10q5" = "X10q5", "5q5" = "X5q5", "5q10" = "X5q10",
 #                 "Under.five.deaths" = "deaths.age.5to14",
@@ -219,8 +219,8 @@ output_list <- list(
 # dir_IGME_15_24 <- file.path(leading_path, "Dropbox/IGME 15-24/2021 Round Estimation/Final estimates")
 # dirold <- file.path(dir_IGME_15_24, "Aggregate results (median) 2021-11-18/Rates & Deaths_SDGSimpleRegion.csv")
 # dirnew <- file.path(here::here("median_results_total_15_24/Rates & Deaths_SDGSimpleRegion.csv"))
-# dt1 <- CME.assistant::read.region.summary(dirold)
-# dt2 <- CME.assistant::read.region.summary(dirnew)
+# dt1 <- read.region.summary(dirold)
+# dt2 <- read.region.summary(dirnew)
 # recode15_24 <- c("U5MR" = "X10q15", "IMR" = "X5q15", "CMR" = "X5q20",
 #                  "10q15" = "X10q15", "5q15" = "X5q15", "5q20" = "X5q20",
 #                  "Under.five.deaths" = "deaths.age.15to24",
