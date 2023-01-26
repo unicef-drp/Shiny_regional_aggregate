@@ -120,9 +120,6 @@ col_order_older_children_all_rate <- colnames(c_median_total_older)[grepl("Morta
 year_ended <- floor(max(c_median_total$Year))
 year.lastestimatepublished <- year_ended + 0.5  # e.g. 2019.5 for IGME 2020
 
-# for the reset function
-jscode <- "shinyjs.refresh = function() { location.reload(); }"
-
 # check dir
 if(!grepl("female", dir_median_female))stop("Check dir_median_female: ", dir_median_female)
 if(!grepl("male", dir_median_male))stop("Check dir_median_male: ", dir_median_male)
@@ -138,7 +135,6 @@ ui = fluidPage(
   sidebarPanel(
     # for reset 
     useShinyjs(),
-    extendShinyjs(text = jscode, functions = "refresh"), 
     
     titlePanel("Aggregate Selected Countries"), # title
     br(),
@@ -166,10 +162,8 @@ ui = fluidPage(
                                      a("ISO3 country code", href = "https://unstats.un.org/unsd/methodology/m49/", target = "_blank"),
                                      a("(download an example)", href = "Upload_ISO3Code_example_single_region.xlsx", target = "_blank")
                                      ),
-              placeholder = "Column name shall contain \"ISO\"", accept = c(
-                "text/csv",
-                "text/comma-separated-values,text/plain",
-                ".csv")
+              placeholder = "Column name shall contain \"ISO\"", 
+              accept = c(".csv", ".xlsx")
               ),
     style = "border: 0px"
     ),
@@ -241,7 +235,7 @@ server <- function(input, output, session) {
   # Reset session 
   observe({
     if (input$click_reset) {
-      js$refresh();
+      refresh();
     }
   })  
   
@@ -529,7 +523,7 @@ server <- function(input, output, session) {
       adjust.death()
     }
     if(input$run_older_total){
-      run.outputaggregates.5.24()
+      run.outputaggregates.5.24(year.lastestimatepublished)
     }
     
     removeModal()

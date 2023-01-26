@@ -5,6 +5,7 @@ DZA,Algeria,0.1
 AND,Andorra,0.1
 AGO,Angola,0.3
 ATG,Antigua & Barbuda,0.1
+AIA,Anguilla,0.1
 ARG,Argentina,0.1
 ARM,Armenia,0.1
 AUS,Australia,0.1
@@ -23,6 +24,7 @@ BOL,Bolivia,0.3
 BIH,Bosnia & Herzegovina,0.1
 BWA,Botswana,0.3
 BRA,Brazil,0.1
+VGB,British Virgin Islands,0.1
 BRN,Brunei,0.1
 BGR,Bulgaria,0.1
 BFA,Burkina Faso,0.3
@@ -91,6 +93,7 @@ KEN,Kenya,0.3
 KIR,Kiribati,0.3
 PRK,Korea DPR,0.1
 KOR,Korea Rep,0.1
+RKS,Kosovo,0.1
 KWT,Kuwait,0.1
 KGZ,Kyrgyzstan,0.1
 LAO,Lao PDR,0.3
@@ -117,6 +120,7 @@ MDA,Moldova,0.1
 MCO,Monaco,0.1
 MNG,Mongolia,0.3
 MNE,Montenegro,0.1
+MSR,Montserrat,0.1
 MAR,Morocco,0.3
 MOZ,Mozambique,0.3
 MMR,Myanmar,0.3
@@ -181,6 +185,7 @@ TTO,Trinidad & Tobago,0.1
 TUN,Tunisia,0.1
 TUR,Turkey,0.1
 TKM,Turkmenistan,0.1
+TCA,Turks and Caicos,0.1
 TUV,Tuvalu,0.1
 UGA,Uganda,0.3
 UKR,Ukraine,0.1

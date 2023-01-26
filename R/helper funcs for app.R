@@ -13,10 +13,20 @@ read.country.summary <- function(
   dt_cs <- fread(dir_dt_cs)[ISO3Code!="LIE"]
   setnames(dt_cs, gsub(" ", ".", colnames(dt_cs)))
   setnames(dt_cs, gsub("-", ".", colnames(dt_cs)))
-  # find the Quantie column: 
-  if("X"%in%colnames(dt_cs))setnames(dt_cs, "X", "Quantile")
-  if("V99"%in%colnames(dt_cs))setnames(dt_cs, "V99", "Quantile") # in case leave as blank
+
+  # find the Quantile column:
   if("Quintile"%in%colnames(dt_cs))setnames(dt_cs, "Quintile", "Quantile")
+  if("X"%in%colnames(dt_cs)){
+    if(dt_cs$X[1]!=1) setnames(dt_cs, "X", "Quantile") # it could be a indexing column 
+  }
+  # in case leave as blank, column will have names like V99, V101, etc
+  if(!"Quantile"%in%colnames(dt_cs)){
+    columnV <- grep("V", colnames(dt_cs), value = TRUE)
+    columnV <- columnV[which(nchar(columnV) %in% c(3,4))]
+    # message("Assign this column as Quantile column: ", columnV[1])
+    setnames(dt_cs, columnV[1], "Quantile")
+  }
+  
   # get all the variables available in the datasets: 
   # e.g. c("X5q15", "X10q15", "X5q20")
   vars <- grep(".2018", colnames(dt_cs), value = TRUE, fixed = TRUE)
@@ -258,6 +268,9 @@ recode_ind_5_14 <- function(dt){
                   "IMR"  = "X5q5",  "Infant Mortality Rate" = "X5q5",
                   "CMR"  = "X5q10",
                   "10q5" = "X10q5", "5q5" = "X5q5", "5q10" = "X5q10",
+                  "Mortality rate age 5-14" = "X10q5",
+                  "Mortality rate age 5-9"  = "X5q5",
+                  "Mortality rate age 10-14"= "X5q10",
                   "Under.five.deaths" = "Deaths age 5 to 14",
                   "Infant.deaths"     = "Deaths age 5 to 9",
                   "Child.deaths"      = "Deaths age 10 to 14",
@@ -275,10 +288,17 @@ recode_ind_5_14 <- function(dt){
 }
 
 recode_ind_15_24 <- function(dt){
+  # might need to revise every year, depending on the column names used in the
+  # agg file
   recode15_24 <- c("U5MR"  = "X10q15", "Under-five Mortality Rate" = "X10q15", 
                    "IMR"   = "X5q15",  "Infant Mortality Rate" = "X5q15",
                    "CMR"   = "X5q20",
-                   "10q15" = "X10q15", "5q15" = "X5q15", "5q20" = "X5q20",
+                   "10q15" = "X10q15", 
+                   "5q15" = "X5q15", 
+                   "5q20" = "X5q20",
+                   "Mortality rate age 15-24"= "X10q15",
+                   "Mortality rate age 15-19"= "X5q15",
+                   "Mortality rate age 20-24"= "X5q20",
                    "Under.five.deaths" = "Deaths age 15 to 24",
                    "Infant.deaths"     = "Deaths age 15 to 19",
                    "Child.deaths"      = "Deaths age 20 to 24",

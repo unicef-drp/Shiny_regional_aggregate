@@ -43,9 +43,9 @@ OutputAggregates.ori <- function( # Calculate and output aggregated rates and nu
   output.dir <- "output_numberofdeaths"
   output.dir.samples <- file.path(output.dir, "samples")
   output.dir.samplescombined <- file.path(output.dir, "samples_combined")
-  dir.create(file.path(getwd(), output.dir), showWarnings = FALSE)
-  dir.create(file.path(getwd(), output.dir.samples), showWarnings = FALSE)
-  dir.create(file.path(getwd(), output.dir.samplescombined), showWarnings = FALSE)
+  dir.create(file.path(output.dir), showWarnings = FALSE)
+  dir.create(file.path(output.dir.samples), showWarnings = FALSE)
+  dir.create(file.path(output.dir.samplescombined), showWarnings = FALSE)
 
   if (is.null(country.info.file))
     country.info.file <- file.path("input", "country.info.CME.csv")

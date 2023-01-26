@@ -48,9 +48,9 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
   if (is.null(output.dir)) output.dir <- "output_numberofdeaths"
   output.dir.samples <- file.path(output.dir, "samples")
   output.dir.samplescombined <- file.path(output.dir, "samples_combined")
-  dir.create(file.path(getwd(), output.dir), showWarnings = FALSE)
-  dir.create(file.path(getwd(), output.dir.samples), showWarnings = FALSE)
-  dir.create(file.path(getwd(), output.dir.samplescombined), showWarnings = FALSE)
+  dir.create(file.path(output.dir), showWarnings = FALSE, recursive = TRUE)
+  dir.create(file.path(output.dir.samples), showWarnings = FALSE,recursive = TRUE)
+  dir.create(file.path(output.dir.samplescombined), showWarnings = FALSE,recursive = TRUE)
   
   # DJS edit 2018-07-23 for using historical regional constant for aggregation 
   if(!is.null(replace.rates.reg)){
@@ -713,42 +713,42 @@ CalculateCountryDeathsBWC <- function(
   # decline.year1.year2.c <- CalculateDecline(u5mr = u5mr.ct, years = est.years, year.start = year1, year.end = year2)
   # decline.year2.year4.c <- CalculateDecline(u5mr = u5mr.ct, years = est.years, year.start = year2, year.end = year4)
   # 
-  # if (!file.exists(file.path(output.dir, "info.rda"))) {
-  #   info <- list(iso.c = iso.c,
-  #                C = C,
-  #                est.years = est.years,
-  #                est.years.floor = est.years-0.5,
-  #                year1.est.nn = year1.est.nn, ## will be NA if no nmr
-  #                year1.est.u1 = year1.est.u1,
-  #                year1.est.u5 = year1.est.u5,
-  #                nyears = nyears,
-  #                a0.c = a0.c,
-  #                a1to4.c = a1to4.c,
-  #                pop0.ct = pop0.ct,
-  #                pop1to4.ct = pop1to4.ct,
-  #                pop0.orig.ct = pop0.orig.ct,
-  #                pop1to4.orig.ct = pop1to4.orig.ct,
-  #                livebirths.ct = livebirths.ct,
-  #                year1 = year1,
-  #                year2 = year2,
-  #                year4 = year4,
-  #                year.target = year.target,
-  #                factor.target = factor.target)
-  #   if(!dir.exists(output.dir)) dir.create(output.dir, recursive = TRUE)
-  #   save(info, file = file.path(output.dir, "info.rda"))
-  #   cat(paste0("Information about the aggregates have been saved to ", output.dir, ".\n"))
-  # }
-  # # save samples
-  # save(death0.ct, file = file.path(output.dir, paste0("death0.ct_", j, ".rda")))
-  # save(death1to4.ct, file = file.path(output.dir, paste0("death1to4.ct_", j, ".rda")))
-  # save(deathu5.ct, file = file.path(output.dir, paste0("deathu5.ct_", j, ".rda")))
-  # save(dx.array.by.c, file = file.path(output.dir, paste0("dx.array.ct_", j, ".rda")))
-  # save(lx.array.by.c, file = file.path(output.dir, paste0("lx.array.ct_", j, ".rda")))
-  # if(!is.null(nmr.ctj)){
-  #   save(deathnn.ct, file = file.path(output.dir, paste0("deathnn.ct_", j, ".rda")))
-  #   save(dx.nn.array.by.c, file = file.path(output.dir, paste0("dx.nn.array.ct_", j, ".rda")))
-  #   save(lx.nn.array.by.c, file = file.path(output.dir, paste0("lx.nn.array.ct_", j, ".rda")))
-  # }
+  if (!file.exists(file.path(output.dir, "info.rda"))) {
+    info <- list(iso.c = iso.c,
+                 C = C,
+                 est.years = est.years,
+                 est.years.floor = est.years-0.5,
+                 year1.est.nn = year1.est.nn, ## will be NA if no nmr
+                 year1.est.u1 = year1.est.u1,
+                 year1.est.u5 = year1.est.u5,
+                 nyears = nyears,
+                 a0.c = a0.c,
+                 a1to4.c = a1to4.c,
+                 pop0.ct = pop0.ct,
+                 pop1to4.ct = pop1to4.ct,
+                 pop0.orig.ct = pop0.orig.ct,
+                 pop1to4.orig.ct = pop1to4.orig.ct,
+                 livebirths.ct = livebirths.ct,
+                 year1 = year1,
+                 year2 = year2,
+                 year4 = year4,
+                 year.target = year.target,
+                 factor.target = factor.target)
+    if(!dir.exists(output.dir)) dir.create(output.dir, recursive = TRUE)
+    save(info, file = file.path(output.dir, "info.rda"))
+    cat(paste0("Information about the aggregates have been saved to ", output.dir, ".\n"))
+  }
+  # save samples
+  save(death0.ct, file = file.path(output.dir, paste0("death0.ct_", j, ".rda")))
+  save(death1to4.ct, file = file.path(output.dir, paste0("death1to4.ct_", j, ".rda")))
+  save(deathu5.ct, file = file.path(output.dir, paste0("deathu5.ct_", j, ".rda")))
+  save(dx.array.by.c, file = file.path(output.dir, paste0("dx.array.ct_", j, ".rda")))
+  save(lx.array.by.c, file = file.path(output.dir, paste0("lx.array.ct_", j, ".rda")))
+  if(!is.null(nmr.ctj)){
+    save(deathnn.ct, file = file.path(output.dir, paste0("deathnn.ct_", j, ".rda")))
+    save(dx.nn.array.by.c, file = file.path(output.dir, paste0("dx.nn.array.ct_", j, ".rda")))
+    save(lx.nn.array.by.c, file = file.path(output.dir, paste0("lx.nn.array.ct_", j, ".rda")))
+  }
   # save(ARR.year1.year4.c, file = file.path(output.dir, paste0("ARR.year1.year4.c_", j, ".rda")))
   # save(ARR.year1.year2.c, file = file.path(output.dir, paste0("ARR.year1.year2.c_", j, ".rda")))
   # save(ARR.year2.year4.c, file = file.path(output.dir, paste0("ARR.year2.year4.c_", j, ".rda")))
@@ -1060,27 +1060,27 @@ CombineAndOutputCountryResultsBWC <- function(
     load(file.path(output.dir.samples, paste0("death0.ct_", j, ".rda")))
     load(file.path(output.dir.samples, paste0("death1to4.ct_", j, ".rda")))
     load(file.path(output.dir.samples, paste0("deathu5.ct_", j, ".rda")))
-    load(file.path(output.dir.samples, paste0("ARR.year1.year4.c_", j, ".rda")))
-    load(file.path(output.dir.samples, paste0("ARR.year1.year2.c_", j, ".rda")))
-    load(file.path(output.dir.samples, paste0("ARR.year2.year4.c_", j, ".rda")))
-    load(file.path(output.dir.samples, paste0("required.ARR.c_", j, ".rda")))
-    load(file.path(output.dir.samples, paste0("changeinARR.c_", j, ".rda")))
-    load(file.path(output.dir.samples, paste0("decline.year1.year4.c_", j, ".rda")))
-    load(file.path(output.dir.samples, paste0("decline.year1.year2.c_", j, ".rda")))
-    load(file.path(output.dir.samples, paste0("decline.year2.year4.c_", j, ".rda")))
+    # load(file.path(output.dir.samples, paste0("ARR.year1.year4.c_", j, ".rda")))
+    # load(file.path(output.dir.samples, paste0("ARR.year1.year2.c_", j, ".rda")))
+    # load(file.path(output.dir.samples, paste0("ARR.year2.year4.c_", j, ".rda")))
+    # load(file.path(output.dir.samples, paste0("required.ARR.c_", j, ".rda")))
+    # load(file.path(output.dir.samples, paste0("changeinARR.c_", j, ".rda")))
+    # load(file.path(output.dir.samples, paste0("decline.year1.year4.c_", j, ".rda")))
+    # load(file.path(output.dir.samples, paste0("decline.year1.year2.c_", j, ".rda")))
+    # load(file.path(output.dir.samples, paste0("decline.year2.year4.c_", j, ".rda")))
     #load(file.path(output.dir.samples, paste0("dx.array.ct_", j, ".rda")))
     #load(file.path(output.dir.samples, paste0("lx.array.ct_", j, ".rda")))
     death0.ctj[, , j] <- death0.ct
     death1to4.ctj[, , j] <- death1to4.ct
     deathu5.ctj[, , j] <- deathu5.ct
-    ARR.year1.year4.cj[, j] <- ARR.year1.year4.c
-    ARR.year1.year2.cj[, j] <- ARR.year1.year2.c
-    ARR.year2.year4.cj[, j] <- ARR.year2.year4.c
-    required.ARR.cj[, j] <- required.ARR.c
-    changeinARR.cj[, j] <- changeinARR.c
-    decline.year1.year4.cj[, j] <- decline.year1.year4.c
-    decline.year1.year2.cj[, j] <- decline.year1.year2.c
-    decline.year2.year4.cj[, j] <- decline.year2.year4.c
+    # ARR.year1.year4.cj[, j] <- ARR.year1.year4.c
+    # ARR.year1.year2.cj[, j] <- ARR.year1.year2.c
+    # ARR.year2.year4.cj[, j] <- ARR.year2.year4.c
+    # required.ARR.cj[, j] <- required.ARR.c
+    # changeinARR.cj[, j] <- changeinARR.c
+    # decline.year1.year4.cj[, j] <- decline.year1.year4.c
+    # decline.year1.year2.cj[, j] <- decline.year1.year2.c
+    # decline.year2.year4.cj[, j] <- decline.year2.year4.c
     # dx.array.ctj[,,,j] <- dx.array.by.c
     # lx.array.ctj[,,,j] <- lx.array.by.c
     if(!is.null(nmr.ctj)){
@@ -1106,14 +1106,14 @@ CombineAndOutputCountryResultsBWC <- function(
   save(death0.ctj, file = file.path(output.dir.samplescombined, "death0.ctj.rda"))
   save(death1to4.ctj, file = file.path(output.dir.samplescombined, "death1to4.ctj.rda"))
   save(deathu5.ctj, file = file.path(output.dir.samplescombined, "deathu5.ctj.rda"))
-  save(ARR.year1.year4.cj, file = file.path(output.dir.samplescombined, "ARR.year1.year4.cj.rda"))
-  save(ARR.year1.year2.cj, file = file.path(output.dir.samplescombined, "ARR.year1.year2.cj.rda"))
-  save(ARR.year2.year4.cj, file = file.path(output.dir.samplescombined, "ARR.year2.year4.cj.rda"))
-  save(required.ARR.cj, file = file.path(output.dir.samplescombined, "required.ARR.cj.rda"))
-  save(changeinARR.cj, file = file.path(output.dir.samplescombined, "changeinARR.cj.rda"))
-  save(decline.year1.year4.cj, file = file.path(output.dir.samplescombined, "decline.year1.year4.cj.rda"))
-  save(decline.year1.year2.cj, file = file.path(output.dir.samplescombined, "decline.year1.year2.cj.rda"))
-  save(decline.year2.year4.cj, file = file.path(output.dir.samplescombined, "decline.year2.year4.cj.rda"))
+  # save(ARR.year1.year4.cj, file = file.path(output.dir.samplescombined, "ARR.year1.year4.cj.rda"))
+  # save(ARR.year1.year2.cj, file = file.path(output.dir.samplescombined, "ARR.year1.year2.cj.rda"))
+  # save(ARR.year2.year4.cj, file = file.path(output.dir.samplescombined, "ARR.year2.year4.cj.rda"))
+  # save(required.ARR.cj, file = file.path(output.dir.samplescombined, "required.ARR.cj.rda"))
+  # save(changeinARR.cj, file = file.path(output.dir.samplescombined, "changeinARR.cj.rda"))
+  # save(decline.year1.year4.cj, file = file.path(output.dir.samplescombined, "decline.year1.year4.cj.rda"))
+  # save(decline.year1.year2.cj, file = file.path(output.dir.samplescombined, "decline.year1.year2.cj.rda"))
+  # save(decline.year2.year4.cj, file = file.path(output.dir.samplescombined, "decline.year2.year4.cj.rda"))
   # save(dx.array.ctj, file = file.path(output.dir.samplescombined, "dx.array.ctj.rda"))
   # save(lx.array.ctj, file = file.path(output.dir.samplescombined, "lx.array.ctj.rda"))
   save(info, file = file.path(output.dir.samplescombined, "info.rda"))
