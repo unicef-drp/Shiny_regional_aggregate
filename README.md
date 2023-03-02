@@ -3,7 +3,7 @@
 Based on the BWC aggragating method, the app wraps the original `outputaggregates-BWC` code.
 Use the script `update_me_every_year.R` to update every year.
 
-Deployed on shinyapps.io: https://u5met2017.shinyapps.io/Shiny_regional_aggregate/
+Deployed here: https://unicef-dapm.shinyapps.io/Shiny_regional_aggregate/
 
 To run the code locally, download the repo and launch it as R project using the __`Rporj`__ file,
 Or just open the `app.R` and run.
