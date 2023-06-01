@@ -17,8 +17,8 @@ To run the app directly from github (not working now since the repo is private)
 shiny::runGitHub("unicef-drp/Shiny_regional_aggregate.git", "liuyanguu")
 ```
 ## How to update
-Please use `update_me_every_year.R` to walk through the process
-The data that needs updating are described in the script too
+Please use `update_me_every_year.R` to walk through the process.  
+The dataset to be updated are described in the script too.
 
 ## Major update  
 January 2020  
