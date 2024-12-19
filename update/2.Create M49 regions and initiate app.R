@@ -136,10 +136,12 @@ OutputAggregates.ori(results.U5MR.file = file.path("output", "10q15", "Results.c
 
 
 
+# Check -------------------------------------------------------------------
+
 # check if results match
-leading_path <- "C:/Users/lyhel" # leading dir to Dropbox
-dir_IGME_5_14 <- file.path(leading_path, "Dropbox/IGME 5-14/2022 Round Estimation")
-dirold <- file.path(dir_IGME_5_14, "Aggregate results (final) 2022-11-17/Rates & Deaths_SDGSimpleRegion.csv")
+leading_path <- Sys.getenv("USERPROFILE") # leading dir to Dropbox
+work_dir_5_14 <- file.path(leading_path, "Dropbox/IGME 5-14/2023 Round Estimation")
+dirold <- file.path(work_dir_5_14, "Aggregate results (final) 2023-12-28/Rates & Deaths_SDGSimpleRegion.csv")
 dirnew <- file.path(here::here("median_results_total_5_14/Rates & Deaths_SDGSimpleRegion.csv"))
 dt1 <- read.region.summary(dirold)
 dt2 <- read.region.summary(dirnew)
@@ -156,8 +158,8 @@ dtc <- merge(dt1, dt2)
 dtc[, diff:= round(value- value2, 4)]
 dtc[diff!=0, table(Shortind)]
 
-dir_IGME_15_24 <- file.path(leading_path, "Dropbox/IGME 15-24/2022 Round Estimation")
-dirold <- file.path(dir_IGME_15_24, "Aggregate results (median) 2022-11-17/Rates & Deaths_SDGSimpleRegion.csv")
+dir_IGME_15_24 <- file.path(leading_path, "Dropbox/IGME 15-24/2023 Round Estimation")
+dirold <- file.path(dir_IGME_15_24, "Aggregate results (median) 2023-12-28/Rates & Deaths_SDGSimpleRegion.csv")
 dirnew <- file.path(here::here("median_results_total_15_24/Rates & Deaths_SDGSimpleRegion.csv"))
 dt1 <- read.region.summary(dirold)
 dt2 <- read.region.summary(dirnew)
@@ -228,6 +230,7 @@ output_list <- list(
 )
 
 
+# If everything runs, then the app can be uploaded to the server
 
 # Final note 2023: If you run through this initiation process, and find out that
 # something is wrong (e.g. some input files are not correct), delete all median

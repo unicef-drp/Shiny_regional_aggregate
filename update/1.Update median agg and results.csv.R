@@ -1,34 +1,36 @@
 # Update median aggregates file and results.csv
 # Modify this script to copy the correct files from each round's outputs
 
-USERPROFILE <- "C:/Users/lyhel" # leading dir to Dropbox
+USERPROFILE <- Sys.getenv("USERPROFILE") # leading dir to Dropbox
 dir_CC_code <- file.path(USERPROFILE, "Dropbox/UNICEF Work/Country consultation/Code_for_CC")
-source(file.path(dir_CC_code, "R/Dropbox_results_directories_2022.R"))
-
+source(file.path(dir_CC_code, "R/Dropbox_results_directories_2023.R"))
+source(file.path(USERPROFILE, "Dropbox/UNICEF Work/CME.assistant/R/funcs_read_data.R"))
 # main directories
-dir_IGME_u5 <- file.path(USERPROFILE, "Dropbox/UN IGME Data/2022 Round Estimation/Code")
-dir_IGME_5_14 <- file.path(USERPROFILE, "Dropbox/IGME 5-14/2022 Round Estimation")
-dir_IGME_15_24 <- file.path(USERPROFILE, "Dropbox/IGME 15-24/2022 Round Estimation")
-  
+
+IGME_ROUND <- 2023
+work_dir_IGME <- get.workdir(year = IGME_ROUND)
+work_dir_5_14 <- file.path(USERPROFILE, paste0("Dropbox/IGME 5-14/", IGME_ROUND ," Round Estimation"))
+work_dir_15_24 <- file.path(USERPROFILE, paste0("Dropbox/IGME 15-24/", IGME_ROUND ," Round Estimation"))
+
 # copy country.info.CME.csv
-file.copy(from = file.path(dir_IGME_u5, "input/country.info.CME.csv"), 
+file.copy(from = file.path(work_dir_IGME, "input/country.info.CME.csv"), 
           to = here::here("input", "country.info.CME.csv"), overwrite = TRUE)
-file.copy(from = file.path(dir_IGME_5_14, "input/country.info.CME.csv"), 
+file.copy(from = file.path(work_dir_5_14, "input/country.info.CME.csv"), 
           to = here::here("input", "country.info.CME.5_14.csv"), overwrite = TRUE)
-file.copy(from = file.path(dir_IGME_15_24, "input/country.info.CME.csv"), 
+file.copy(from = file.path(work_dir_15_24, "input/country.info.CME.csv"), 
           to = here::here("input", "country.info.CME.15_24.csv"), overwrite = TRUE)
 
 
 # copy results.csv -----------------------------------------------------------
-file.copy(from = results_dir_list_under_5_final_2022$u5mr.t.in.path, 
+file.copy(from = results_dir_list_under_5_final_2023$u5mr.t.in.path, 
           to = here::here("output", runname.U5MR, "Results.csv"), overwrite = TRUE)
-file.copy(results_dir_list_under_5_final_2022$imr.t.in.path, 
+file.copy(results_dir_list_under_5_final_2023$imr.t.in.path, 
           here::here("output", runname.IMR, "Results.csv"), overwrite = TRUE)
-file.copy(results_dir_list_under_5_final_2022$nmr.t.in.path, 
+file.copy(results_dir_list_under_5_final_2023$nmr.t.in.path, 
           here::here("output", file_name_NMR), overwrite = TRUE)
 
 # sex-specific under-file results.csv
-dir_Sex_forDeathCalculation <- file.path(dir_IGME_u5, "output", "Sex_forDeathCalculation")
+dir_Sex_forDeathCalculation <- file.path(work_dir_IGME, "output", "Sex_forDeathCalculation")
 list.files(dir_Sex_forDeathCalculation)
 file.copy(file.path(dir_Sex_forDeathCalculation, "Results_imr_f.csv"),  here::here("output/Sex_forDeathCalculation/Results_imr_f.csv"), overwrite = TRUE)
 file.copy(file.path(dir_Sex_forDeathCalculation, "Results_imr_m.csv"),  here::here("output/Sex_forDeathCalculation/Results_imr_m.csv"), overwrite = TRUE)
@@ -36,13 +38,13 @@ file.copy(file.path(dir_Sex_forDeathCalculation, "Results_u5mr_f.csv"), here::he
 file.copy(file.path(dir_Sex_forDeathCalculation, "Results_u5mr_m.csv"), here::here("output/Sex_forDeathCalculation/Results_u5mr_m.csv"), overwrite = TRUE)
 
 # older children
-file.copy(from = results_dir_list_5_24_final_2022$mr5t14.t.in.path, 
+file.copy(from = results_dir_list_5_24_final_2023$mr5t14.t.in.path, 
           to = here::here("output", "10q5", "Results.csv"), overwrite = TRUE)
-file.copy(from = results_dir_list_5_24_final_2022$mr5t9.t.in.path, 
+file.copy(from = results_dir_list_5_24_final_2023$mr5t9.t.in.path, 
           to = here::here("output", "5q5", "Results.csv"), overwrite = TRUE)
-file.copy(from = results_dir_list_5_24_final_2022$mr15t24.t.in.path, 
+file.copy(from = results_dir_list_5_24_final_2023$mr15t24.t.in.path, 
           to = here::here("output", "10q15", "Results.csv"), overwrite = TRUE)
-file.copy(from = results_dir_list_5_24_final_2022$mr15t19.t.in.path, 
+file.copy(from = results_dir_list_5_24_final_2023$mr15t19.t.in.path, 
           to = here::here("output", "5q15", "Results.csv"), overwrite = TRUE)
 
 # copy country summary  -------------------------------------------------------
@@ -63,13 +65,13 @@ file_name_female <- "Rates & Deaths(ADJUSTED)_female_Country Summary.csv"
 file_name_male <- "Rates & Deaths(ADJUSTED)_male_Country Summary.csv"
 
 # under-five
-dir_aggu5.median <- file.path(dir_IGME_u5, "Aggregate results (median) 2022-11-06")
+dir_aggu5.median <- file.path(work_dir_IGME, "Aggregate results (median) 2023-12-28")
 # sex-specific
-dir_aggu5.median_f <- file.path(dir_IGME_u5, "Aggregate results (median) 2022-11-06 (female)")
-dir_aggu5.median_m <- file.path(dir_IGME_u5, "Aggregate results (median) 2022-11-06 (male)")
+dir_aggu5.median_f <- file.path(work_dir_IGME, "Aggregate results (median) 2023-12-28 (female)")
+dir_aggu5.median_m <- file.path(work_dir_IGME, "Aggregate results (median) 2023-12-28 (male)")
 # older children
-dir_5_14.median <- file.path(dir_IGME_5_14, "Aggregate results (median) 2022-11-17")
-dir_15_24.median <- file.path(dir_IGME_15_24, "Aggregate results (median) 2022-11-17")
+dir_5_14.median <- file.path(work_dir_5_14, "Aggregate results (median) 2023-12-28")
+dir_15_24.median <- file.path(work_dir_15_24, "Aggregate results (median) 2023-12-28")
 
 # check if all TRUE:
 file.exists(file.path(dir_aggu5.median, file_name_total))
@@ -87,7 +89,7 @@ file.copy(file.path(dir_15_24.median, file_name_total),    to = file.path(dir_me
 # Create a testing example ---------------------------------------------
 library("data.table")
 # Run WB Low Income countries and compared to IGME results 
-dc <- fread(file.path(dir_IGME_u5, "input/country.info.CME.csv"))
+dc <- fread(file.path(work_dir_IGME, "input/country.info.CME.csv"))
 dcWBLIC <- dc[WBRegion4 == "Low income", .(ISO3Code, OfficialName)]
 dcWBLIC[, Region := "Low income countries"]
 fwrite(dcWBLIC, here::here("Upload_ISO_example_WBLIC.csv"))

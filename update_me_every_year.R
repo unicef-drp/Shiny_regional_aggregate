@@ -2,21 +2,21 @@
 
 
 # Change release date in the `About` panel, please revise the date every year: 
-update_string0 <- "Last updated: January, 2023"
+update_string0 <- "Last updated: March, 2024"
 
-# now, source this script and walk through following steps:
+# now, first source this script and then walk through following steps:
 
 library("here")
 
-# 1. If needed (like in the 2022 round, we add the number of countries), update
-# a0.csv, livebirths files and male/female population from the IGME round input
-# folder. Copy-paste from Dropbox\UN IGME data\202x Round
+# 1. If needed (like in the 2022 round, we add the number of countries, or WPP
+# got updated), update a0.csv, livebirths files and male/female population from
+# the IGME round input folder. Copy-paste from Dropbox\UN IGME data\202x Round
 # Estimation\Code\input. Not all these files change from year to year.
 
 # The "country.info.CME.csv" files are updated by code later. No need to update
 # "country.info.CME_adhoc.csv". 
 
-# 2. Delete all these folders
+# 2. Delete all these five folders
 dir_median_total  <- here::here("median_results_total")
 dir_median_female <- here::here("median_results_female")
 dir_median_male   <- here::here("median_results_male")

@@ -1,6 +1,6 @@
 # Shiny app to aggregate selected countries
 # Please click "Run App" or type shiny::runApp() to run. 
-# Deployed on Shinyapps.io: https://u5met2017.shinyapps.io/Shiny_regional_aggregate/
+# Deployed on Shinyapps.io: https://unicef-dapm.shinyapps.io/Shiny_regional_aggregate/
 # Yang Liu, 
 # Oct.11, 2019 - 2022
 
