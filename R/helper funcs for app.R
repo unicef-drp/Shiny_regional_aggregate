@@ -186,7 +186,7 @@ new_country_name_list <- c(
   "Palestine" = "State of Palestine",
   "Syria" = "Syrian Arab Republic",
   "Tobago" = "Trinidad and Tobago",
-  "Trinidad" = "Trinidad and Tobago",
+  "Trinidad" = "Trinidad and Tobago", # also note the duplicated country name created
   "Tanzania" = "United Republic of Tanzania",
   "Venezuela" = "Venezuela (Bolivarian Republic of)",
   "Vietnam" = "Viet Nam",
@@ -195,15 +195,60 @@ new_country_name_list <- c(
   "Republic of Congo" = "Congo"
 )
 
-get.world.map <- function(){
-  world <- maps::map("world", fill=TRUE, plot=FALSE)
-  world_map <- maptools::map2SpatialPolygons(world, sub(":.*$", "", world$names))
-  world_map <- sp::SpatialPolygonsDataFrame(world_map, data.frame(country = names(world_map), 
-                                                                  stringsAsFactors = FALSE), match.ID = FALSE)
-  # rename world map country names correctly using official names 
-  world_map$country <- dplyr::recode(world_map$country, !!!new_country_name_list)
-  world_map
+# get.world.map <- function(){
+#   world <- maps::map("world", fill = TRUE, plot = FALSE)
+#   # world_map <- maptools::map2SpatialPolygons(world, sub(":.*$", "", world$names))
+#   world_map <- { sfw <- sf::st_as_sf(world) |> dplyr::mutate(country = sub(":.*$", "", ID)) |> dplyr::group_by(country) |> dplyr::summarise(.groups="drop") |> sf::st_set_crs(4326); sp::spChFIDs(methods::as(sf::st_geometry(sfw), "Spatial"), as.character(sfw$country)) }
+#   
+#   world_map <- sp::SpatialPolygonsDataFrame(world_map, data.frame(country = names(world_map),
+#                                                                   stringsAsFactors = FALSE), match.ID = FALSE)
+#   # rename world map country names correctly using official names
+#   world_map$country <- dplyr::recode(world_map$country, !!!new_country_name_list)
+#   world_map
+# }
+
+get.world.map <- function() {
+  # 1) maps::map -> sf
+  m <- maps::map("world", fill = TRUE, plot = FALSE)
+  
+  # 2) Temporarily disable s2 to avoid topology hiccups during unions
+  old_s2 <- sf::sf_use_s2()
+  on.exit(sf::sf_use_s2(old_s2), add = TRUE)
+  sf::sf_use_s2(FALSE)
+  
+  sfw <- sf::st_as_sf(m) |>
+    dplyr::mutate(country = sub(":.*$", "", .data$ID)) |>
+    dplyr::group_by(.data$country) |>
+    dplyr::summarise(.groups = "drop")
+  
+  # 3) Ensure WGS84 (EPSG:4326) without triggering warnings
+  crs_now <- sf::st_crs(sfw)
+  if (is.na(crs_now)) {
+    sfw <- sf::st_set_crs(sfw, 4326)     # define (no reprojection)
+  } else if (!identical(crs_now$epsg, 4326)) {
+    sfw <- sf::st_transform(sfw, 4326)   # reproject if needed
+  }
+  
+  # 4) Recode to official names, then dissolve again to remove duplicates
+  sfw <- sfw |>
+    dplyr::mutate(country = dplyr::recode(.data$country, !!!new_country_name_list)) |>
+    dplyr::group_by(.data$country) |>
+    dplyr::summarise(.groups = "drop") |>
+    sf::st_make_valid()
+  
+  # 5) Convert to sp and set FIDs = country names
+  sp_polys <- methods::as(sf::st_geometry(sfw), "Spatial")
+  ids <- as.character(sfw$country)
+  sp_polys <- sp::spChFIDs(sp_polys, ids)
+  
+  sp::SpatialPolygonsDataFrame(
+    sp_polys,
+    data.frame(country = ids, row.names = ids),
+    match.ID = TRUE
+  )
 }
+
+
 
 # revise SDG region names 
 SDG_name_list <- c(

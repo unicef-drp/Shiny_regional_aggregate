@@ -16,7 +16,7 @@ check.and.install.pkgs <- function(pkgs){
   suppressPackageStartupMessages(invisible(lapply(pkgs, library, character.only = TRUE)))
 }
 check.and.install.pkgs(c("shiny", "shinyWidgets", "shinyjs", "leaflet",
-                         "maps", "maptools", "rgeos",
+                         "maps", "sf",  
                          "DT","data.table", "dplyr", "here", 
                          "ggplot2", "scales", "plotly", "readxl"))
 
@@ -35,8 +35,7 @@ suppressPackageStartupMessages({
   library("shinyjs")  # for reset app
   library("leaflet")  # for openstreetmap
   library("maps")     # provide shape files for selected countries
-  library("maptools") # modify shape files
-  library("rgeos")
+  library("sf")
   library("DT")       # for shiny table 
   library("data.table") 
   library("dplyr")    
@@ -486,7 +485,7 @@ server <- function(input, output, session) {
                                             length(cs), 
                                             if(length(cs)==1) "country:" else "countries:", 
                                             paste(sort(cs), collapse = ", ")), 
-                              HTML("<br> It takes about 30 - 40 seconds."), 
+                              HTML("<br> It takes about 2 - 3 minutes."), 
                               footer=NULL))
       } else {
         # sex-specific
@@ -494,7 +493,7 @@ server <- function(input, output, session) {
                                             length(cs), 
                                             if(length(cs)==1) "country:" else "countries:", 
                                             paste(sort(cs), collapse = ", ")), 
-                              HTML("<br> It takes about 20 - 30 seconds."), 
+                              HTML("<br> It takes about 1 - 2 minutes."), 
                               footer=NULL))
       }
      
@@ -504,14 +503,14 @@ server <- function(input, output, session) {
                                           length(cs), 
                                           if(length(cs)==1) "country:" else "countries:", 
                                           paste(sort(cs), collapse = ", ")), 
-                            HTML("<br> It takes about 20 - 30 seconds."), 
+                            HTML("<br> It takes about 1 - 2 minutes."), 
                             footer=NULL))
     } else {
       showModal(modalDialog(title = paste("Running under-five aggregate for ", 
                                           length(cs), 
                                           if(length(cs)==1) "country:" else "countries:", 
                                           paste(sort(cs), collapse = ", ")), 
-                            HTML("<br> It takes about 10 - 20 seconds."), 
+                            HTML("<br> It takes about 40 - 60 seconds."), 
                             footer=NULL))
     }
     

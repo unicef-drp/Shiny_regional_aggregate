@@ -11,8 +11,7 @@ check.and.install.pkgs <- function(pkgs){
   if(length(new.packages)) install.packages(new.packages, dependencies = TRUE)
   suppressPackageStartupMessages(invisible(lapply(pkgs, library, character.only = TRUE)))
 }
-check.and.install.pkgs(c("shiny", "shinyWidgets", "shinyjs", "leaflet",
-                         "maps", "maptools", "rgeos",
+check.and.install.pkgs(c("shiny", "shinyWidgets", "shinyjs",
                          "DT","data.table", "dplyr", "here", 
                          "ggplot2", "plotly", "readxl"))
 
@@ -28,10 +27,6 @@ suppressPackageStartupMessages({
   library("shiny")    # for shiny apps
   library("shinyWidgets")
   library("shinyjs")  # for  reset
-  library("leaflet")  # for openstreetmap
-  library("maps")     # provide shap files for selected countries
-  library("maptools") # modify shap files
-  library("rgeos")
   library("DT")       # for shiny table 
   library("data.table") 
   library("dplyr")
@@ -85,7 +80,7 @@ OutputAggregates(results.U5MR.file = here::here("output", runname.U5MR, "Results
 OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/Results_u5mr_m.csv"),
                  results.IMR.file = here::here("output/Sex_forDeathCalculation/Results_imr_m.csv"),
                  results.NMR.file = NULL,
-                 population.file = here::here("input/data_male_CMEpopulation.WPP2022.csv"),
+                 population.file = here::here("input/data_male_CMEpopulation.WPP2024.csv"),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_male,
@@ -102,7 +97,7 @@ OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/
 OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/Results_u5mr_f.csv"),
                  results.IMR.file = here::here("output/Sex_forDeathCalculation/Results_imr_f.csv"),
                  results.NMR.file = NULL,
-                 population.file = here::here("input/data_female_CMEpopulation.WPP2022.csv"),
+                 population.file = here::here("input/data_female_CMEpopulation.WPP2024.csv"),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_female,
@@ -139,9 +134,7 @@ OutputAggregates.ori(results.U5MR.file = file.path("output", "10q15", "Results.c
 # Check -------------------------------------------------------------------
 
 # check if results match
-leading_path <- Sys.getenv("USERPROFILE") # leading dir to Dropbox
-work_dir_5_14 <- file.path(leading_path, "Dropbox/IGME 5-14/2023 Round Estimation")
-dirold <- file.path(work_dir_5_14, "Aggregate results (final) 2023-12-28/Rates & Deaths_SDGSimpleRegion.csv")
+dirold <- file.path(dir_agg10q5, "Rates & Deaths(ADJUSTED)_SDGSimpleRegion.csv") # for comparison
 dirnew <- file.path(here::here("median_results_total_5_14/Rates & Deaths_SDGSimpleRegion.csv"))
 dt1 <- read.region.summary(dirold)
 dt2 <- read.region.summary(dirnew)
@@ -156,9 +149,9 @@ dt2[, Shortind := dplyr::recode(Shortind, !!!recode5_14)]
 setnames(dt2, "value", "value2")
 dtc <- merge(dt1, dt2)
 dtc[, diff:= round(value- value2, 4)]
-dtc[diff!=0, table(Shortind)]
+dtc[diff!=0, table(Shortind)] # should be none 
 
-dir_IGME_15_24 <- file.path(leading_path, "Dropbox/IGME 15-24/2023 Round Estimation")
+dir_IGME_15_24 <- file.path(USERPROFILE, "Dropbox/IGME 15-24/2023 Round Estimation")
 dirold <- file.path(dir_IGME_15_24, "Aggregate results (median) 2023-12-28/Rates & Deaths_SDGSimpleRegion.csv")
 dirnew <- file.path(here::here("median_results_total_15_24/Rates & Deaths_SDGSimpleRegion.csv"))
 dt1 <- read.region.summary(dirold)
