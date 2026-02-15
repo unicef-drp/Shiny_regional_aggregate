@@ -484,6 +484,7 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
          )
       region_types0 <- if (is.null(my_list[[region_code0]])) region_code0 else my_list[[region_code0]] 
       if(is.null(my_list[[region_code0]])) message("region_code0 is ", region_code0, "\n")
+      
       # Default: if code = "M49", 
       # regions = country.info[, grepl("M49", colnames(country.info))],
       # filename = "M49Region"
@@ -506,17 +507,68 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
       }
         
       if (!any(grepl(col_pattern, colnames(country.info), ignore.case = TRUE))){ 
-        stop("Column pattern", col_pattern, "was not found in Country.CME.\n")}
-
-      GetRegionalResultsBWC(regiontypes = region_types0, ## func at end; think about new regions
-                            regions = country.info[, grepl(col_pattern, colnames(country.info), ignore.case = TRUE)],
-                            filename = file_name0,
-                            output.dir = output.dir, output.dir.samples = output.dir.samples,
-                            output.dir.samplescombined = output.dir.samplescombined,
-                            run.on.server = run.on.server,
-                            percentiles = percentiles, ndigits = ndigits,
-                            replace.rates.reg = replace.rates.reg,
-                            round.output = round.output)
+        stop("Column pattern ", col_pattern, " was not found in Country.CME.\n")
+        }
+      message("col_pattern is ", col_pattern, "\n")
+      
+      # For multi-region hierarchical case: match only columns ending with digits or exact match
+      # e.g., AdhocCountries, AdhocCountries2, AdhocCountries3 (but not AdhocCountries_Low_income)
+      # For single-level regions: match columns with underscore + region name
+      matching_cols <- colnames(country.info)[grepl(col_pattern, colnames(country.info), ignore.case = TRUE)]
+      
+      # Check if hierarchical (columns like AdhocCountries, AdhocCountries2) or single-level (AdhocCountries_Low_income)
+      hierarchical_cols <- matching_cols[grepl(paste0("^", col_pattern, "[0-9]*$"), matching_cols, ignore.case = TRUE)]
+      singlelevel_cols <- matching_cols[grepl(paste0("^", col_pattern, "_"), matching_cols, ignore.case = TRUE)]
+      
+      if (length(hierarchical_cols) > 0) {
+        # Hierarchical case: gather all unique region names across all hierarchical columns
+        all_region_names <- unique(unlist(lapply(hierarchical_cols, function(col) {
+          unique(country.info[country.info[, col] != "", col])
+        })))
+        all_region_names <- all_region_names[all_region_names != ""]
+        
+        message("Processing ", length(all_region_names), " hierarchical regions: ", paste(all_region_names, collapse = ", "), "\n")
+        
+        GetRegionalResultsBWC(regiontypes = all_region_names,
+                              regions = country.info[, hierarchical_cols, drop = FALSE],
+                              filename = file_name0,
+                              output.dir = output.dir, output.dir.samples = output.dir.samples,
+                              output.dir.samplescombined = output.dir.samplescombined,
+                              run.on.server = run.on.server,
+                              percentiles = percentiles, ndigits = ndigits,
+                              replace.rates.reg = replace.rates.reg,
+                              round.output = round.output)
+      } else if (length(singlelevel_cols) > 0) {
+        # Single-level case: gather all unique region names across columns
+        all_region_names <- unique(unlist(lapply(singlelevel_cols, function(col) {
+          unique(country.info[country.info[, col] != "", col])
+        })))
+        all_region_names <- all_region_names[all_region_names != ""]
+        
+        message("Processing ", length(all_region_names), " single-level regions together: ", paste(all_region_names, collapse = ", "), "\n")
+        
+        # Process all single-level regions together
+        GetRegionalResultsBWC(regiontypes = all_region_names,
+                              regions = country.info[, singlelevel_cols, drop = FALSE],
+                              filename = file_name0,
+                              output.dir = output.dir, output.dir.samples = output.dir.samples,
+                              output.dir.samplescombined = output.dir.samplescombined,
+                              run.on.server = run.on.server,
+                              percentiles = percentiles, ndigits = ndigits,
+                              replace.rates.reg = replace.rates.reg,
+                              round.output = round.output)
+      } else {
+        # Default case: use all matching columns
+        GetRegionalResultsBWC(regiontypes = region_types0,
+                              regions = country.info[, matching_cols, drop = FALSE],
+                              filename = file_name0,
+                              output.dir = output.dir, output.dir.samples = output.dir.samples,
+                              output.dir.samplescombined = output.dir.samplescombined,
+                              run.on.server = run.on.server,
+                              percentiles = percentiles, ndigits = ndigits,
+                              replace.rates.reg = replace.rates.reg,
+                              round.output = round.output)
+      }
     } # end function: wrap.GetRegionalResultsBWC
     # run `GetRegionalResultsBWC` for every region in the `regiontypes.select`
     invisible(sapply(regiontypes.select, wrap.GetRegionalResultsBWC))
@@ -2281,9 +2333,16 @@ CalculateRegionalDeathsBWC <- function(
                                "FragileCountries2017", "FragileCountries2018", "FragileCountries2018OECD1", "FragileCountries2018OECD2", "WealthallGlobal", "WealthdataGlobal", "WorldBankReg2", 
                                "NewWorldBank", "USAIDCountries", "AfricanEconomicCommunityRegion", "ECACountries", 
                                "GAVICountries", "AdhocCountries")) {
-      select.reg <- (1:length(regions))[regions == regiontypes[r]]
+      # Handle both vector (single column) and data frame (multiple columns) cases
+      if (is.data.frame(regions) || is.matrix(regions)) {
+        # Multi-column case: find rows where any column matches the region name
+        select.reg <- which(apply(regions, 1, function(row) any(row == regiontypes[r])))
+      } else {
+        # Single column case: traditional vector matching
+        select.reg <- (1:length(regions))[regions == regiontypes[r]]
+      }
       # to remove LIE from regional aggregate calcualtions -- to implement in 2018
-      select.reg.og <- (1:length(regions))[regions == regiontypes[r]]
+      select.reg.og <- select.reg
       ifelse(is.na(match(which.no.rates,select.reg.og)), select.reg <- select.reg.og, 
              select.reg <- select.reg.og[-match(which.no.rates, select.reg.og)])
     }

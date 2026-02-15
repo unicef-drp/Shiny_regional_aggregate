@@ -256,6 +256,9 @@ theme = "bootstrap.css"
 # Server ------------------------------------------------------------------
 
 server <- function(input, output, session) {
+  # Initialize reactive value for uploaded region structure
+  uploaded_region_structure <- NULL
+  
   # Reset session 
   observe({
     if (input$click_reset) {
@@ -271,65 +274,167 @@ server <- function(input, output, session) {
                       selected = input$country_input_select)
   })
   
-  # Read self-uploaded ISO file (19/12/21)
+  # Read self-uploaded ISO file - now supports multi-region long format
   observeEvent(input$ISO_input, {
+    req(input$ISO_input)
+    
     file_type <- tolower(tools::file_ext(input$ISO_input$datapath))
     file_path <- input$ISO_input$datapath
+    
     tryCatch({
+      # Read file based on type
       if (file_type == "csv"){
         dt_iso <- fread(file_path, header = TRUE)
       } else if (file_type %in% c("xlsx", "xls")) {
         dt_iso <- setDT(readxl::read_excel(file_path))
       } else {
-        showModal(modalDialog(title == "Currently accept csv, xlsx, or xls files.", "Please re-upload."))
-        dt_iso <- NULL
+        showModal(modalDialog(
+          title = "Invalid file type",
+          "Currently accept csv, xlsx, or xls files. Please re-upload.",
+          easyClose = TRUE
+        ))
+        return()
       }
-
-      if (!is.null(dt_iso) & length(colnames(dt_iso))!=0){
-        message(paste("Read in", file_type ,"file"))
-        # find the column names that contain "ISO", then used the closest if have to guess
-        ISO_columns <- colnames(dt_iso)[grepl("ISO", toupper(colnames(dt_iso)))] 
-        ISO_column_name <- ISO_columns[which.min(utils::adist("ISO", toupper(ISO_columns)))] 
-        if(length(ISO_column_name) == 0){
-          ISO_column_name <- colnames(dt_iso)[which.min(utils::adist("ISO", toupper(colnames(dt_iso))))] 
-          message("Couldn't match a column name that looks like \"ISO\". Please check if the selected column is right.")
-          message(paste("The column assumed is", ISO_column_name))
-        }
-        ISO_selected <- dt_iso[[ISO_column_name]]
-        ISO_selected <- ISO_selected[ISO_selected%in%ISOs]
-        if (ISO_column_name%in%ISOs){
-          message("The column name is included as an ISO.")
-          ISO_selected <- c(ISO_column_name, ISO_selected)
-        }
-        ISO_selected <- unique(ISO_selected)
- 
-        showModal(modalDialog(title = paste("Uploaded and recognized ISOs in column", ISO_column_name ,"are:"), 
-                              length(ISO_selected), " ISOs: ",  HTML("<br>"), 
-                                     paste0(ISO_selected, collapse = ", "), ".",
-                              HTML("<br><br>You may click anywhere to dismiss this message"), easyClose = TRUE
-                              ))
+      
+      # Validate file has content
+      if (is.null(dt_iso) || length(colnames(dt_iso)) == 0) {
+        showModal(modalDialog(
+          title = "Invalid file",
+          "The uploaded file is empty or cannot be read.",
+          easyClose = TRUE
+        ))
+        return()
+      }
+      
+      message(paste("Read in", file_type, "file with", nrow(dt_iso), "rows"))
+      
+      # Find ISO column
+      ISO_columns <- colnames(dt_iso)[grepl("ISO", toupper(colnames(dt_iso)))]
+      ISO_column_name <- if(length(ISO_columns) > 0) {
+        ISO_columns[which.min(utils::adist("ISO", toupper(ISO_columns)))]
+      } else {
+        colnames(dt_iso)[which.min(utils::adist("ISO", toupper(colnames(dt_iso))))]
+      }
+      
+      if(length(ISO_column_name) == 0 || !(ISO_column_name %in% colnames(dt_iso))){
+        showModal(modalDialog(
+          title = "Invalid file format",
+          "Could not find ISO3Code column. Please ensure your file has an 'ISO3Code' column.",
+          easyClose = TRUE
+        ))
+        return()
+      }
+      
+      # Standardize column name to ISO3Code
+      if(ISO_column_name != "ISO3Code") {
+        setnames(dt_iso, ISO_column_name, "ISO3Code")
+      }
+      
+      # Filter to valid ISOs
+      dt_iso <- dt_iso[ISO3Code %in% ISOs]
+      
+      if(nrow(dt_iso) == 0) {
+        showModal(modalDialog(
+          title = "No valid countries found",
+          "None of the ISO codes in the uploaded file match valid country codes.",
+          easyClose = TRUE
+        ))
+        return()
+      }
+      
+      # Check if Region column exists (long format support)
+      has_region <- "Region" %in% colnames(dt_iso)
+      
+      if(has_region) {
+        # Long format with Region column - convert to wide format
+        # Count how many times each ISO appears (determines number of region levels)
+        iso_counts <- dt_iso[, .N, by = ISO3Code]
+        max_levels <- max(iso_counts$N)
         
-        if(length(ISO_selected)!=0){
-          updatePickerInput(session, inputId = "country_input_select", 
-                            choices = if(input$input_by_region) input_country_list else countries,
-                            selected = dc[ISO3Code%in%ISO_selected, OfficialName])
+        if(max_levels == 1) {
+          # Each ISO appears once - single region level
+          dt_wide <- dt_iso[, .(ISO3Code, AdhocCountries = Region)]
+          if("OfficialName" %in% colnames(dt_iso)) {
+            dt_wide[, OfficialName := dt_iso$OfficialName]
+          }
+          region_cols <- "AdhocCountries"
+          
+        } else {
+          # Multiple region levels - convert long to wide
+          # Add region level indicator
+          dt_iso[, region_level := seq_len(.N), by = ISO3Code]
+          
+          # Get OfficialName if exists
+          if("OfficialName" %in% colnames(dt_iso)) {
+            dt_official <- unique(dt_iso[, .(ISO3Code, OfficialName)])
+          }
+          
+          # Cast to wide format
+          dt_wide <- dcast(dt_iso, ISO3Code ~ region_level, 
+                          value.var = "Region", 
+                          fill = "")
+          
+          # Add OfficialName back if it exists
+          if("OfficialName" %in% colnames(dt_iso)) {
+            dt_wide <- dt_wide[dt_official, on = "ISO3Code"]
+          }
+          
+          # Rename columns to AdhocCountries, AdhocCountries2, ...
+          region_level_cols <- as.character(1:max_levels)
+          new_names <- c("AdhocCountries", 
+                        if(max_levels > 1) paste0("AdhocCountries", 2:max_levels) else NULL)
+          setnames(dt_wide, region_level_cols, new_names)
+          region_cols <- new_names
         }
         
-        # use region name if available
-        Region_name <- unique(dt_iso$Region)[1]
-        
-        if(length(Region_name)!=0){
-          updateTextAreaInput(session, inputId = "adhoc_name", value = Region_name)
+      } else {
+        # No Region column - all selected countries in single "AdhocCountries"
+        dt_wide <- dt_iso[, .(ISO3Code)]
+        if("OfficialName" %in% colnames(dt_iso)) {
+          dt_wide[, OfficialName := dt_iso$OfficialName]
+        }
+        dt_wide[, AdhocCountries := "Adhoc"]
+        region_cols <- "AdhocCountries"
+      }
+      
+      # Store for later use in reactive.run()
+      uploaded_region_structure <<- list(
+        data = dt_wide,
+        region_cols = region_cols
+      )
+      
+      # Update UI selection to match uploaded ISOs
+      matched_countries <- dc[ISO3Code %in% dt_wide$ISO3Code, OfficialName]
+      updatePickerInput(session, inputId = "country_input_select",
+                        selected = matched_countries)
+      
+      # Count unique regions for user feedback
+      num_regions <- 0
+      for(col in region_cols) {
+        if(col %in% colnames(dt_wide)) {
+          num_regions <- num_regions + uniqueN(dt_wide[get(col) != "", get(col)])
         }
       }
       
+      showModal(modalDialog(
+        title = "File uploaded successfully",
+        HTML(paste0(
+          "Uploaded ", nrow(dt_wide), " countries<br>",
+          "Region levels: ", length(region_cols), "<br>",
+          "Total regions: ", num_regions, "<br><br>",
+          "You may click anywhere to dismiss this message"
+        )),
+        easyClose = TRUE
+      ))
+      
     }, error = function(e){
-      message("The uploaded file is not correct.")
-      },
-      warning = function(e){
-      message("The uploaded file is not correct.")
-      }
-    )
+      showModal(modalDialog(
+        title = "Upload Error",
+        paste("Error reading file:", e$message),
+        easyClose = TRUE
+      ))
+      message("Upload error: ", e$message)
+    })
   })
   
   # Reset selection
@@ -337,6 +442,7 @@ server <- function(input, output, session) {
     updatePickerInput(session, inputId = "country_input", selected = default_select)
     updateCheckboxInput(session, inputId = "run_gender", value = FALSE)
     updateCheckboxInput(session, inputId = "run_older_total", value = FALSE)
+    uploaded_region_structure <<- NULL  # Clear uploaded region structure
   })
 
   # renderUI: main panel ----------------------------------------------------------------
@@ -502,59 +608,149 @@ server <- function(input, output, session) {
       showModal(modalDialog(title = "Please select countries first.",  
                             footer = "You may click anywhere to dismiss this message", 
                             easyClose = TRUE))
+      return(NULL)
     } else {
-    # run aggregates for the selected countries
-    dc[,AdhocCountries:=""]
-    dc[OfficialName %in% input$country_input_select, AdhocCountries:="Adhoc"]
-    write.csv(dc, file = here::here("input", "country.info.CME_adhoc.csv"))
-
-    if(input$run_older_total){
-      dc.5.14[,AdhocCountries:=""]
-      dc.5.14[OfficialName %in% input$country_input_select, AdhocCountries:="Adhoc"]
-      write.csv(dc.5.14, file = here::here("input", "country.info.CME.5_14_adhoc.csv"))
-      dc.15.24[,AdhocCountries:=""]
-      dc.15.24[OfficialName %in% input$country_input_select, AdhocCountries:="Adhoc"]
-      write.csv(dc.15.24, file = here::here("input", "country.info.CME.15_24_adhoc.csv"))
+    
+    # Prepare country info files with adhoc regions
+    if(!is.null(uploaded_region_structure)) {
+      # CASE: User uploaded file with region structure
+      dt_wide <- uploaded_region_structure$data
+      region_cols <- uploaded_region_structure$region_cols
+      
+      # Start with base dc and initialize all adhoc columns to empty
+      dc_with_adhoc <- copy(dc)
+      for(col in region_cols) {
+        dc_with_adhoc[, (col) := ""]
+      }
+      
+      # Merge uploaded region structure
+      for(col in region_cols) {
+        if(col %in% colnames(dt_wide)) {
+          # Create a temporary dataset for merging
+          dt_merge <- dt_wide[, .(ISO3Code, region_value = get(col))]
+          dc_with_adhoc[dt_merge, on = "ISO3Code", 
+                        (col) := ifelse(is.na(i.region_value) | i.region_value == "", 
+                                       "", 
+                                       i.region_value)]
+        }
+      }
+      
+    } else {
+      # CASE: Manual selection via dropdown (single AdhocCountries column)
+      dc_with_adhoc <- copy(dc)
+      dc_with_adhoc[, AdhocCountries := ""]
+      dc_with_adhoc[OfficialName %in% input$country_input_select, AdhocCountries := "Adhoc"]
+      region_cols <- "AdhocCountries"
+    }
+    
+    # Write to file
+    write.csv(dc_with_adhoc, file = here::here("input", "country.info.CME_adhoc.csv"), row.names = FALSE)
+    
+    # Apply same logic to older children datasets
+    if(input$run_older_total) {
+      # 5-14 age group
+      dc_5_14_adhoc <- copy(dc.5.14)
+      for(col in region_cols) {
+        dc_5_14_adhoc[, (col) := ""]
+      }
+      
+      if(!is.null(uploaded_region_structure)) {
+        dt_wide <- uploaded_region_structure$data
+        for(col in region_cols) {
+          if(col %in% colnames(dt_wide)) {
+            dt_merge <- dt_wide[, .(ISO3Code, region_value = get(col))]
+            dc_5_14_adhoc[dt_merge, on = "ISO3Code", 
+                          (col) := ifelse(is.na(i.region_value) | i.region_value == "", 
+                                         "", 
+                                         i.region_value)]
+          }
+        }
+      } else {
+        dc_5_14_adhoc[OfficialName %in% input$country_input_select, AdhocCountries := "Adhoc"]
+      }
+      write.csv(dc_5_14_adhoc, file = here::here("input", "country.info.CME.5_14_adhoc.csv"), row.names = FALSE)
+      
+      # 15-24 age group
+      dc_15_24_adhoc <- copy(dc.15.24)
+      for(col in region_cols) {
+        dc_15_24_adhoc[, (col) := ""]
+      }
+      
+      if(!is.null(uploaded_region_structure)) {
+        dt_wide <- uploaded_region_structure$data
+        for(col in region_cols) {
+          if(col %in% colnames(dt_wide)) {
+            dt_merge <- dt_wide[, .(ISO3Code, region_value = get(col))]
+            dc_15_24_adhoc[dt_merge, on = "ISO3Code", 
+                           (col) := ifelse(is.na(i.region_value) | i.region_value == "", 
+                                          "", 
+                                          i.region_value)]
+          }
+        }
+      } else {
+        dc_15_24_adhoc[OfficialName %in% input$country_input_select, AdhocCountries := "Adhoc"]
+      }
+      write.csv(dc_15_24_adhoc, file = here::here("input", "country.info.CME.15_24_adhoc.csv"), row.names = FALSE)
     }
     
     cs <- input$country_input_select # country list
     time0 <- Sys.time()
     
+    # Determine number of regions for modal message
+    num_regions <- if(!is.null(uploaded_region_structure)) {
+      dt_wide <- uploaded_region_structure$data
+      region_cols <- uploaded_region_structure$region_cols
+      total_regions <- 0
+      for(col in region_cols) {
+        if(col %in% colnames(dt_wide)) {
+          total_regions <- total_regions + uniqueN(dt_wide[get(col) != "", get(col)])
+        }
+      }
+      total_regions
+    } else {
+      1  # Single adhoc region
+    }
+    
     # showModal
-    # showModal will show that the scripe is running, and removed when scripts are done 
+    # showModal will show that the script is running, and removed when scripts are done 
     if(input$run_gender){
       if(input$run_older_total){
-        # sex-specific
+        # sex-specific + older children
         showModal(modalDialog(title = paste("Running aggregate for sex-specific under-five and older children for ", 
                                             length(cs), 
                                             if(length(cs)==1) "country:" else "countries:", 
                                             paste(sort(cs), collapse = ", ")), 
-                              HTML("<br> It takes about 2 - 3 minutes."), 
+                              HTML(paste0("<br>Processing ", num_regions, " region(s).",
+                                        "<br>It takes about 90 - 120 seconds.")), 
                               footer=NULL))
       } else {
-        # sex-specific
+        # sex-specific only
         showModal(modalDialog(title = paste("Running sex-specific under-five aggregate for ", 
                                             length(cs), 
                                             if(length(cs)==1) "country:" else "countries:", 
                                             paste(sort(cs), collapse = ", ")), 
-                              HTML("<br> It takes about 1 - 2 minutes."), 
+                              HTML(paste0("<br>Processing ", num_regions, " region(s).",
+                                        "<br>It takes about 50 - 70 seconds.")), 
                               footer=NULL))
       }
      
     } else if (input$run_older_total) {
-      # if no sex-specific, but incl older children
+      # older children only (no sex-specific under-five, but sex-specific older children always runs)
       showModal(modalDialog(title = paste("Running aggregate for under-five and older children for ", 
                                           length(cs), 
                                           if(length(cs)==1) "country:" else "countries:", 
                                           paste(sort(cs), collapse = ", ")), 
-                            HTML("<br> It takes about 1 - 2 minutes."), 
+                            HTML(paste0("<br>Processing ", num_regions, " region(s).",
+                                      "<br>It takes about 70 - 90 seconds.")), 
                             footer=NULL))
     } else {
+      # under-five only
       showModal(modalDialog(title = paste("Running under-five aggregate for ", 
                                           length(cs), 
                                           if(length(cs)==1) "country:" else "countries:", 
                                           paste(sort(cs), collapse = ", ")), 
-                            HTML("<br> It takes about 40 - 60 seconds."), 
+                            HTML(paste0("<br>Processing ", num_regions, " region(s).",
+                                      "<br>It takes about 40 - 60 seconds.")), 
                             footer=NULL))
     }
     

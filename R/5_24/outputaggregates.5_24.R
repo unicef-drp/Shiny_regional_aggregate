@@ -255,14 +255,57 @@ OutputAggregates.ori <- function( # Calculate and output aggregated rates and nu
   # get regional results
   if (!is.null(regiontypes.select)) {    #PROBABLY DELETE THIS ONE
     cat(paste("Generating regional results...\n"))
-    if (is.element("Adhoc", regiontypes.select)) # YL added 2022.01
-      GetRegionalResults(regiontypes = "Adhoc", # since there is only one region 
-                         regions = country.info[, grepl("AdhocCountries", colnames(country.info))],
-                         filename = "AdhocCountries",
-                         output.dir = output.dir, output.dir.samples = output.dir.samples,
-                         output.dir.samplescombined = output.dir.samplescombined,
-                         run.on.server = run.on.server,
-                         percentiles = percentiles, ndigits = ndigits)
+    if (is.element("Adhoc", regiontypes.select)) { # YL added 2022.01
+      # Get all AdhocCountries columns
+      matching_cols <- colnames(country.info)[grepl("AdhocCountries", colnames(country.info), ignore.case = TRUE)]
+      
+      # Check if hierarchical (columns like AdhocCountries, AdhocCountries1, AdhocCountries2) or single-level (AdhocCountries_Low_income)
+      hierarchical_cols <- matching_cols[grepl("^AdhocCountries[0-9]*$", matching_cols, ignore.case = TRUE)]
+      singlelevel_cols <- matching_cols[grepl("^AdhocCountries_", matching_cols, ignore.case = TRUE)]
+      
+      if (length(hierarchical_cols) > 0) {
+        # Hierarchical case: gather all unique region names across all hierarchical columns
+        all_region_names <- unique(unlist(lapply(hierarchical_cols, function(col) {
+          unique(country.info[country.info[, col] != "", col])
+        })))
+        all_region_names <- all_region_names[all_region_names != ""]
+        
+        message("Processing ", length(all_region_names), " hierarchical regions: ", paste(all_region_names, collapse = ", "), "\n")
+        
+        GetRegionalResults(regiontypes = all_region_names,
+                           regions = country.info[, hierarchical_cols, drop = FALSE],
+                           filename = "AdhocCountries",
+                           output.dir = output.dir, output.dir.samples = output.dir.samples,
+                           output.dir.samplescombined = output.dir.samplescombined,
+                           run.on.server = run.on.server,
+                           percentiles = percentiles, ndigits = ndigits)
+      } else if (length(singlelevel_cols) > 0) {
+        # Single-level case: gather all unique region names across columns
+        all_region_names <- unique(unlist(lapply(singlelevel_cols, function(col) {
+          unique(country.info[country.info[, col] != "", col])
+        })))
+        all_region_names <- all_region_names[all_region_names != ""]
+        
+        message("Processing ", length(all_region_names), " single-level regions: ", paste(all_region_names, collapse = ", "), "\n")
+        
+        GetRegionalResults(regiontypes = all_region_names,
+                           regions = country.info[, singlelevel_cols, drop = FALSE],
+                           filename = "AdhocCountries",
+                           output.dir = output.dir, output.dir.samples = output.dir.samples,
+                           output.dir.samplescombined = output.dir.samplescombined,
+                           run.on.server = run.on.server,
+                           percentiles = percentiles, ndigits = ndigits)
+      } else {
+        # Default case: use old behavior if no special columns found
+        GetRegionalResults(regiontypes = "Adhoc",
+                           regions = country.info[, matching_cols, drop = FALSE],
+                           filename = "AdhocCountries",
+                           output.dir = output.dir, output.dir.samples = output.dir.samples,
+                           output.dir.samplescombined = output.dir.samplescombined,
+                           run.on.server = run.on.server,
+                           percentiles = percentiles, ndigits = ndigits)
+      }
+    }
     if (is.element("EAPRO", regiontypes.select)) # YL added 2022.01
       GetRegionalResults(regiontypes = EAPRORegionAll,
                          regions = country.info[, grepl("EAPRORegion", colnames(country.info))],
@@ -1099,7 +1142,14 @@ CalculateRegionalDeaths <- function(
                                "SPhumanitarianRegion", "SPhighburdenRegion", # YL added 2022.02
                                "AdhocCountries"
                                )) {
-      select.reg <- (1:length(regions))[regions == regiontypes[r]]
+      # Handle both vector (single column) and data frame (multiple columns) cases
+      if (is.data.frame(regions) || is.matrix(regions)) {
+        # Multi-column case: find rows where any column matches the region name
+        select.reg <- which(apply(regions, 1, function(row) any(row == regiontypes[r])))
+      } else {
+        # Single column case: traditional vector matching
+        select.reg <- (1:length(regions))[regions == regiontypes[r]]
+      }
     }
     if (j == 1) { # calculate the first time
       for (i in 1:nyears) {

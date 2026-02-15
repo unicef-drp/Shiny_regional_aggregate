@@ -247,12 +247,52 @@ dc[,AdhocCountries:=""]
 dc[OfficialName %in% init_select, AdhocCountries:="Adhoc"]
 write.csv(dc, file = here::here("input", "country.info.CME_adhoc.csv"))
 
-dc.5.14[,AdhocCountries:=""]
-dc.5.14[OfficialName %in% init_select, AdhocCountries:="Adhoc"]
+# Function to apply multi-region structure to country datasets
+apply.multi.region <- function(dt, dc_input) {
+  # Check if hierarchical (same ISO appears multiple times with different regions)
+  iso_counts <- dc_input[, .N, by = ISO3Code]
+  max_levels <- max(iso_counts$N)
+  
+  if(max_levels > 1) {
+    # Hierarchical case: convert long to wide format
+    dc_input_copy <- copy(dc_input)
+    dc_input_copy[, region_level := paste0("AdhocCountries", seq_len(.N)), by = ISO3Code]
+    dc_wide <- dcast(dc_input_copy, ISO3Code ~ region_level, value.var = "Region", fill = "")
+    
+    # Add region columns to dt
+    region_cols <- grep("^AdhocCountries", colnames(dc_wide), value = TRUE)
+    for(col in region_cols) {
+      dt[, (col) := ""]
+    }
+    
+    # Merge region values for matching countries
+    for(col in region_cols) {
+      dt[dc_wide, (col) := get(paste0("i.", col)), on = "ISO3Code"]
+      dt[is.na(get(col)), (col) := ""]
+    }
+  } else {
+    # Single-level case: each ISO belongs to one region
+    new_regions <- unique(dc_input$Region)
+    for(region in new_regions) {
+      col_name <- paste0("AdhocCountries_", gsub("[^A-Za-z0-9]", "_", region))
+      dt[, (col_name) := ""]
+      dt[ISO3Code %in% dc_input[Region == region, ISO3Code], (col_name) := region]
+    }
+  }
+  
+  return(dt)
+}
+
+# Apply multi region input to all datasets
+dc_input <- fread("Upload_ISO_example_WB.csv")
+dc <- apply.multi.region(dc, dc_input)
+dc.5.14 <- apply.multi.region(dc.5.14, dc_input)
+dc.15.24 <- apply.multi.region(dc.15.24, dc_input)
+
+write.csv(dc, file = here::here("input", "country.info.CME_adhoc.csv"))
 write.csv(dc.5.14, file = here::here("input", "country.info.CME.5_14_adhoc.csv"))
-dc.15.24[,AdhocCountries:=""]
-dc.15.24[OfficialName %in% init_select, AdhocCountries:="Adhoc"]
 write.csv(dc.15.24, file = here::here("input", "country.info.CME.15_24_adhoc.csv"))
+
 
 # basically what the app runs are these: 
 run.outputaggregates(year.lastestimatepublished)
@@ -307,14 +347,14 @@ output_list <- list(
   # Below are the country data also included in the downloaded data, but not
   # shown in the app, as they are only for the selected countries, and rates are
   # not rounded
-  c_median_total = c_median_total[Region%in%init_select,],
-  c_median_f     = c_median_f[Region%in%init_select,],
-  c_median_m     = c_median_m[Region%in%init_select,],
-  c_median_total_older = c_median_total_older[Region%in%init_select,],
-  c_median_f_5_14      = c_median_f_5_14[Region%in%init_select,],
-  c_median_m_5_14      = c_median_m_5_14[Region%in%init_select,],
-  c_median_f_15_24     = c_median_f_15_24[Region%in%init_select,],
-  c_median_m_15_24     = c_median_m_15_24[Region%in%init_select,]
+  c_median_total = c_median_total[ISO3Code %in% dc_input$ISO3Code,],
+  c_median_f     = c_median_f[ISO3Code %in% dc_input$ISO3Code,],
+  c_median_m     = c_median_m[ISO3Code %in% dc_input$ISO3Code,],
+  c_median_total_older = c_median_total_older[ISO3Code %in% dc_input$ISO3Code,],
+  c_median_f_5_14      = c_median_f_5_14[ISO3Code %in% dc_input$ISO3Code,],
+  c_median_m_5_14      = c_median_m_5_14[ISO3Code %in% dc_input$ISO3Code,],
+  c_median_f_15_24     = c_median_f_15_24[ISO3Code %in% dc_input$ISO3Code,],
+  c_median_m_15_24     = c_median_m_15_24[ISO3Code %in% dc_input$ISO3Code,]
 )
 
 

@@ -120,8 +120,12 @@ dcWBHIC <- dc[WBRegion4 == "High income", .(ISO3Code, OfficialName)]
 dcWBHIC[, Region := "High income countries"]
 fwrite(dcWBHIC, here::here("Upload_ISO_example_WBHIC.csv"))
 
-dcWB <- dc[WBRegion4 != "", .(WBRegion4, ISO3Code, OfficialName)]
-setnames(dcWB, "WBRegion4", "Region")
+
+dcWB1 <- dc[WBRegion4 != "", .(WBRegion4, ISO3Code, OfficialName)]
+dcWB2 <- dc[WBRegion5 != "", .(WBRegion5, ISO3Code, OfficialName)]
+setnames(dcWB1, "WBRegion4", "Region")
+setnames(dcWB2, "WBRegion5", "Region")
+dcWB <- rbind(dcWB1, dcWB2)
 fwrite(dcWB, here::here("Upload_ISO_example_WB.csv"))
 
 
