@@ -65,6 +65,7 @@ panel_title1.3 <- "Older children and adolescents results for selected regional 
 panel_title2.1 <- "Table of selected regional aggregates"
 panel_title2.2 <- "Sex-specific results for selected regional aggregates"
 panel_title2.3 <- "Older children and adolescents results for selected regional aggregates"
+panel_title2.4 <- "Sex-specific older children and adolescents results"
 panel_note1    <- "Regional, world, and country data are available for download:"
 panel_note2    <- "Regional, world, and country data (including sex-specific results) are available for download:"
 
@@ -126,6 +127,14 @@ c_median_5_14    <- rbindlist(list(c_median_total_5_14, c_median_f_5_14, c_media
 c_median_15_24   <- rbindlist(list(c_median_total_15_24, c_median_f_15_24, c_median_m_15_24)) 
 c_median_total_older <- merge(c_median_5_14, c_median_15_24)
 c_median_total_older <- calculate.10q10(c_median_total_older)
+
+# Separate female older children data
+c_median_f_older <- merge(c_median_f_5_14, c_median_f_15_24)
+c_median_f_older <- calculate.10q10(c_median_f_older)
+
+# Separate male older children data
+c_median_m_older <- merge(c_median_m_5_14, c_median_m_15_24)
+c_median_m_older <- calculate.10q10(c_median_m_older)
 
 col_order_older_children <- copy(colnames(c_median_total_older)) # colnames containing "X"
 col_order_older_children_all_rate <- colnames(c_median_total_older)[grepl("Mortality rate", colnames(c_median_total_older))]
@@ -189,10 +198,10 @@ ui = fluidPage(
                   placeholder = "Default name is \"Selected Countries\" if leave as blank"),
     # run_gender
     checkboxInput(inputId = "run_gender", label = strong("Run sex-specific results?"),
-                  value = FALSE),
+                  value = TRUE),
     # run_older_total
     checkboxInput(inputId = "run_older_total", label = strong("Run older children and adolescents results?"),
-                  value = FALSE),
+                  value = TRUE),
     # click_run
     actionButton("click_run",  strong("Run the Aggregates"), width = '200px'), 
     br(),br(), 
@@ -233,7 +242,9 @@ ui = fluidPage(
         br(),br(),
         uiOutput("panel_results_table_gender"),
         br(),br(),
-        uiOutput("panel_results_table_older_total") 
+        uiOutput("panel_results_table_older_total"),
+        br(),br(),
+        uiOutput("panel_results_table_older_gender") 
       ),      
   # About
     get.about.panel(update_string = update_string0)
@@ -459,6 +470,25 @@ server <- function(input, output, session) {
     )
   })
   
+  output$panel_results_table_older_gender <- renderUI({
+    if (is.null(reactive.run())) return()
+    if (!input$run_older_total) return()
+    
+    fluidRow(
+      h4(strong(panel_title2.4)),
+      p(strong("Data for the female")),
+      downloadButton("download_table_older_f", "Download"),
+      br(),br(),
+      DT::dataTableOutput("results_table_older_f", width = "80%"),
+      
+      br(),
+      p(strong("Data for the male")),
+      downloadButton("download_table_older_m", "Download"),
+      br(),br(),
+      DT::dataTableOutput("results_table_older_m", width = "80%")
+    )
+  })
+  
   # Main Reactive ----------------------------------------------------
   # to apply adhoc_name
   reactive.adhoc.name <- eventReactive(input$click_run, {
@@ -537,6 +567,9 @@ server <- function(input, output, session) {
     }
     if(input$run_older_total){
       run.outputaggregates.5.24(year.lastestimatepublished)
+      # Always run sex-specific for older children
+      run.outputaggregates.5.24.gender(year.lastestimatepublished)
+      adjust.total.death.5.24() # adjust final death for older children
     }
     
     removeModal()
@@ -551,9 +584,12 @@ server <- function(input, output, session) {
     }
     
     both_5_24 <- NULL
+    f_5_24 <- NULL
+    m_5_24 <- NULL
     if(input$run_older_total){
-      dt5_14  <- change.adhoc.name(fread(file.path(dir_median_total_5_14,  "Rates & Deaths_AdhocCountries.csv")))
-      dt15_24 <- change.adhoc.name(fread(file.path(dir_median_total_15_24, "Rates & Deaths_AdhocCountries.csv")))
+      # Process total older children
+      dt5_14  <- change.adhoc.name(fread(file.path(dir_median_total_5_14,  "Rates & Deaths(ADJUSTED)_AdhocCountries.csv")))
+      dt15_24 <- change.adhoc.name(fread(file.path(dir_median_total_15_24, "Rates & Deaths(ADJUSTED)_AdhocCountries.csv")))
       setnames(dt5_14, gsub(" median", "", colnames(dt5_14)))
       setnames(dt15_24, gsub(" median", "", colnames(dt15_24)))
       dt5_14  <- recode_ind_5_14(dt5_14)
@@ -563,6 +599,33 @@ server <- function(input, output, session) {
       dt15_24 <- dt15_24[dt5_14]
       dt15_24 <- calculate.10q10(dt15_24)[, Sex := "Both"]
       both_5_24 <- dt15_24[Year >= 1990,..col_order_older_children]
+      
+      # Always process sex-specific older children
+      # Process female 5-24
+      dt5_14_f  <- change.adhoc.name(fread(file.path(dir_median_female_5_14,  "Rates & Deaths_AdhocCountries.csv")))
+      dt15_24_f <- change.adhoc.name(fread(file.path(dir_median_female_15_24, "Rates & Deaths_AdhocCountries.csv")))
+      setnames(dt5_14_f, gsub(" median", "", colnames(dt5_14_f)))
+      setnames(dt15_24_f, gsub(" median", "", colnames(dt15_24_f)))
+      dt5_14_f  <- recode_ind_5_14(dt5_14_f)
+      dt15_24_f <- recode_ind_15_24(dt15_24_f)
+      setkey(dt5_14_f, Region, Year)
+      setkey(dt15_24_f, Region, Year)
+      dt15_24_f <- dt15_24_f[dt5_14_f]
+      dt15_24_f <- calculate.10q10(dt15_24_f)[, Sex := "Female"]
+      f_5_24 <- dt15_24_f[Year >= 1990,..col_order_older_children]
+      
+      # Process male 5-24
+      dt5_14_m  <- change.adhoc.name(fread(file.path(dir_median_male_5_14,  "Rates & Deaths_AdhocCountries.csv")))
+      dt15_24_m <- change.adhoc.name(fread(file.path(dir_median_male_15_24, "Rates & Deaths_AdhocCountries.csv")))
+      setnames(dt5_14_m, gsub(" median", "", colnames(dt5_14_m)))
+      setnames(dt15_24_m, gsub(" median", "", colnames(dt15_24_m)))
+      dt5_14_m  <- recode_ind_5_14(dt5_14_m)
+      dt15_24_m <- recode_ind_15_24(dt15_24_m)
+      setkey(dt5_14_m, Region, Year)
+      setkey(dt15_24_m, Region, Year)
+      dt15_24_m <- dt15_24_m[dt5_14_m]
+      dt15_24_m <- calculate.10q10(dt15_24_m)[, Sex := "Male"]
+      m_5_24 <- dt15_24_m[Year >= 1990,..col_order_older_children]
     }
     
     # output ----
@@ -571,22 +634,32 @@ server <- function(input, output, session) {
         both = change.adhoc.name(fread(file.path(dir_median_total,  "Rates & Deaths_AdhocCountries.csv"))),
         f    = change.adhoc.name(fread(file.path(dir_median_female, "Rates & Deaths(ADJUSTED)_female_AdhocCountries.csv"))),
         m    = change.adhoc.name(fread(file.path(dir_median_male,   "Rates & Deaths(ADJUSTED)_male_AdhocCountries.csv"))),
-        both_5_24 = both_5_24, 
+        both_5_24 = both_5_24,
+        f_5_24    = f_5_24,
+        m_5_24    = m_5_24,
         c_median_total = c_median_total[Region%in%input$country_input_select,],
         c_median_f     = c_median_f[Region%in%input$country_input_select,],
         c_median_m     = c_median_m[Region%in%input$country_input_select,],
-        c_median_total_older = c_median_total_older[Region%in%input$country_input_select,]
+        c_median_total_older = c_median_total_older[Region%in%input$country_input_select,],
+        c_median_f_older     = c_median_f_older[Region%in%input$country_input_select,],
+        c_median_m_older     = c_median_m_older[Region%in%input$country_input_select,]
       )
     } else {
+      # When run_gender is FALSE, under-five sex-specific is NULL
+      # but older children sex-specific is still included (always run)
       output_list <- list(
         both = change.adhoc.name(fread(file.path(dir_median_total,  "Rates & Deaths_AdhocCountries.csv"))),
         f    = NULL,
         m    = NULL,
-        both_5_24 = both_5_24, 
+        both_5_24 = both_5_24,
+        f_5_24    = f_5_24,
+        m_5_24    = m_5_24,
         c_median_total = c_median_total[Region%in%input$country_input_select,],
         c_median_f     = NULL,
         c_median_m     = NULL,
-        c_median_total_older = c_median_total_older[Region%in%input$country_input_select,]
+        c_median_total_older = c_median_total_older[Region%in%input$country_input_select,],
+        c_median_f_older     = c_median_f_older[Region%in%input$country_input_select,],
+        c_median_m_older     = c_median_m_older[Region%in%input$country_input_select,]
       )
     }
     
@@ -618,7 +691,7 @@ server <- function(input, output, session) {
     # note that the final indicator names are matched here: 
     levels(dt_long$Indicator) <- dplyr::recode(levels(dt_long$Indicator), !!!new_varname_list)
     p <- ggplot(dt_long, aes(x = Year, y = Rate, color = Region, type = Region)) +
-      geom_line(size = 1) + 
+      geom_line(linewidth = 1) + 
       theme_bw() + 
       labs(y = "", x = "", color = "", type = "") +
       facet_wrap(~ Indicator) +
@@ -642,21 +715,21 @@ server <- function(input, output, session) {
     if (is.null(reactive.run())) return()
     dt <- reactive.run()$both_5_24
     if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
-    plot.rate(dt, vars0 = c("X20q5", "X10q10"), title0 = "Deaths per 1,000")
+    plot.rate(dt, vars0 = c("Mortality rate age 5-24", "Mortality rate age 10-19"), title0 = "Deaths per 1,000")
   })
   
   output$plot_rate_older2 <- plotly::renderPlotly({
     if (is.null(reactive.run())) return()
     dt <- reactive.run()$both_5_24
     if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
-    plot.rate(dt, vars0 = c("X10q5", "X5q5", "X5q10"), title0 = "Deaths per 1,000")
+    plot.rate(dt, vars0 = c("Mortality rate age 5-14", "Mortality rate age 5-9", "Mortality rate age 10-14"), title0 = "Deaths per 1,000")
   })
   
   output$plot_rate_older3 <- plotly::renderPlotly({
     if (is.null(reactive.run())) return()
     dt <- reactive.run()$both_5_24
     if(!input$show_world) dt <- dt[Region==reactive.adhoc.name(),]
-    plot.rate(dt, vars0 = c("X10q15", "X5q15", "X5q20"), title0 = "Deaths per 1,000")
+    plot.rate(dt, vars0 = c("Mortality rate age 15-24", "Mortality rate age 15-19", "Mortality rate age 20-24"), title0 = "Deaths per 1,000")
   })
 
 
@@ -669,7 +742,7 @@ server <- function(input, output, session) {
     levels(dt_long$type) <- dplyr::recode(levels(dt_long$type),!!!new_varname_list)
     # dt_long[, Death_Number_1K := round(Deaths/1E3)]
     p <- ggplot(dt_long[!is.na(Deaths),], aes(x = Year, y = Deaths, color = Region)) +
-        geom_line(size = 1) + 
+        geom_line(linewidth = 1) + 
         theme_bw() + 
         # ggtitle("Deaths of U5MR, IMR, and NMR by Year") + 
         labs(y = "", x = "", color = "") +
@@ -713,7 +786,7 @@ server <- function(input, output, session) {
     levels(dt_long$Indicator) <- dplyr::recode(levels(dt_long$Indicator), !!!new_varname_list)
     
     p <- ggplot(dt_long[!is.na(rate), Rate := round(rate,2)], aes(x = Year, y = Rate, color = Sex)) +
-      geom_line(size = 1) + 
+      geom_line(linewidth = 1) + 
       theme_bw() + 
       # ggtitle("U5MR and IMR by Sex and Year", subtitle = "Selected Region vs. the World") + 
       labs(y = "", x = "",  color = "") +
@@ -763,6 +836,26 @@ server <- function(input, output, session) {
   output$results_table_older_total <- DT::renderDT({
     if (!is.null(reactive.run()$both_5_24)){
       dt <- reactive.run()$both_5_24
+      DT::formatRound(
+        DT::datatable( clean.table(dt) ),
+        columns = col_order_older_children_all_rate, digits = 2)
+    }
+  })
+  
+  output$results_table_older_f <- DT::renderDT({
+    if (!is.null(reactive.run()$f_5_24)){
+      dt <- reactive.run()$f_5_24
+      dt[, Sex:= "Female"]
+      DT::formatRound(
+        DT::datatable( clean.table(dt) ),
+        columns = col_order_older_children_all_rate, digits = 2)
+    }
+  })
+  
+  output$results_table_older_m <- DT::renderDT({
+    if (!is.null(reactive.run()$m_5_24)){
+      dt <- reactive.run()$m_5_24
+      dt[, Sex:= "Male"]
       DT::formatRound(
         DT::datatable( clean.table(dt) ),
         columns = col_order_older_children_all_rate, digits = 2)
@@ -835,7 +928,35 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       dtout <- rbindlist(list(clean.table(reactive.run()$both_5_24),
-                              reactive.run()$c_median_total_older
+                              reactive.run()$c_median_total_older,
+                              clean.table(reactive.run()$f_5_24),
+                              reactive.run()$c_median_f_older,
+                              clean.table(reactive.run()$m_5_24),
+                              reactive.run()$c_median_m_older
+      ), fill = TRUE)
+      write.csv(dtout, file, row.names = FALSE, na = "")
+    }
+  )
+  
+  output$download_table_older_f <- downloadHandler(
+    filename = function() {
+      paste0("Results_older_children_female_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
+    },
+    content = function(file) {
+      dtout <- rbindlist(list(clean.table(reactive.run()$f_5_24),
+                              reactive.run()$c_median_f_older
+      ), fill = TRUE)
+      write.csv(dtout, file, row.names = FALSE, na = "")
+    }
+  )
+  
+  output$download_table_older_m <- downloadHandler(
+    filename = function() {
+      paste0("Results_older_children_male_", format.Date(Sys.Date(), "%y_%m_%d"), ".csv")
+    },
+    content = function(file) {
+      dtout <- rbindlist(list(clean.table(reactive.run()$m_5_24),
+                              reactive.run()$c_median_m_older
       ), fill = TRUE)
       write.csv(dtout, file, row.names = FALSE, na = "")
     }
