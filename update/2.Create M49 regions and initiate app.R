@@ -43,24 +43,40 @@ country.info <- dc
 dc.5.14 <- fread(here::here("input/country.info.CME.5_14.csv"))
 dc.15.24 <- fread(here::here("input/country.info.CME.15_24.csv"))
 
+
 # median results for selected countries will be included in the downloaded data
 # but won't be shown in the app. Rates are not rounded in the downloaded data
 c_median_total <- read.country.summary(dir_dt_cs = file.path(dir_median_total, file_name_total), year_wanted = year_started:2030)
 c_median_f     <- read.country.summary(dir_dt_cs = file.path(dir_median_female, file_name_female), year_wanted = year_started:2030)
 c_median_m     <- read.country.summary(dir_dt_cs = file.path(dir_median_male, file_name_male), year_wanted = year_started:2030)
-c_median_total_5_14  <- read.country.summary(dir_dt_cs = file.path(dir_median_total_5_14, file_name_total), year_wanted = year_started:2030)
-c_median_total_15_24 <- read.country.summary(dir_dt_cs = file.path(dir_median_total_15_24, file_name_total), year_wanted = year_started:2030)
-c_median_total_older <- merge(recode_ind_5_14(c_median_total_5_14), 
-                              recode_ind_15_24(c_median_total_15_24))
+c_median_total_5_14  <- read.country.summary(dir_dt_cs = file.path(dir_median_total_5_14, file_name_total_5_24), year_wanted = year_started:2030)
+c_median_f_5_14      <- read.country.summary(dir_dt_cs = file.path(dir_median_female_5_14, file_name_female_5_24), year_wanted = year_started:2030)
+c_median_m_5_14      <- read.country.summary(dir_dt_cs = file.path(dir_median_male_5_14, file_name_male_5_24), year_wanted = year_started:2030)
+c_median_total_15_24 <- read.country.summary(dir_dt_cs = file.path(dir_median_total_15_24, file_name_total_5_24), year_wanted = year_started:2030)
+c_median_f_15_24     <- read.country.summary(dir_dt_cs = file.path(dir_median_female_15_24, file_name_female_5_24), year_wanted = year_started:2030)
+c_median_m_15_24     <- read.country.summary(dir_dt_cs = file.path(dir_median_male_15_24, file_name_male_5_24), year_wanted = year_started:2030)
+
+c_median_total_5_14 <- recode_ind_5_14(c_median_total_5_14)
+c_median_f_5_14 <- recode_ind_5_14(c_median_f_5_14)
+c_median_m_5_14 <- recode_ind_5_14(c_median_m_5_14)
+c_median_total_15_24 <- recode_ind_15_24(c_median_total_15_24)
+c_median_f_15_24 <- recode_ind_15_24(c_median_f_15_24)
+c_median_m_15_24 <- recode_ind_15_24(c_median_m_15_24)
+
+c_median_5_14    <- rbindlist(list(c_median_total_5_14, c_median_f_5_14, c_median_m_5_14))
+c_median_15_24   <- rbindlist(list(c_median_total_15_24, c_median_f_15_24, c_median_m_15_24)) 
+c_median_total_older <- merge(c_median_5_14, c_median_15_24)
 c_median_total_older <- calculate.10q10(c_median_total_older)
+
 col_order_older_children <- copy(colnames(c_median_total_older)) # colnames containing "X"
-setnames(c_median_total_older, dplyr::recode(col_order_older_children, !!!new_varname_list))
 col_order_older_children_all_rate <- colnames(c_median_total_older)[grepl("Mortality rate", colnames(c_median_total_older))]
+
 year_ended <- floor(max(c_median_total$Year))
 year.lastestimatepublished <- year_ended + 0.5  # e.g. 2019.5 for IGME 2020
 
 
-# for under-five, run M49 in advance
+# for under-five, run M49 in advance, so this initiating step is required to run
+# before running the App
 OutputAggregates(results.U5MR.file = here::here("output", runname.U5MR, "Results.csv"),
                  results.IMR.file = here::here("output", runname.IMR, "Results.csv"),
                  results.NMR.file = here::here("output", file_name_NMR),
@@ -115,6 +131,8 @@ OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/
 
 
 # test script for older children: -------------------------------------------
+# test if output matches
+# Total 5-14
 OutputAggregates.ori(results.U5MR.file = file.path("output", "10q5", "Results.csv"),
                      results.IMR.file  = file.path("output", "5q5",  "Results.csv"),
                      country.info.file = file.path("input", "country.info.CME.5_14.csv"),
@@ -122,6 +140,25 @@ OutputAggregates.ori(results.U5MR.file = file.path("output", "10q5", "Results.cs
                      output.dir = dir_median_total_5_14,
                      regiontypes.select = c("SDGSimple"))
 
+# Male 5-14
+OutputAggregates.ori(results.U5MR.file = here::here("output", "Sex_forDeathCalculation", "Results_10q5_m.csv"),
+                     results.IMR.file  = here::here("output", "Sex_forDeathCalculation", "Results_5q5_m.csv"),
+                     country.info.file = file.path("input", "country.info.CME.5_14.csv"),
+                     population.file   = file.path("input", "data_male_CME_WPP2024_10q5.csv"),
+                     output.dir = dir_median_male_5_14,
+                     regiontypes.select = c("SDGSimple"))
+
+
+
+# Female 15-24
+OutputAggregates.ori(results.U5MR.file = here::here("output", "Sex_forDeathCalculation", "Results_10q15_f.csv"),
+                     results.IMR.file  = here::here("output", "Sex_forDeathCalculation", "Results_5q15_f.csv"),
+                     country.info.file = file.path("input", "country.info.CME.15_24.csv"),
+                     population.file   = file.path("input", "data_female_CME_WPP2024_10q15.csv"),
+                     output.dir = dir_median_female_15_24,
+                     regiontypes.select = c("SDGSimple"))
+
+# Total 15-24
 OutputAggregates.ori(results.U5MR.file = file.path("output", "10q15", "Results.csv"),
                      results.IMR.file  = file.path("output", "5q15",  "Results.csv"),
                      country.info.file = file.path("input", "country.info.CME.15_24.csv"),
@@ -130,12 +167,44 @@ OutputAggregates.ori(results.U5MR.file = file.path("output", "10q15", "Results.c
                      regiontypes.select = c("SDGSimple"))
 
 
+# Male 15-24
+OutputAggregates.ori(results.U5MR.file = here::here("output", "Sex_forDeathCalculation", "Results_10q15_m.csv"),
+                     results.IMR.file  = here::here("output", "Sex_forDeathCalculation", "Results_5q15_m.csv"),
+                     country.info.file = file.path("input", "country.info.CME.15_24.csv"),
+                     population.file   = file.path("input", "data_male_CME_WPP2024_10q15.csv"),
+                     output.dir = dir_median_male_15_24,
+                     regiontypes.select = c("SDGSimple"))
+
+# Female 5-14
+OutputAggregates.ori(results.U5MR.file = here::here("output", "Sex_forDeathCalculation", "Results_10q5_f.csv"),
+                     results.IMR.file  = here::here("output", "Sex_forDeathCalculation", "Results_5q5_f.csv"),
+                     country.info.file = file.path("input", "country.info.CME.5_14.csv"),
+                     population.file   = file.path("input", "data_female_CME_WPP2024_10q5.csv"),
+                     output.dir = dir_median_female_5_14,
+                     regiontypes.select = c("SDGSimple"))
+
+
+# adjust death
+adjust.total.death.5.24(region_name = "SDGSimpleRegion")
+
 
 # Check -------------------------------------------------------------------
 
-# check if results match
+# check if results match for under-five
+dirold <- file.path(dir_aggu5, "Rates & Deaths_M49Region.csv") # for comparison
+dirnew <- file.path(here::here("median_results_total/Rates & Deaths_M49Region.csv"))
+dt1 <- read.region.summary(dirold)
+dt2 <- read.region.summary(dirnew)
+setnames(dt2, "value", "value.new")
+dtc <- merge(dt1, dt2)
+dtc[, diff:= round(value.new - value, 4)]
+dtc[diff!=0,] # should be none 
+
+
+
+# check if results match for older children 5-14
 dirold <- file.path(dir_agg10q5, "Rates & Deaths(ADJUSTED)_SDGSimpleRegion.csv") # for comparison
-dirnew <- file.path(here::here("median_results_total_5_14/Rates & Deaths_SDGSimpleRegion.csv"))
+dirnew <- file.path(here::here("median_results_total_5_14/Rates & Deaths(ADJUSTED)_SDGSimpleRegion.csv"))
 dt1 <- read.region.summary(dirold)
 dt2 <- read.region.summary(dirnew)
 recode5_14 <- c("U5MR" = "X10q5", "IMR" = "X5q5", "CMR" = "X5q10",
@@ -149,11 +218,12 @@ dt2[, Shortind := dplyr::recode(Shortind, !!!recode5_14)]
 setnames(dt2, "value", "value2")
 dtc <- merge(dt1, dt2)
 dtc[, diff:= round(value- value2, 4)]
-dtc[diff!=0, table(Shortind)] # should be none 
+dtc[diff!=0,] # should be none 
 
-dir_IGME_15_24 <- file.path(USERPROFILE, "Dropbox/IGME 15-24/2023 Round Estimation")
-dirold <- file.path(dir_IGME_15_24, "Aggregate results (median) 2023-12-28/Rates & Deaths_SDGSimpleRegion.csv")
-dirnew <- file.path(here::here("median_results_total_15_24/Rates & Deaths_SDGSimpleRegion.csv"))
+
+# check if results match for total 15-24
+dirold <- file.path(dir_agg10q15, "Rates & Deaths(ADJUSTED)_SDGSimpleRegion.csv") # for comparison
+dirnew <- file.path(here::here("median_results_total_15_24/Rates & Deaths(ADJUSTED)_SDGSimpleRegion.csv"))
 dt1 <- read.region.summary(dirold)
 dt2 <- read.region.summary(dirnew)
 recode15_24 <- c("U5MR" = "X10q15", "IMR" = "X5q15", "CMR" = "X5q20",
@@ -168,6 +238,7 @@ setnames(dt2, "value", "value2")
 dtc <- merge(dt1, dt2)
 dtc[, diff:= round(value- value2, 4)]
 dtc[diff!=0]
+
 
 # If results match, 
 # run aggregates for the selected countries ----------------------------------
@@ -186,23 +257,14 @@ write.csv(dc.15.24, file = here::here("input", "country.info.CME.15_24_adhoc.csv
 # basically what the app runs are these: 
 run.outputaggregates(year.lastestimatepublished)
 run.outputaggregates.gender(year.lastestimatepublished)
-adjust.death()
+adjust.u5.sex.specific.death()
 run.outputaggregates.5.24(year.lastestimatepublished)
+run.outputaggregates.5.24.gender(year.lastestimatepublished)
+adjust.total.death.5.24()
 
-c_median_total <- read.country.summary(dir_dt_cs = file.path(dir_median_total, file_name_total), year_wanted = year_started:2030)
-c_median_f     <- read.country.summary(dir_dt_cs = file.path(dir_median_female, file_name_female), year_wanted = year_started:2030)
-c_median_m     <- read.country.summary(dir_dt_cs = file.path(dir_median_male, file_name_male), year_wanted = year_started:2030)
-c_median_total_5_14  <- read.country.summary(dir_dt_cs = file.path(dir_median_total_5_14, file_name_total), year_wanted = year_started:2030)
-c_median_total_15_24 <- read.country.summary(dir_dt_cs = file.path(dir_median_total_15_24, file_name_total), year_wanted = year_started:2030)
-c_median_total_older <- merge(recode_ind_5_14(c_median_total_5_14), 
-                              recode_ind_15_24(c_median_total_15_24))
-c_median_total_older <- calculate.10q10(c_median_total_older)
-col_order_older_children <- copy(colnames(c_median_total_older)) # colnames containing "X"
 
-dt5_14  <- (fread(file.path(dir_median_total_5_14,  "Rates & Deaths_AdhocCountries.csv")))
-dt15_24 <- (fread(file.path(dir_median_total_15_24, "Rates & Deaths_AdhocCountries.csv")))
-setnames(dt5_14, gsub(" median", "", colnames(dt5_14)))
-setnames(dt15_24, gsub(" median", "", colnames(dt15_24)))
+dt5_14  <- (fread(file.path(dir_median_total_5_14,  "Rates & Deaths(ADJUSTED)_AdhocCountries.csv")))
+dt15_24 <- (fread(file.path(dir_median_total_15_24, "Rates & Deaths(ADJUSTED)_AdhocCountries.csv")))
 dt5_14  <- recode_ind_5_14(dt5_14)
 dt15_24 <- recode_ind_15_24(dt15_24)
 setkey(dt5_14, Region, Year)
@@ -211,15 +273,48 @@ dt15_24 <- dt15_24[dt5_14]
 dt15_24 <- calculate.10q10(dt15_24)[, Sex := "Both"]
 both_5_24 <- dt15_24[Year >= 1990,]
 
+# Process female 5-24
+dt5_14_f  <- (fread(file.path(dir_median_female_5_14,  "Rates & Deaths_AdhocCountries.csv")))
+dt15_24_f <- (fread(file.path(dir_median_female_15_24, "Rates & Deaths_AdhocCountries.csv")))
+dt5_14_f  <- recode_ind_5_14(dt5_14_f)
+dt15_24_f <- recode_ind_15_24(dt15_24_f)
+setkey(dt5_14_f, Region, Year)
+setkey(dt15_24_f, Region, Year)
+dt15_24_f <- dt15_24_f[dt5_14_f]
+dt15_24_f <- calculate.10q10(dt15_24_f)[, Sex := "Female"]
+f_5_24 <- dt15_24_f[Year >= 1990,]
+
+
+# Process male 5-24
+dt5_14_m  <- (fread(file.path(dir_median_male_5_14,  "Rates & Deaths_AdhocCountries.csv")))
+dt15_24_m <- (fread(file.path(dir_median_male_15_24, "Rates & Deaths_AdhocCountries.csv")))
+dt5_14_m  <- recode_ind_5_14(dt5_14_m)
+dt15_24_m <- recode_ind_15_24(dt15_24_m)
+setkey(dt5_14_m, Region, Year)
+setkey(dt15_24_m, Region, Year)
+dt15_24_m <- dt15_24_m[dt5_14_m]
+dt15_24_m <- calculate.10q10(dt15_24_m)[, Sex := "Male"]
+m_5_24 <- dt15_24_m[Year >= 1990,]
+
 output_list <- list(
   both =  (fread(file.path(dir_median_total,  "Rates & Deaths_AdhocCountries.csv"))),
   f    =  (fread(file.path(dir_median_female, "Rates & Deaths(ADJUSTED)_female_AdhocCountries.csv"))),
   m    =  (fread(file.path(dir_median_male,   "Rates & Deaths(ADJUSTED)_male_AdhocCountries.csv"))),
   both_5_24  =  both_5_24,
+  f_5_24     =  f_5_24,
+  m_5_24     =  m_5_24,
+  
+  # Below are the country data also included in the downloaded data, but not
+  # shown in the app, as they are only for the selected countries, and rates are
+  # not rounded
   c_median_total = c_median_total[Region%in%init_select,],
   c_median_f     = c_median_f[Region%in%init_select,],
   c_median_m     = c_median_m[Region%in%init_select,],
-  c_median_total_older = c_median_total_older[Region%in%init_select,]
+  c_median_total_older = c_median_total_older[Region%in%init_select,],
+  c_median_f_5_14      = c_median_f_5_14[Region%in%init_select,],
+  c_median_m_5_14      = c_median_m_5_14[Region%in%init_select,],
+  c_median_f_15_24     = c_median_f_15_24[Region%in%init_select,],
+  c_median_m_15_24     = c_median_m_15_24[Region%in%init_select,]
 )
 
 

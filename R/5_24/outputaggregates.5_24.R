@@ -30,7 +30,7 @@ OutputAggregates.ori <- function( # Calculate and output aggregated rates and nu
   year4 = 2009.5, ##<< Fourth year used for ARR calculation.
   year5 = 2010.5, ##<< Fifth year used for ARR calculation.
   year6 = 2020.5, ##<< Last year used for ARR calculation.
-  year.target = 2020.5, ##<< MDG target year.
+  year.target = year.lastestimatepublished, ##<< MDG target year.
   factor.target = 1/3, ##<< MDG target factor (Reduce to one third).
   percentiles = c(0.05, 0.5, 0.95), ##<< Vector of percentiles.
   ndigits = 10, ##<< Number of decimal places to use for analysis (e.g. to calcalate ARR, decline).
@@ -65,7 +65,7 @@ OutputAggregates.ori <- function( # Calculate and output aggregated rates and nu
   data.pop <- dplyr::inner_join(data.frame(ISO3Code = country.info$ISO3Code), data.pop)
   data.a0 <- dplyr::inner_join(data.frame(iso = country.info$ISO3Code), data.a0)
   if (sum(is.na(data.a0$a0)) > 0)
-    cat(paste0("Warning: a0 is NA for ", paste(data.a0$iso[is.na(data.a0$a0)], collapse = ", "), ".\n"))
+    cat(paste0("Note that a0 is NA for ", paste(data.a0$iso[is.na(data.a0$a0)], collapse = ", "), ".\n"))
 
   # read in B3 U5MR and IMR trajectories
   if (!is.null(runname.U5MR) & !is.null(runname.IMR)) {
@@ -160,10 +160,10 @@ OutputAggregates.ori <- function( # Calculate and output aggregated rates and nu
 
     # check for countries with all NA values
     select.NA.c <- apply(u5mr.ctj[, , 1], 1, function(x) sum(!is.na(x)) == 0)
-    cat(paste0("Warning: U5MR estimates are NA for all years of estimation for ",
+    cat(paste0("Note that U5MR estimates are NA for all years of estimation for ",
                paste(iso.c[select.NA.c], collapse = ", "), ".\n"))
     select.NA.c <- apply(imr.ctj[, , 1], 1, function(x) sum(!is.na(x)) == 0)
-    cat(paste0("Warning: IMR estimates are NA for all years of estimation for ",
+    cat(paste0("Note that IMR estimates are NA for all years of estimation for ",
                paste(iso.c[select.NA.c], collapse = ", "), ".\n"))
 
     # save

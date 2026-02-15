@@ -327,8 +327,11 @@ recode_ind_5_14 <- function(dt){
                   "Deaths.age.10to14" = "Deaths age 10 to 14"
   )
   if("Shortind" %in% colnames(dt)) dt[, Shortind := dplyr::recode(Shortind, !!!recode5_14)]
-  col_new <- dplyr::recode(colnames(dt), !!!recode5_14)
-  setnames(dt, col_new)
+  # remove " median" or ".median"
+  setnames(dt, gsub(".median", "", colnames(dt)))
+  setnames(dt, gsub("_median", "", colnames(dt)))
+  setnames(dt, dplyr::recode(colnames(dt), !!!recode5_14))
+  setnames(dt, dplyr::recode(colnames(dt), !!!new_varname_list)) # also recode to the new var names
   return(dt)
 }
 
@@ -355,16 +358,18 @@ recode_ind_15_24 <- function(dt){
                    "Deaths.age.20to24" = "Deaths age 20 to 24"
   )
   if("Shortind" %in% colnames(dt)) dt[, Shortind := dplyr::recode(Shortind, !!!recode15_24)]
-  col_new <- dplyr::recode(colnames(dt), !!!recode15_24)
-  setnames(dt, col_new)
+  setnames(dt, gsub(".median", "", colnames(dt)))
+  setnames(dt, gsub("_median", "", colnames(dt)))
+  setnames(dt, dplyr::recode(colnames(dt), !!!recode15_24))
+  setnames(dt, dplyr::recode(colnames(dt), !!!new_varname_list)) # also recode to the new var names
   return(dt)
 }
 
 calculate.10q10 <- function(dt){
   get.5q0 <- function(q1, q4){(1 - (1-q1/1E3) * (1-q4/1E3))*1E3}
   get.cme <- function(q1, q5){(1-(1-q5/1000)/(1-q1/1000)) * 1000}
-  dt[, `:=`(X10q10 = get.5q0(X5q10, X5q15),
-            X20q5  = get.5q0(X10q5, X10q15),
+  dt[, `:=`(`Mortality rate age 10-19` = get.5q0(`Mortality rate age 10-14`, `Mortality rate age 15-19`),
+            `Mortality rate age 5-24`  = get.5q0(`Mortality rate age 5-14`, `Mortality rate age 15-24`),
             `Deaths age 10 to 19` = `Deaths age 10 to 14` + `Deaths age 15 to 19`,
             `Deaths age 5 to 24`  = `Deaths age 5 to 14`  + `Deaths age 15 to 24`)]
   return(dt)

@@ -95,7 +95,7 @@ approx.geometric.inner <- function( # Do geometric interpolation given values x0
   y <- y0*(1+r)^(x-x0)
   if (any(is.nan(y))) {
     y <- approx(x = c(x0, x1), y = c(y0, y1), xout = x, method = "linear", rule = 2)$y
-    print("Warning: Linear interpolation used!")
+    print("Note that Linear interpolation used!")
   }
   if (result == "x") {
     return(x)

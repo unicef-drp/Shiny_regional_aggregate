@@ -89,7 +89,30 @@ OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/
 
 
 # Adjust death for regional aggregates ----
-adjust.death <- function(){
+adjust.older.children.total.death <- function(){
+  # Read files
+  file.i.f <- read.csv(file.path(dir_median_female, "/Rates & Deaths_AdhocCountries.csv"), as.is=T)
+  file.i.m <- read.csv(file.path(dir_median_male, "/Rates & Deaths_AdhocCountries.csv"), as.is=T)
+  file.i.t <- read.csv(file.path(dir_median_total, "/Rates & Deaths_AdhocCountries.csv"), as.is=T)
+  
+  ## Adjust total to be sum of female + male
+  file.i.t.adj <- file.i.t
+  
+  # U5 deaths: set total = female + male
+  file.i.t.adj$Under.five.deaths.median <- file.i.f$Under.five.deaths.median + file.i.m$Under.five.deaths.median
+  
+  # Infant deaths: set total = female + male
+  file.i.t.adj$Infant.deaths.median <- file.i.f$Infant.deaths.median + file.i.m$Infant.deaths.median
+  
+  # Child deaths
+  file.i.t.adj$Child.deaths.median <- file.i.f$Child.deaths.median + file.i.m$Child.deaths.median
+  
+  # Write adjusted total file
+  write.csv(file.i.t.adj, file=file.path(dir_median_total,"/Rates & Deaths(ADJUSTED)_total_AdhocCountries.csv"), row.names = F, na="")
+}
+
+
+adjust.u5.sex.specific.death <- function(){
   # print(file)
   file.i.f <- read.csv(file.path(dir_median_female, "/Rates & Deaths_AdhocCountries.csv"), as.is=T)
   file.i.m <- read.csv(file.path(dir_median_male, "/Rates & Deaths_AdhocCountries.csv"), as.is=T)

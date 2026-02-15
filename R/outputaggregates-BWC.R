@@ -88,7 +88,7 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
   data.livebirths$iso <- country.info$ISO3Code[match(country.info$UNCode, data.livebirths$uncode)]
   
   if (any(is.na(data.a0$a0)))
-    cat(paste0("Warning: a0 is NA for ", paste(data.a0$iso[is.na(data.a0$a0)], collapse = ", "), ".\n"))
+    cat(paste0("Note that a0 is NA for ", paste(data.a0$iso[is.na(data.a0$a0)], collapse = ", "), ".\n"))
 
   # read in B3 U5MR and IMR trajectories
   if (!is.null(runname.U5MR) & !is.null(runname.IMR)) {
@@ -205,10 +205,10 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
     imr.ctj[arr.ind.select] <- NA
     # check for countries with all NA values
     select.NA.c <- apply(u5mr.ctj[, , 1], 1, function(x) sum(!is.na(x)) == 0)
-    cat(paste0("Warning: U5MR estimates are NA for all years of estimation for ",
+    cat(paste0("Note that U5MR estimates are NA for all years of estimation for ",
                paste(iso.c[select.NA.c], collapse = ", "), ".\n"))
     select.NA.c <- apply(imr.ctj[, , 1], 1, function(x) sum(!is.na(x)) == 0)
-    cat(paste0("Warning: IMR estimates are NA for all years of estimation for ",
+    cat(paste0("Note that IMR estimates are NA for all years of estimation for ",
                paste(iso.c[select.NA.c], collapse = ", "), ".\n"))
     
     rownames(u5mr.ctj) <- rownames(imr.ctj) <- iso.c
@@ -241,7 +241,7 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
 
     # check for countries with all NA values
     select.NA.c <- apply(nmr.ctj[, , 1], 1, function(x) sum(!is.na(x)) == 0)
-    cat(paste0("Warning: NMR estimates are NA for all years of estimation for ",
+    cat(paste0("Note that NMR estimates are NA for all years of estimation for ",
                paste(iso.c[select.NA.c], collapse = ", "), ".\n"))
     
     rownames(nmr.ctj) <- iso.c
@@ -2269,8 +2269,10 @@ CalculateRegionalDeathsBWC <- function(
   for (r in 1:nregs) {
     if (filename %in% c("UNICEFProgRegion", "UNICEFReportRegion", "MDGRegion", "SDGRegion", "SDGSimpleRegion", "WBRegion", "UNPDRegion", "OICRegion", "M49Region", "Wealthall", "Wealthdata")) {
       reg.num <- ChooseRegion(region = regiontypes[r], regiontype = filename)
-      select.reg <- (1:nrow(regions))[regions[, is.element(colnames(regions),
-                                                           paste0(filename, reg.num))] == regiontypes[r]]
+      region.cols <- regions[, is.element(colnames(regions),
+                                                           paste0(filename, reg.num)), drop = FALSE]
+      if(ncol(region.cols) > 1) region.cols <- region.cols[, 1, drop = TRUE]  # take first column if multiple match
+      select.reg <- (1:nrow(regions))[region.cols == regiontypes[r]]
       # to remove LIE from regional aggregate calcualtions -- to implement in 2018
       select.reg.og <- select.reg
       ifelse(is.na(match(which.no.rates,select.reg.og)), select.reg <- select.reg.og, select.reg <- select.reg.og[-match(which.no.rates,select.reg.og)])

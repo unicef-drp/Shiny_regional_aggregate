@@ -6,15 +6,15 @@ source("update_me_every_year.R")
 USERPROFILE <- Sys.getenv("USERPROFILE") # leading dir to Dropbox
 source(file.path(USERPROFILE, "Dropbox/UNICEF Work/profile.R"))
 dir_CC_code <- file.path(USERPROFILE, "Dropbox/UNICEF Work/Country consultation/Code_for_CC")
-source(file.path(dir_CC_code, "R/Dropbox_results_directories_2024.R"))
+source(file.path(dir_CC_code, "R/Dropbox_results_directories_2025.R"))
 
-work_dir_report <- file.path(dir_SP, "IGME report/2024/Code_for_report")
-source(file.path(work_dir_report, "Dropbox_aggresults_directories_2024.R"))
+work_dir_report <- file.path(dir_SP, "IGME report/2025/Code_for_report")
+source(file.path(work_dir_report, "Dropbox_aggresults_directories_2025.R"))
 
 source(file.path(USERPROFILE, "Dropbox/UNICEF Work/CME.assistant/R/funcs_read_data.R"))
 # main directories
 
-IGME_ROUND <- 2024
+IGME_ROUND <- 2025
 work_dir_IGME <- get.workdir(year = IGME_ROUND)
 work_dir_5_14 <- file.path(USERPROFILE, paste0("Dropbox/IGME 5-14/", IGME_ROUND ," Round Estimation"))
 work_dir_15_24 <- file.path(USERPROFILE, paste0("Dropbox/IGME 15-24/", IGME_ROUND ," Round Estimation"))
@@ -28,15 +28,18 @@ file.copy(from = file.path(work_dir_15_24, "input/country.info.CME.csv"),
           to = here::here("input", "country.info.CME.15_24.csv"), overwrite = TRUE)
 
 
+# population file ------------------------------------------------------------
+# only need to copy once 
+
 # copy results.csv -----------------------------------------------------------
-file.copy(from = results_dir_list_under_5_final_2024$u5mr.t.in.path, 
+file.copy(from = results_dir_list_under_5_final_2025$u5mr.t.in.path, 
           to = here::here("output", runname.U5MR, "Results.csv"), overwrite = TRUE)
-file.copy(results_dir_list_under_5_final_2024$imr.t.in.path, 
+file.copy(results_dir_list_under_5_final_2025$imr.t.in.path, 
           here::here("output", runname.IMR, "Results.csv"), overwrite = TRUE)
-file.copy(results_dir_list_under_5_final_2024$nmr.t.in.path, 
+file.copy(results_dir_list_under_5_final_2025$nmr.t.in.path, 
           here::here("output", file_name_NMR), overwrite = TRUE)
 
-# sex-specific under-file results.csv
+# sex-specific under-five results.csv
 dir_Sex_forDeathCalculation <- file.path(work_dir_IGME, "output", "Sex_forDeathCalculation")
 list.files(dir_Sex_forDeathCalculation)
 file.copy(file.path(dir_Sex_forDeathCalculation, "Results_imr_f.csv"),  here::here("output/Sex_forDeathCalculation/Results_imr_f.csv"), overwrite = TRUE)
@@ -45,44 +48,64 @@ file.copy(file.path(dir_Sex_forDeathCalculation, "Results_u5mr_f.csv"), here::he
 file.copy(file.path(dir_Sex_forDeathCalculation, "Results_u5mr_m.csv"), here::here("output/Sex_forDeathCalculation/Results_u5mr_m.csv"), overwrite = TRUE)
 
 # older children
-file.copy(from = results_dir_list_5_24_final_2024$mr5t14.t.in.path, 
+file.copy(from = results_dir_list_5_24_final_2025$mr5t14.t.in.path, 
           to = here::here("output", "10q5", "Results.csv"), overwrite = TRUE)
-file.copy(from = results_dir_list_5_24_final_2024$mr5t9.t.in.path, 
+file.copy(from = results_dir_list_5_24_final_2025$mr5t9.t.in.path, 
           to = here::here("output", "5q5", "Results.csv"), overwrite = TRUE)
-file.copy(from = results_dir_list_5_24_final_2024$mr15t24.t.in.path, 
+file.copy(from = results_dir_list_5_24_final_2025$mr15t24.t.in.path, 
           to = here::here("output", "10q15", "Results.csv"), overwrite = TRUE)
-file.copy(from = results_dir_list_5_24_final_2024$mr15t19.t.in.path, 
+file.copy(from = results_dir_list_5_24_final_2025$mr15t19.t.in.path, 
           to = here::here("output", "5q15", "Results.csv"), overwrite = TRUE)
+
+# sex-specific older children results.csv
+dir_Sex_forDeathCalculation_5_14 <- file.path(work_dir_5_14, "output", "Sex_forDeathCalculation")
+dir_Sex_forDeathCalculation_15_24 <- file.path(work_dir_15_24, "output", "Sex_forDeathCalculation")
+
+# 5-14 age group
+file.copy(file.path(dir_Sex_forDeathCalculation_5_14, "Results_10q5_f.csv"), here::here("output/Sex_forDeathCalculation/Results_10q5_f.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation_5_14, "Results_10q5_m.csv"), here::here("output/Sex_forDeathCalculation/Results_10q5_m.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation_5_14, "Results_5q5_f.csv"),  here::here("output/Sex_forDeathCalculation/Results_5q5_f.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation_5_14, "Results_5q5_m.csv"),  here::here("output/Sex_forDeathCalculation/Results_5q5_m.csv"), overwrite = TRUE)
+
+# 15-24 age group
+file.copy(file.path(dir_Sex_forDeathCalculation_15_24, "Results_10q15_f.csv"), here::here("output/Sex_forDeathCalculation/Results_10q15_f.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation_15_24, "Results_10q15_m.csv"), here::here("output/Sex_forDeathCalculation/Results_10q15_m.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation_15_24, "Results_5q15_f.csv"),  here::here("output/Sex_forDeathCalculation/Results_5q15_f.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation_15_24, "Results_5q15_m.csv"),  here::here("output/Sex_forDeathCalculation/Results_5q15_m.csv"), overwrite = TRUE)
+
 
 # copy country summary  -------------------------------------------------------
 # This is to get country median estimates (used for downloaded file)
-dir_median_total <- here::here("median_results_total")
-dir_median_female <- here::here("median_results_female")
-dir_median_male <- here::here("median_results_male")
-dir_median_total_5_14 <- here::here("median_results_total_5_14")
-dir_median_total_15_24 <- here::here("median_results_total_15_24")
+# Directory variables are sourced from update_me_every_year.R (canonical source)
 invisible(lapply(list(dir_median_total, 
                       dir_median_female, dir_median_male,
-                      dir_median_total_5_14, 
-                      dir_median_total_15_24), dir.create))
+                      dir_median_total_5_14, dir_median_female_5_14, dir_median_male_5_14,
+                      dir_median_total_15_24, dir_median_female_15_24, dir_median_male_15_24), dir.create))
 
-# The name of the final results file:
-file_name_total <- "Rates & Deaths_Country Summary.csv"
-file_name_female <- "Rates & Deaths(ADJUSTED)_female_Country Summary.csv"
-file_name_male <- "Rates & Deaths(ADJUSTED)_male_Country Summary.csv"
 
 # check if all TRUE:
-file.exists(file.path(dir_aggu5.median, file_name_total))
-file.exists(file.path(dir_aggu5_f.median, file_name_female))
-file.exists(file.path(dir_aggu5_m.median, file_name_male))
-file.exists(file.path(dir_agg10q5.median, file_name_total))
-file.exists(file.path(dir_agg10q15.median, file_name_total))
+stopifnot(file.exists(file.path(dir_aggu5_median, file_name_total)))
+stopifnot(file.exists(file.path(dir_aggu5_f_median, file_name_female)))
+stopifnot(file.exists(file.path(dir_aggu5_m_median, file_name_male)))
+stopifnot(file.exists(file.path(dir_agg10q5_median, file_name_total_5_24)))
+stopifnot(file.exists(file.path(dir_agg10q5_f_median, file_name_female_5_24)))
+stopifnot(file.exists(file.path(dir_agg10q5_m_median, file_name_male_5_24)))
+stopifnot(file.exists(file.path(dir_agg10q15_median, file_name_total_5_24)))
+stopifnot(file.exists(file.path(dir_agg10q15_f_median, file_name_female_5_24)))
+stopifnot(file.exists(file.path(dir_agg10q15_m_median, file_name_male_5_24)))
 
-file.copy(file.path(dir_aggu5.median, file_name_total),    to = file.path(dir_median_total, file_name_total), overwrite = TRUE)
-file.copy(file.path(dir_aggu5_f.median, file_name_female), to = file.path(dir_median_female, file_name_female), overwrite = TRUE)
-file.copy(file.path(dir_aggu5_m.median, file_name_male),   to = file.path(dir_median_male, file_name_male), overwrite = TRUE)
-file.copy(file.path(dir_agg10q5.median, file_name_total),     to = file.path(dir_median_total_5_14, file_name_total), overwrite = TRUE)
-file.copy(file.path(dir_agg10q15.median, file_name_total),    to = file.path(dir_median_total_15_24, file_name_total), overwrite = TRUE)
+# Country Summary will actually be reproduced when running the script 2 .Create
+# M49 regions and initiate app.R
+
+file.copy(file.path(dir_aggu5_median, file_name_total),    to = file.path(dir_median_total, file_name_total), overwrite = TRUE)
+file.copy(file.path(dir_aggu5_f_median, file_name_female), to = file.path(dir_median_female, file_name_female), overwrite = TRUE)
+file.copy(file.path(dir_aggu5_m_median, file_name_male),   to = file.path(dir_median_male, file_name_male), overwrite = TRUE)
+file.copy(file.path(dir_agg10q5_median,    file_name_total_5_24),    to = file.path(dir_median_total_5_14,  file_name_total_5_24), overwrite = TRUE)
+file.copy(file.path(dir_agg10q5_f_median,  file_name_female_5_24),   to = file.path(dir_median_female_5_14, file_name_female_5_24), overwrite = TRUE)
+file.copy(file.path(dir_agg10q5_m_median,  file_name_male_5_24),     to = file.path(dir_median_male_5_14,   file_name_male_5_24), overwrite = TRUE)
+file.copy(file.path(dir_agg10q15_median,   file_name_total_5_24),    to = file.path(dir_median_total_15_24, file_name_total_5_24), overwrite = TRUE)
+file.copy(file.path(dir_agg10q15_f_median, file_name_female_5_24),   to = file.path(dir_median_female_15_24,file_name_female_5_24), overwrite = TRUE)
+file.copy(file.path(dir_agg10q15_m_median, file_name_male_5_24),     to = file.path(dir_median_male_15_24,  file_name_male_5_24), overwrite = TRUE)
 
 # Create a testing example ---------------------------------------------
 library("data.table")
@@ -97,9 +120,10 @@ dcWBHIC <- dc[WBRegion4 == "High income", .(ISO3Code, OfficialName)]
 dcWBHIC[, Region := "High income countries"]
 fwrite(dcWBHIC, here::here("Upload_ISO_example_WBHIC.csv"))
 
-dcSP <- dc[SPhumanitarian == "Humanitarian", .(ISO3Code, OfficialName)]
-dcSP[, Region := "SP humanitarian countries"]
-fwrite(dcSP, here::here("Upload_ISO_example_SPhumanitarian.csv"))
+dcWB <- dc[WBRegion4 != "", .(WBRegion4, ISO3Code, OfficialName)]
+setnames(dcWB, "WBRegion4", "Region")
+fwrite(dcWB, here::here("Upload_ISO_example_WB.csv"))
+
 
 # after finishing running this script, run "update/2.Create M49 regions and
 # initiate app.R"

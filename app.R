@@ -108,14 +108,28 @@ world_map <- get.world.map()
 c_median_total <- read.country.summary(dir_dt_cs = file.path(dir_median_total, file_name_total), year_wanted = year_started:2030)
 c_median_f     <- read.country.summary(dir_dt_cs = file.path(dir_median_female, file_name_female), year_wanted = year_started:2030)
 c_median_m     <- read.country.summary(dir_dt_cs = file.path(dir_median_male, file_name_male), year_wanted = year_started:2030)
-c_median_total_5_14  <- read.country.summary(dir_dt_cs = file.path(dir_median_total_5_14, file_name_total), year_wanted = year_started:2030)
-c_median_total_15_24 <- read.country.summary(dir_dt_cs = file.path(dir_median_total_15_24, file_name_total), year_wanted = year_started:2030)
-c_median_total_older <- merge(recode_ind_5_14(c_median_total_5_14), 
-                              recode_ind_15_24(c_median_total_15_24))
+c_median_total_5_14  <- read.country.summary(dir_dt_cs = file.path(dir_median_total_5_14, file_name_total_5_24), year_wanted = year_started:2030)
+c_median_f_5_14      <- read.country.summary(dir_dt_cs = file.path(dir_median_female_5_14, file_name_female_5_24), year_wanted = year_started:2030)
+c_median_m_5_14      <- read.country.summary(dir_dt_cs = file.path(dir_median_male_5_14, file_name_male_5_24), year_wanted = year_started:2030)
+c_median_total_15_24 <- read.country.summary(dir_dt_cs = file.path(dir_median_total_15_24, file_name_total_5_24), year_wanted = year_started:2030)
+c_median_f_15_24     <- read.country.summary(dir_dt_cs = file.path(dir_median_female_15_24, file_name_female_5_24), year_wanted = year_started:2030)
+c_median_m_15_24     <- read.country.summary(dir_dt_cs = file.path(dir_median_male_15_24, file_name_male_5_24), year_wanted = year_started:2030)
+
+c_median_total_5_14 <- recode_ind_5_14(c_median_total_5_14)
+c_median_f_5_14 <- recode_ind_5_14(c_median_f_5_14)
+c_median_m_5_14 <- recode_ind_5_14(c_median_m_5_14)
+c_median_total_15_24 <- recode_ind_15_24(c_median_total_15_24)
+c_median_f_15_24 <- recode_ind_15_24(c_median_f_15_24)
+c_median_m_15_24 <- recode_ind_15_24(c_median_m_15_24)
+
+c_median_5_14    <- rbindlist(list(c_median_total_5_14, c_median_f_5_14, c_median_m_5_14))
+c_median_15_24   <- rbindlist(list(c_median_total_15_24, c_median_f_15_24, c_median_m_15_24)) 
+c_median_total_older <- merge(c_median_5_14, c_median_15_24)
 c_median_total_older <- calculate.10q10(c_median_total_older)
+
 col_order_older_children <- copy(colnames(c_median_total_older)) # colnames containing "X"
-setnames(c_median_total_older, dplyr::recode(col_order_older_children, !!!new_varname_list))
 col_order_older_children_all_rate <- colnames(c_median_total_older)[grepl("Mortality rate", colnames(c_median_total_older))]
+
 year_ended <- floor(max(c_median_total$Year))
 year.lastestimatepublished <- year_ended + 0.5  # e.g. 2019.5 for IGME 2020
 
@@ -519,7 +533,7 @@ server <- function(input, output, session) {
     
     if(input$run_gender){
       run.outputaggregates.gender(year.lastestimatepublished)
-      adjust.death()
+      adjust.u5.sex.specific.death() # adjust final death 
     }
     if(input$run_older_total){
       run.outputaggregates.5.24(year.lastestimatepublished)
@@ -540,8 +554,6 @@ server <- function(input, output, session) {
     if(input$run_older_total){
       dt5_14  <- change.adhoc.name(fread(file.path(dir_median_total_5_14,  "Rates & Deaths_AdhocCountries.csv")))
       dt15_24 <- change.adhoc.name(fread(file.path(dir_median_total_15_24, "Rates & Deaths_AdhocCountries.csv")))
-      # dt5_14  <- (fread(file.path(dir_median_total_5_14,  "Rates & Deaths_AdhocCountries.csv")))
-      # dt15_24 <- (fread(file.path(dir_median_total_15_24, "Rates & Deaths_AdhocCountries.csv")))
       setnames(dt5_14, gsub(" median", "", colnames(dt5_14)))
       setnames(dt15_24, gsub(" median", "", colnames(dt15_24)))
       dt5_14  <- recode_ind_5_14(dt5_14)
