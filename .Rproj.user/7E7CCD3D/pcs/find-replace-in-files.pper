@@ -1,0 +1,38 @@
+{
+    "dialog-state": {
+        "query": "2024",
+        "path": "",
+        "regex": false,
+        "caseSensitive": false,
+        "wholeWord": false,
+        "filePatterns": [
+            "*.r",
+            "*.R",
+            "*.rnw",
+            "*.Rnw",
+            "*.rmd",
+            "*.Rmd",
+            "*.rmarkdown",
+            "*.Rmarkdown",
+            "*.qmd",
+            "*.Qmd",
+            "*.md",
+            "*.rhtml",
+            "*.Rhtml",
+            "*.h",
+            "*.hpp",
+            "*.c",
+            "*.cpp",
+            "*.js",
+            "*.yml",
+            "*.yaml"
+        ],
+        "useGitGrep": true,
+        "excludeGitIgnore": true,
+        "excludeFilePatterns": [],
+        "resultsCount": 41,
+        "errorCount": 0,
+        "replaceErrors": "",
+        "projectRelative": true
+    }
+}
