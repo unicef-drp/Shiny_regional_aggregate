@@ -1,0 +1,19 @@
+Package: shinyregionalaggregate
+Title: Regional Child Mortality Aggregates
+Version: 0.0.0.9000
+Authors@R: person("Yang", "Liu", role = c("aut", "cre"))
+Description: Golem-based Shiny app and programmatic API for regional child mortality aggregates.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: false
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Depends:
+    R (>= 4.2.0)
+Imports:
+    config,
+    golem,
+    shiny
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
