@@ -445,12 +445,12 @@ calculate.10q10 <- function(dt){
 }
 
 # get.results.file <- function(runname, pattern0 = "Results"){
-#   files <- list.files(here::here("output", runname), full.names = TRUE, pattern = pattern0)
+#   files <- list.files(file.path("output", runname), full.names = TRUE, pattern = pattern0)
 # }
 # 
 # # produce a master datafile that combine all the output in `output` folder
 # read.results.file <- function(year_started, year_ended){
-#   dcname <- fread(here::here("input", "country.info.CME.csv"))[,.(ISO3Code, OfficialName)]
+#   dcname <- fread(file.path("input", "country.info.CME.csv"))[,.(ISO3Code, OfficialName)]
 #   setkey(dcname, ISO3Code)
 #   years <- paste0("X", c(year_started:year_ended), ".5")
 # 

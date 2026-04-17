@@ -25,10 +25,7 @@ release_path <- function(...) {
 #' Create a run-specific workspace from packaged release assets
 #' @noRd
 create_runtime_workspace <- function(parent = tempdir()) {
-  workspace <- file.path(
-    parent,
-    paste0("cme-aggregate-", format(Sys.time(), "%Y%m%d%H%M%S"))
-  )
+  workspace <- tempfile("cme-aggregate-", tmpdir = parent)
 
   dirs_to_copy <- c(
     "input",
@@ -59,6 +56,20 @@ create_runtime_workspace <- function(parent = tempdir()) {
     if (!all(ok)) {
       stop("Failed to copy release directory: ", dir_name)
     }
+  }
+
+  legacy_script <- app_sys("legacy", "R", "chooseregion.R")
+  if (identical(legacy_script, "") || !file.exists(legacy_script)) {
+    legacy_script <- file.path("inst", "legacy", "R", "chooseregion.R")
+  }
+  if (!file.exists(legacy_script)) {
+    stop("Failed to locate legacy helper script: chooseregion.R")
+  }
+
+  legacy_r_dir <- file.path(workspace, "R")
+  dir.create(legacy_r_dir, recursive = TRUE, showWarnings = FALSE)
+  if (!file.copy(legacy_script, legacy_r_dir, overwrite = TRUE)) {
+    stop("Failed to copy legacy helper script: ", legacy_script)
   }
 
   workspace

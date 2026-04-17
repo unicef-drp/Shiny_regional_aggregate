@@ -1,10 +1,5 @@
-old_wd <- setwd(testthat::test_path("..", ".."))
-on.exit(setwd(old_wd), add = TRUE)
-pkgload::load_all(".", export_all = TRUE, helpers = FALSE, quiet = TRUE)
-
 testthat::test_that("normalize_region_iso_input keeps the required columns from AU.csv", {
-  raw <- data.table::fread("AU.csv")
-  out <- normalize_region_iso_input(raw)
+  out <- pkg_fn("normalize_region_iso_input")(read_au_input())
 
   testthat::expect_true(all(c("Region", "ISO3Code") %in% names(out)))
   testthat::expect_true("Region_Code" %in% names(out))
@@ -17,7 +12,7 @@ testthat::test_that("build_region_membership_wide converts long input to AdhocCo
     ISO3Code = c("AFG", "AFG", "AGO")
   )
 
-  wide <- build_region_membership_wide(raw)
+  wide <- pkg_fn("build_region_membership_wide")(raw)
 
   testthat::expect_true(all(c("ISO3Code", "AdhocCountries", "AdhocCountries2") %in% names(wide$data)))
   testthat::expect_identical(wide$data[ISO3Code == "AFG", AdhocCountries][[1]], "Group A")

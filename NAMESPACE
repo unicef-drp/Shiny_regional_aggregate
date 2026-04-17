@@ -1,2 +1,3 @@
 import(data.table)
+export(get_CME_aggregate)
 export(run_app)

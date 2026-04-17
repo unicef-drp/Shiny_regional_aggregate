@@ -1,5 +1,5 @@
 test_env <- new.env(parent = globalenv())
-source("R/helper funcs for app.R", local = test_env)
+source("R/helper_funcs_for_app.R", local = test_env)
 
 if (!exists("ResolvePlotColors", envir = test_env, inherits = FALSE)) {
   stop("ResolvePlotColors helper is missing", call. = FALSE)

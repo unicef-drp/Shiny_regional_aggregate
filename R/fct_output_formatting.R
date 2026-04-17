@@ -1,11 +1,34 @@
 #' Convert one aggregate table to the long download format
 #' @noRd
-table_to_long_download <- function(dt) {
+clean_table_for_download <- function(dt) {
   if (is.null(dt)) {
     return(NULL)
   }
 
   out <- data.table::copy(dt)
+  if (!"Sex" %in% names(out)) {
+    out[, Sex := "Total"]
+  }
+
+  pop_cols <- grep("Population|population", names(out), value = TRUE)
+  if (length(pop_cols) > 0L) {
+    out[, (pop_cols) := NULL]
+  }
+
+  out <- out[Year >= release_metadata()$year_started]
+  idx <- match(names(out), names(new_varname_list))
+  names(out)[!is.na(idx)] <- unname(new_varname_list[idx[!is.na(idx)]])
+  out[]
+}
+
+#' Convert one aggregate table to the long download format
+#' @noRd
+table_to_long_download <- function(dt, needs_clean = FALSE) {
+  if (is.null(dt)) {
+    return(NULL)
+  }
+
+  out <- if (isTRUE(needs_clean)) clean_table_for_download(dt) else data.table::copy(dt)
   if (!"Sex" %in% names(out)) {
     out[, Sex := "Total"]
   }
@@ -40,12 +63,12 @@ build_long_download <- function(results, region_code_lookup = NULL) {
   pieces <- Filter(
     Negate(is.null),
     list(
-      table_to_long_download(results$both),
-      table_to_long_download(results$f),
-      table_to_long_download(results$m),
-      table_to_long_download(results$both_5_24),
-      table_to_long_download(results$f_5_24),
-      table_to_long_download(results$m_5_24)
+      table_to_long_download(results$both, needs_clean = TRUE),
+      table_to_long_download(results$f, needs_clean = TRUE),
+      table_to_long_download(results$m, needs_clean = TRUE),
+      table_to_long_download(results$both_5_24, needs_clean = TRUE),
+      table_to_long_download(results$f_5_24, needs_clean = TRUE),
+      table_to_long_download(results$m_5_24, needs_clean = TRUE)
     )
   )
 
@@ -53,6 +76,7 @@ build_long_download <- function(results, region_code_lookup = NULL) {
   if (!is.null(region_code_lookup) && nrow(region_code_lookup) > 0L) {
     region_code_lookup <- unique(region_code_lookup[, .(Region, Region_Code)], by = "Region")
     out[region_code_lookup, Region_Code := i.Region_Code, on = "Region"]
+    out[is.na(Region_Code), Region_Code := ""]
     data.table::setcolorder(out, c("Region", "Region_Code", "Shortind", "Sex", "Year", "Median"))
   }
 
