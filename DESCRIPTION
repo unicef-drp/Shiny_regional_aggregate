@@ -12,7 +12,9 @@ Depends:
     R (>= 4.2.0)
 Imports:
     config,
+    data.table,
     golem,
+    readxl,
     shiny
 Suggests:
     pkgload,
