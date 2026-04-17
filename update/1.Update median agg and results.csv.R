@@ -21,11 +21,11 @@ work_dir_15_24 <- file.path(USERPROFILE, paste0("Dropbox/IGME 15-24/", IGME_ROUN
 
 # copy country.info.CME.csv
 file.copy(from = file.path(work_dir_IGME, "input/country.info.CME.csv"), 
-          to = here::here("input", "country.info.CME.csv"), overwrite = TRUE)
+          to = file.path("input", "country.info.CME.csv"), overwrite = TRUE)
 file.copy(from = file.path(work_dir_5_14, "input/country.info.CME.csv"), 
-          to = here::here("input", "country.info.CME.5_14.csv"), overwrite = TRUE)
+          to = file.path("input", "country.info.CME.5_14.csv"), overwrite = TRUE)
 file.copy(from = file.path(work_dir_15_24, "input/country.info.CME.csv"), 
-          to = here::here("input", "country.info.CME.15_24.csv"), overwrite = TRUE)
+          to = file.path("input", "country.info.CME.15_24.csv"), overwrite = TRUE)
 
 
 # population file ------------------------------------------------------------
@@ -33,45 +33,45 @@ file.copy(from = file.path(work_dir_15_24, "input/country.info.CME.csv"),
 
 # copy results.csv -----------------------------------------------------------
 file.copy(from = results_dir_list_under_5_final_2025$u5mr.t.in.path, 
-          to = here::here("output", runname.U5MR, "Results.csv"), overwrite = TRUE)
+          to = file.path("output", runname.U5MR, "Results.csv"), overwrite = TRUE)
 file.copy(results_dir_list_under_5_final_2025$imr.t.in.path, 
-          here::here("output", runname.IMR, "Results.csv"), overwrite = TRUE)
+          file.path("output", runname.IMR, "Results.csv"), overwrite = TRUE)
 file.copy(results_dir_list_under_5_final_2025$nmr.t.in.path, 
-          here::here("output", file_name_NMR), overwrite = TRUE)
+          file.path("output", file_name_NMR), overwrite = TRUE)
 
 # sex-specific under-five results.csv
 dir_Sex_forDeathCalculation <- file.path(work_dir_IGME, "output", "Sex_forDeathCalculation")
 list.files(dir_Sex_forDeathCalculation)
-file.copy(file.path(dir_Sex_forDeathCalculation, "Results_imr_f.csv"),  here::here("output/Sex_forDeathCalculation/Results_imr_f.csv"), overwrite = TRUE)
-file.copy(file.path(dir_Sex_forDeathCalculation, "Results_imr_m.csv"),  here::here("output/Sex_forDeathCalculation/Results_imr_m.csv"), overwrite = TRUE)
-file.copy(file.path(dir_Sex_forDeathCalculation, "Results_u5mr_f.csv"), here::here("output/Sex_forDeathCalculation/Results_u5mr_f.csv"), overwrite = TRUE)
-file.copy(file.path(dir_Sex_forDeathCalculation, "Results_u5mr_m.csv"), here::here("output/Sex_forDeathCalculation/Results_u5mr_m.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation, "Results_imr_f.csv"),  file.path("output/Sex_forDeathCalculation/Results_imr_f.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation, "Results_imr_m.csv"),  file.path("output/Sex_forDeathCalculation/Results_imr_m.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation, "Results_u5mr_f.csv"), file.path("output/Sex_forDeathCalculation/Results_u5mr_f.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation, "Results_u5mr_m.csv"), file.path("output/Sex_forDeathCalculation/Results_u5mr_m.csv"), overwrite = TRUE)
 
 # older children
 file.copy(from = results_dir_list_5_24_final_2025$mr5t14.t.in.path, 
-          to = here::here("output", "10q5", "Results.csv"), overwrite = TRUE)
+          to = file.path("output", "10q5", "Results.csv"), overwrite = TRUE)
 file.copy(from = results_dir_list_5_24_final_2025$mr5t9.t.in.path, 
-          to = here::here("output", "5q5", "Results.csv"), overwrite = TRUE)
+          to = file.path("output", "5q5", "Results.csv"), overwrite = TRUE)
 file.copy(from = results_dir_list_5_24_final_2025$mr15t24.t.in.path, 
-          to = here::here("output", "10q15", "Results.csv"), overwrite = TRUE)
+          to = file.path("output", "10q15", "Results.csv"), overwrite = TRUE)
 file.copy(from = results_dir_list_5_24_final_2025$mr15t19.t.in.path, 
-          to = here::here("output", "5q15", "Results.csv"), overwrite = TRUE)
+          to = file.path("output", "5q15", "Results.csv"), overwrite = TRUE)
 
 # sex-specific older children results.csv
 dir_Sex_forDeathCalculation_5_14 <- file.path(work_dir_5_14, "output", "Sex_forDeathCalculation")
 dir_Sex_forDeathCalculation_15_24 <- file.path(work_dir_15_24, "output", "Sex_forDeathCalculation")
 
 # 5-14 age group
-file.copy(file.path(dir_Sex_forDeathCalculation_5_14, "Results_10q5_f.csv"), here::here("output/Sex_forDeathCalculation/Results_10q5_f.csv"), overwrite = TRUE)
-file.copy(file.path(dir_Sex_forDeathCalculation_5_14, "Results_10q5_m.csv"), here::here("output/Sex_forDeathCalculation/Results_10q5_m.csv"), overwrite = TRUE)
-file.copy(file.path(dir_Sex_forDeathCalculation_5_14, "Results_5q5_f.csv"),  here::here("output/Sex_forDeathCalculation/Results_5q5_f.csv"), overwrite = TRUE)
-file.copy(file.path(dir_Sex_forDeathCalculation_5_14, "Results_5q5_m.csv"),  here::here("output/Sex_forDeathCalculation/Results_5q5_m.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation_5_14, "Results_10q5_f.csv"), file.path("output/Sex_forDeathCalculation/Results_10q5_f.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation_5_14, "Results_10q5_m.csv"), file.path("output/Sex_forDeathCalculation/Results_10q5_m.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation_5_14, "Results_5q5_f.csv"),  file.path("output/Sex_forDeathCalculation/Results_5q5_f.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation_5_14, "Results_5q5_m.csv"),  file.path("output/Sex_forDeathCalculation/Results_5q5_m.csv"), overwrite = TRUE)
 
 # 15-24 age group
-file.copy(file.path(dir_Sex_forDeathCalculation_15_24, "Results_10q15_f.csv"), here::here("output/Sex_forDeathCalculation/Results_10q15_f.csv"), overwrite = TRUE)
-file.copy(file.path(dir_Sex_forDeathCalculation_15_24, "Results_10q15_m.csv"), here::here("output/Sex_forDeathCalculation/Results_10q15_m.csv"), overwrite = TRUE)
-file.copy(file.path(dir_Sex_forDeathCalculation_15_24, "Results_5q15_f.csv"),  here::here("output/Sex_forDeathCalculation/Results_5q15_f.csv"), overwrite = TRUE)
-file.copy(file.path(dir_Sex_forDeathCalculation_15_24, "Results_5q15_m.csv"),  here::here("output/Sex_forDeathCalculation/Results_5q15_m.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation_15_24, "Results_10q15_f.csv"), file.path("output/Sex_forDeathCalculation/Results_10q15_f.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation_15_24, "Results_10q15_m.csv"), file.path("output/Sex_forDeathCalculation/Results_10q15_m.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation_15_24, "Results_5q15_f.csv"),  file.path("output/Sex_forDeathCalculation/Results_5q15_f.csv"), overwrite = TRUE)
+file.copy(file.path(dir_Sex_forDeathCalculation_15_24, "Results_5q15_m.csv"),  file.path("output/Sex_forDeathCalculation/Results_5q15_m.csv"), overwrite = TRUE)
 
 
 # copy country summary  -------------------------------------------------------
@@ -113,12 +113,12 @@ library("data.table")
 dc <- fread(file.path(work_dir_IGME, "input/country.info.CME.csv"))
 dcWBLIC <- dc[WBRegion4 == "Low income", .(ISO3Code, OfficialName)]
 dcWBLIC[, Region := "Low income countries"]
-fwrite(dcWBLIC, here::here("Upload_ISO_example_WBLIC.csv"))
-fwrite(dcWBLIC, here::here("www/Upload_ISO3Code_example_single_region.csv"))
+fwrite(dcWBLIC, file.path("Upload_ISO_example_WBLIC.csv"))
+fwrite(dcWBLIC, file.path("www/Upload_ISO3Code_example_single_region.csv"))
 
 dcWBHIC <- dc[WBRegion4 == "High income", .(ISO3Code, OfficialName)]
 dcWBHIC[, Region := "High income countries"]
-fwrite(dcWBHIC, here::here("Upload_ISO_example_WBHIC.csv"))
+fwrite(dcWBHIC, file.path("Upload_ISO_example_WBHIC.csv"))
 
 
 dcWB1 <- dc[WBRegion4 != "", .(WBRegion4, ISO3Code, OfficialName)]
@@ -126,7 +126,7 @@ dcWB2 <- dc[WBRegion5 != "", .(WBRegion5, ISO3Code, OfficialName)]
 setnames(dcWB1, "WBRegion4", "Region")
 setnames(dcWB2, "WBRegion5", "Region")
 dcWB <- rbind(dcWB1, dcWB2)
-fwrite(dcWB, here::here("Upload_ISO_example_WB.csv"))
+fwrite(dcWB, file.path("Upload_ISO_example_WB.csv"))
 
 
 # after finishing running this script, run "update/2.Create M49 regions and

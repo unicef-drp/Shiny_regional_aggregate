@@ -25,11 +25,10 @@ check.and.install.pkgs <- function(pkgs){
 }
 check.and.install.pkgs(c("shiny", "shinyWidgets", "shinyjs", "leaflet",
                          "maps", "sf",  
-                         "DT","data.table", "dplyr", "here", 
-                         "ggplot2", "scales", "plotly", "readxl"))
+                         "DT","data.table", "dplyr", "ggplot2", "scales", "plotly", "readxl"))
 
 # source code
-invisible(sapply(list.files(here::here("R"), pattern = "\\.[Rr]$", full.names = TRUE, recursive = TRUE), source))
+invisible(sapply(list.files(file.path("R"), pattern = "\\.[Rr]$", full.names = TRUE, recursive = TRUE), source))
 
 # update packages if certain visions are required
 invisible(sapply(c("shiny", "DT", "data.table"), update.package.version))
@@ -37,7 +36,6 @@ invisible(sapply(c("shiny", "DT", "data.table"), update.package.version))
 suppressPackageStartupMessages({
   # it seems listing the libraries is still necessary if want to publish the app
   # on shinyapps.io
-  library("here")
   library("shiny")
   library("shinyWidgets")
   library("shinyjs")  # for reset app
@@ -87,9 +85,9 @@ adhoc_name <- "Selected Countries"
 
 
 # dc: country.info.CME dataset
-dc <- fread(here::here("input/country.info.CME.csv"))
-dc.5.14 <- fread(here::here("input/country.info.CME.5_14.csv"))
-dc.15.24 <- fread(here::here("input/country.info.CME.15_24.csv"))
+dc <- fread(file.path("input/country.info.CME.csv"))
+dc.5.14 <- fread(file.path("input/country.info.CME.5_14.csv"))
+dc.15.24 <- fread(file.path("input/country.info.CME.15_24.csv"))
 
 # Define region
 dc[, UNICEF_region:= ifelse(UNICEFReportRegion2 == "", UNICEFReportRegion1, UNICEFReportRegion2)]
@@ -192,7 +190,7 @@ ui = fluidPage(
                                      br(),
                                      "Download examples: ",
                                      a("single-region", href = "Upload_ISO3Code_example_single_region.csv", target = "_blank"),
-                                     "·",
+                                     "Â·",
                                      a("multi-region", href = "Upload_ISO3Code_example_multiple_regions.csv", target = "_blank")
                                      ),
               placeholder = "Column name shall contain \"ISO\"", 
@@ -805,7 +803,7 @@ server <- function(input, output, session) {
     }
     
     # Write to file
-    write.csv(dc_with_adhoc, file = here::here("input", "country.info.CME_adhoc.csv"), row.names = FALSE)
+    write.csv(dc_with_adhoc, file = file.path("input", "country.info.CME_adhoc.csv"), row.names = FALSE)
     
     # Apply same logic to older children datasets
     if(input$run_older_total) {
@@ -829,7 +827,7 @@ server <- function(input, output, session) {
       } else {
         dc_5_14_adhoc[OfficialName %in% input$country_input_select, AdhocCountries := "Adhoc"]
       }
-      write.csv(dc_5_14_adhoc, file = here::here("input", "country.info.CME.5_14_adhoc.csv"), row.names = FALSE)
+      write.csv(dc_5_14_adhoc, file = file.path("input", "country.info.CME.5_14_adhoc.csv"), row.names = FALSE)
       
       # 15-24 age group
       dc_15_24_adhoc <- copy(dc.15.24)
@@ -851,7 +849,7 @@ server <- function(input, output, session) {
       } else {
         dc_15_24_adhoc[OfficialName %in% input$country_input_select, AdhocCountries := "Adhoc"]
       }
-      write.csv(dc_15_24_adhoc, file = here::here("input", "country.info.CME.15_24_adhoc.csv"), row.names = FALSE)
+      write.csv(dc_15_24_adhoc, file = file.path("input", "country.info.CME.15_24_adhoc.csv"), row.names = FALSE)
     }
     
     cs <- input$country_input_select # country list
