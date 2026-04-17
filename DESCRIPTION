@@ -13,9 +13,21 @@ Depends:
 Imports:
     config,
     data.table,
+    DT,
+    dplyr,
+    ggplot2,
     golem,
+    htmltools,
+    leaflet,
+    maps,
+    plotly,
     readxl,
-    shiny
+    scales,
+    sf,
+    shiny,
+    shinyjs,
+    shinyWidgets,
+    sp
 Suggests:
     pkgload,
     testthat (>= 3.0.0)

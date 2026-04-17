@@ -187,7 +187,7 @@ clean.table <- function(dt){
   if(!"Sex" %in% colnames(dt)) dt[, Sex := "Total"]
   # remove some columns
   dt <- dt[, -(grep("Population|population", colnames(dt), value = TRUE)), with = FALSE]
-  dt <- dt[Year>=year_started]
+  dt <- dt[Year>=release_metadata()$year_started]
   setcolorder(dt, c("Region", "Year", "Sex")) # 2020.09 add Sex
   dt[, Region2 := tolower(Region)]
   setorder(dt, Region2, -Year) 
