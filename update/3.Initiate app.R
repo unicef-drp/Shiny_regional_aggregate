@@ -37,10 +37,10 @@ suppressPackageStartupMessages({
 # Dataset and Parameters -----------------------------------------------------------------
 
 # dc: country.info.CME dataset
-dc <- fread(file.path("input/country.info.CME.csv"))
+dc <- fread(file.path(dir_input, "country.info.CME.csv"))
 country.info <- dc
-dc.5.14 <- fread(file.path("input/country.info.CME.5_14.csv"))
-dc.15.24 <- fread(file.path("input/country.info.CME.15_24.csv"))
+dc.5.14 <- fread(file.path(dir_input, "country.info.CME.5_14.csv"))
+dc.15.24 <- fread(file.path(dir_input, "country.info.CME.15_24.csv"))
 
 
 # median results for selected countries will be included in the downloaded data
@@ -76,9 +76,9 @@ year.lastestimatepublished <- year_ended + 0.5  # e.g. 2019.5 for IGME 2020
 
 # for under-five, run M49 in advance, so this initiating step is required to run
 # before running the App
-OutputAggregates(results.U5MR.file = file.path("output", runname.U5MR, "Results.csv"),
-                 results.IMR.file = file.path("output", runname.IMR, "Results.csv"),
-                 results.NMR.file = file.path("output", file_name_NMR),
+OutputAggregates(results.U5MR.file = file.path(dir_output, runname.U5MR, "Results.csv"),
+                 results.IMR.file = file.path(dir_output, runname.IMR, "Results.csv"),
+                 results.NMR.file = file.path(dir_output, file_name_NMR),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_total,
@@ -92,14 +92,14 @@ OutputAggregates(results.U5MR.file = file.path("output", runname.U5MR, "Results.
                  replace.rates.cat=NULL)
 
 
-OutputAggregates(results.U5MR.file = file.path("output/Sex_forDeathCalculation/Results_u5mr_m.csv"),
-                 results.IMR.file = file.path("output/Sex_forDeathCalculation/Results_imr_m.csv"),
+OutputAggregates(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_u5mr_m.csv"),
+                 results.IMR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_imr_m.csv"),
                  results.NMR.file = NULL,
-                 population.file = file.path("input/data_male_CMEpopulation.WPP2024.csv"),
+                 population.file = file.path(dir_input, "data_male_CMEpopulation.WPP2024.csv"),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_male,
-                 livebirths.file = file.path("input/data_livebirths_male.csv"),
+                 livebirths.file = file.path(dir_input, "data_livebirths_male.csv"),
                  year.target = year.lastestimatepublished, est.years = seq(1950.5,year.lastestimatepublished,1),
                  regiontypes.select = c("M49"),
                  test=FALSE,
@@ -109,14 +109,14 @@ OutputAggregates(results.U5MR.file = file.path("output/Sex_forDeathCalculation/R
                  replace.rates.cat=NULL)
 
 
-OutputAggregates(results.U5MR.file = file.path("output/Sex_forDeathCalculation/Results_u5mr_f.csv"),
-                 results.IMR.file = file.path("output/Sex_forDeathCalculation/Results_imr_f.csv"),
+OutputAggregates(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_u5mr_f.csv"),
+                 results.IMR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_imr_f.csv"),
                  results.NMR.file = NULL,
-                 population.file = file.path("input/data_female_CMEpopulation.WPP2024.csv"),
+                 population.file = file.path(dir_input, "data_female_CMEpopulation.WPP2024.csv"),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_female,
-                 livebirths.file = file.path("input/data_livebirths_female.csv"),
+                 livebirths.file = file.path(dir_input, "data_livebirths_female.csv"),
                  year.target = year.lastestimatepublished, 
                  est.years = seq(1950.5,year.lastestimatepublished,1),
                  regiontypes.select = c("M49"),
@@ -131,7 +131,7 @@ OutputAggregates(results.U5MR.file = file.path("output/Sex_forDeathCalculation/R
 
 # check if results match for under-five
 dirold <- file.path(dir_aggu5_median, "Rates & Deaths_M49Region.csv") # for comparison
-dirnew <- file.path(file.path("median_results_total/Rates & Deaths_M49Region.csv"))
+dirnew <- file.path(dir_median_total, "Rates & Deaths_M49Region.csv")
 dt1 <- read.region.summary(dirold)
 dt2 <- read.region.summary(dirnew)
 setnames(dt2, "value", "value.new")
@@ -152,14 +152,14 @@ dc.15.24[,AdhocCountries:=""]
 dc.15.24[OfficialName %in% init_select, AdhocCountries:="Adhoc"]
 
 # Apply multi region input to all datasets
-# dc_input <- fread("Upload_ISO_example_WB.csv")
+# dc_input <- fread(file.path(dir_examples, "Upload_ISO_example_WB.csv"))
 # dc <- apply.multi.region(dc, dc_input)
 # dc.5.14 <- apply.multi.region(dc.5.14, dc_input)
 # dc.15.24 <- apply.multi.region(dc.15.24, dc_input)
 
-write.csv(dc, file = file.path("input", "country.info.CME_adhoc.csv"))
-write.csv(dc.5.14, file = file.path("input", "country.info.CME.5_14_adhoc.csv"))
-write.csv(dc.15.24, file = file.path("input", "country.info.CME.15_24_adhoc.csv"))
+write.csv(dc, file = file.path(dir_input, "country.info.CME_adhoc.csv"))
+write.csv(dc.5.14, file = file.path(dir_input, "country.info.CME.5_14_adhoc.csv"))
+write.csv(dc.15.24, file = file.path(dir_input, "country.info.CME.15_24_adhoc.csv"))
 
 invisible(sapply(list.files(file.path("R"), full.names = TRUE, recursive = TRUE), source))
 

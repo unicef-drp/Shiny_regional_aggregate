@@ -1,14 +1,12 @@
 #' Packaged release root
 #' @noRd
 release_root <- function() {
-  release_id <- release_metadata()$id
-
-  installed_root <- app_sys("extdata", release_id)
+  installed_root <- app_sys("extdata")
   if (!identical(installed_root, "") && dir.exists(installed_root)) {
     return(installed_root)
   }
 
-  dev_root <- file.path("inst", "extdata", release_id)
+  dev_root <- file.path("inst", "extdata")
   if (dir.exists(dev_root)) {
     return(normalizePath(dev_root, winslash = "/", mustWork = TRUE))
   }

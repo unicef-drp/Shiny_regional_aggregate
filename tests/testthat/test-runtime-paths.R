@@ -2,9 +2,15 @@ repo_root <- testthat::test_path("..", "..")
 
 testthat::test_that("release data root contains required directories", {
   root <- pkg_fn("release_root")()
+  testthat::expect_false(grepl("release-2026", root, fixed = TRUE))
   testthat::expect_true(dir.exists(file.path(root, "input")))
   testthat::expect_true(dir.exists(file.path(root, "output")))
   testthat::expect_true(dir.exists(file.path(root, "median_results_total")))
+})
+
+testthat::test_that("packaged AU example lives under the flattened extdata tree", {
+  root <- pkg_fn("release_root")()
+  testthat::expect_true(file.exists(file.path(root, "examples", "AU.csv")))
 })
 
 testthat::test_that("runtime workspace is seeded from packaged data", {

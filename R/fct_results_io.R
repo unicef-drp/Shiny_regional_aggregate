@@ -16,6 +16,9 @@ read_runtime_results <- function(workspace, adhoc_name = NULL) {
   both <- change_adhoc_name(data.table::fread(runtime_path(workspace, "median_results_total", "Rates & Deaths_AdhocCountries.csv")), adhoc_name)
   f <- change_adhoc_name(data.table::fread(runtime_path(workspace, "median_results_female", "Rates & Deaths(ADJUSTED)_female_AdhocCountries.csv")), adhoc_name)
   m <- change_adhoc_name(data.table::fread(runtime_path(workspace, "median_results_male", "Rates & Deaths(ADJUSTED)_male_AdhocCountries.csv")), adhoc_name)
+  both[, Sex := "Total"]
+  f[, Sex := "Female"]
+  m[, Sex := "Male"]
 
   dt5_14 <- change_adhoc_name(data.table::fread(runtime_path(workspace, "median_results_total_5_14", "Rates & Deaths(ADJUSTED)_AdhocCountries.csv")), adhoc_name)
   dt15_24 <- change_adhoc_name(data.table::fread(runtime_path(workspace, "median_results_total_15_24", "Rates & Deaths(ADJUSTED)_AdhocCountries.csv")), adhoc_name)

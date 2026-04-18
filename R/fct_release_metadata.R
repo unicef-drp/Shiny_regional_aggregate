@@ -2,7 +2,6 @@
 #' @noRd
 release_metadata <- function() {
   list(
-    id = "release-2026",
     update_string = "Last updated: March, 2026",
     year_started = 1990,
     runname.U5MR = "U5MR",
