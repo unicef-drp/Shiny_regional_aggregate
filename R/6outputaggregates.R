@@ -9,9 +9,9 @@
 run.outputaggregates <- function(year.lastestimatepublished, reuse.replacement.country = TRUE){
 if(!file.exists(file.path(dir_median_total, "Rates & Deaths_M49Region.csv")))
   {
-  OutputAggregates(results.U5MR.file = here::here("output", runname.U5MR, "Results.csv"),
-                   results.IMR.file  = here::here("output", runname.IMR,  "Results.csv"),
-                   results.NMR.file  = here::here("output", file_name_NMR),
+  OutputAggregates(results.U5MR.file = file.path("output", runname.U5MR, "Results.csv"),
+                   results.IMR.file  = file.path("output", runname.IMR,  "Results.csv"),
+                   results.NMR.file  = file.path("output", file_name_NMR),
                    run.on.server = FALSE,
                    year4 = year.lastestimatepublished,
                    output.dir = dir_median_total,
@@ -27,10 +27,10 @@ if(!file.exists(file.path(dir_median_total, "Rates & Deaths_M49Region.csv")))
 }
 
 # 2. Generate aggregates specifying the replacement aggregate and categories
-OutputAggregates(results.U5MR.file = here::here("output", runname.U5MR, "Results.csv"),
-                 results.IMR.file  = here::here("output", runname.IMR, "Results.csv"),
-                 results.NMR.file  = here::here("output", file_name_NMR),
-                 country.info.file = here::here("input", "country.info.CME_adhoc.csv"),
+OutputAggregates(results.U5MR.file = file.path("output", runname.U5MR, "Results.csv"),
+                 results.IMR.file  = file.path("output", runname.IMR, "Results.csv"),
+                 results.NMR.file  = file.path("output", file_name_NMR),
+                 country.info.file = file.path("input", "country.info.CME_adhoc.csv"),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_total,

@@ -1,6 +1,7 @@
 # Shiny Regional Aggregate App
 
-This repository contains a Shiny app that produces regional child mortality aggregates from selected countries, based on the BWC aggregation method and the original `outputaggregates-BWC` workflow.
+This repository now contains a golem-style R package, `shinyregionalaggregate`, that preserves the original Shiny app and also exposes a programmatic aggregation API.
+It produces regional child mortality aggregates from selected countries, based on the BWC aggregation method and the original `outputaggregates-BWC` workflow.
 The app is publicly deployed at:
 <https://unicef-dapm.shinyapps.io/Shiny_regional_aggregate/>
 
@@ -18,35 +19,46 @@ The app is publicly deployed at:
 git clone https://github.com/UnicefDAPM/Shiny_regional_aggregate.git
 ```
 
-2. Open `Shiny_regional_aggregate.Rproj` in RStudio (recommended), or open `app.R` in your R session.
-3. Run the app from `app.R` (for example with `shiny::runApp()` or the IDE "Run App" button).
+2. Open `Shiny_regional_aggregate.Rproj` in RStudio (recommended), or open the project in any R session.
+3. Run the app from `app.R`, or call `shinyregionalaggregate::run_app()`.
 
 Notes:
-- `app.R` is the main entry point.
-- At startup, `app.R` sources `update_me_every_year.R`, which defines shared paths and update-related variables.
-- The app checks required packages and installs missing ones automatically.
+- `app.R` remains the main launcher for local development.
+- The packaged app reads all shipped data from `inst/extdata/`.
+- Static UI assets live under `inst/app/www/`.
+
+## Programmatic use
+
+`get_CME_aggregate()` accepts a `data.frame` or `data.table` with at least `Region` and `ISO3Code` columns and returns the same long-format table that the app downloads.
+
+```r
+library(data.table)
+library(shinyregionalaggregate)
+
+example_input <- fread(system.file("extdata", "examples", "AU.csv", package = "shinyregionalaggregate"))
+out <- get_CME_aggregate(example_input)
+```
 
 ## Yearly update workflow
 
 Use `update_me_every_year.R` as the canonical checklist each year.
 At a high level:
 1. Update release date text in `update_me_every_year.R` (used in the app's About panel).
-2. Refresh required input datasets in `input/` when a new IGME round requires them.
+2. Refresh required input datasets in `inst/extdata/input/` when a new IGME round requires them.
 3. Rebuild median result folders using scripts under `update/`.
-4. Ensure region metadata and output folder structures are recreated.
+4. Ensure region metadata and packaged output folders under `inst/extdata/` are recreated.
 5. Validate that the app runs and exports expected tables.
 
 The script includes detailed comments about which files usually change and which typically remain unchanged.
 
 ## Repository structure (key files)
 
-- `app.R`: Main Shiny application.
+- `app.R`: Main Shiny application launcher.
+- `R/`: Package functions, including `run_app()` and `get_CME_aggregate()`.
+- `inst/extdata/`: Packaged input data, output data, median result folders, and examples.
+- `inst/app/www/`: Static assets for the Shiny UI.
 - `update_me_every_year.R`: Yearly update instructions and shared parameters.
-- `R/`: Helper functions used by the app.
-- `input/`: Input data files used to build outputs.
-- `median_results_*`: Precomputed median result folders used by the app.
 - `update/`: Scripts used during annual data refresh and folder regeneration.
-- `www/`: Static assets for the Shiny UI.
 
 ## Major updates
 

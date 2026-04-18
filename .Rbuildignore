@@ -1,0 +1,15 @@
+^notes$
+^docs$
+^rsconnect$
+^Shiny_regional_aggregate\.Rproj$
+^\.Rproj\.user$
+^\.git$
+^\.worktrees$
+^input$
+^output$
+^www$
+^update$
+^median_results_.*$
+^AU\.csv$
+^tests/(cleanup_outputaggregates_cache_regression|getregionalresults_replace_rates_reg|older_children_outputaggregates_refactor_regression|plot_indicator_recode_regression|plot_palette_regression|reuse_replacement_country_skip_regression|underfive_combine_name_regression)\.R$
+^tests/testthat/test-package-bootstrap\.R$

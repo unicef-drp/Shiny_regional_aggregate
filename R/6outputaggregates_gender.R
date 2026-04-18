@@ -6,14 +6,14 @@
 run.outputaggregates.gender <- function(year.lastestimatepublished, reuse.replacement.country = TRUE){
 if(!file.exists(file.path(dir_median_male, "Rates & Deaths_M49Region.csv")))
 {
-  OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/Results_u5mr_m.csv"),
-                   results.IMR.file = here::here("output/Sex_forDeathCalculation/Results_imr_m.csv"),
+  OutputAggregates(results.U5MR.file = file.path("output/Sex_forDeathCalculation/Results_u5mr_m.csv"),
+                   results.IMR.file = file.path("output/Sex_forDeathCalculation/Results_imr_m.csv"),
                    results.NMR.file = NULL,
-                   population.file = here::here("input/data_male_CMEpopulation.WPP2024.csv"),
+                   population.file = file.path("input/data_male_CMEpopulation.WPP2024.csv"),
                    run.on.server = FALSE,
                    year4 = year.lastestimatepublished,
                    output.dir = dir_median_male,
-                   livebirths.file = here::here("input/data_livebirths_male.csv"),
+                   livebirths.file = file.path("input/data_livebirths_male.csv"),
                    year.target = year.lastestimatepublished, est.years = seq(1950.5,year.lastestimatepublished,1),
                    regiontypes.select = c("M49"),
                    test=FALSE,
@@ -24,15 +24,15 @@ if(!file.exists(file.path(dir_median_male, "Rates & Deaths_M49Region.csv")))
                    replace.rates.cat=NULL)
 }
 # get world and regions with M49 replacement
-OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/Results_u5mr_m.csv"),
-                 results.IMR.file = here::here("output/Sex_forDeathCalculation/Results_imr_m.csv"),
+OutputAggregates(results.U5MR.file = file.path("output/Sex_forDeathCalculation/Results_u5mr_m.csv"),
+                 results.IMR.file = file.path("output/Sex_forDeathCalculation/Results_imr_m.csv"),
                  results.NMR.file = NULL,
-                 country.info.file = here::here("input", "country.info.CME_adhoc.csv"),
-                 population.file = here::here("input/data_male_CMEpopulation.WPP2024.csv"),
+                 country.info.file = file.path("input", "country.info.CME_adhoc.csv"),
+                 population.file = file.path("input/data_male_CMEpopulation.WPP2024.csv"),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_male,
-                 livebirths.file = here::here("input/data_livebirths_male.csv"),
+                 livebirths.file = file.path("input/data_livebirths_male.csv"),
                  year.target = year.lastestimatepublished, 
                  est.years = seq(1950.5,year.lastestimatepublished,1),
                  regiontypes.select = c("Adhoc"),
@@ -53,14 +53,14 @@ OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/
 if(!file.exists(file.path(dir_median_female, "Rates & Deaths_M49Region.csv")))
 {
   # get country deaths and M49 replacement
-  OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/Results_u5mr_f.csv"),
-                   results.IMR.file = here::here("output/Sex_forDeathCalculation/Results_imr_f.csv"),
+  OutputAggregates(results.U5MR.file = file.path("output/Sex_forDeathCalculation/Results_u5mr_f.csv"),
+                   results.IMR.file = file.path("output/Sex_forDeathCalculation/Results_imr_f.csv"),
                    results.NMR.file = NULL,
-                   population.file = here::here("input/data_female_CMEpopulation.WPP2024.csv"),
+                   population.file = file.path("input/data_female_CMEpopulation.WPP2024.csv"),
                    run.on.server = FALSE,
                    year4 = year.lastestimatepublished,
                    output.dir = dir_median_female,
-                   livebirths.file = here::here("input/data_livebirths_female.csv"),
+                   livebirths.file = file.path("input/data_livebirths_female.csv"),
                    year.target = year.lastestimatepublished, 
                    est.years = seq(1950.5,year.lastestimatepublished,1),
                    regiontypes.select = c("M49"),
@@ -72,15 +72,15 @@ if(!file.exists(file.path(dir_median_female, "Rates & Deaths_M49Region.csv")))
                    replace.rates.cat=NULL)
 }
 # get world and regions with M49 replacement
-OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/Results_u5mr_f.csv"),
-                 results.IMR.file = here::here("output/Sex_forDeathCalculation/Results_imr_f.csv"),
+OutputAggregates(results.U5MR.file = file.path("output/Sex_forDeathCalculation/Results_u5mr_f.csv"),
+                 results.IMR.file = file.path("output/Sex_forDeathCalculation/Results_imr_f.csv"),
                  results.NMR.file = NULL,
-                 country.info.file = here::here("input", "country.info.CME_adhoc.csv"),
-                 population.file = here::here("input/data_female_CMEpopulation.WPP2024.csv"),
+                 country.info.file = file.path("input", "country.info.CME_adhoc.csv"),
+                 population.file = file.path("input/data_female_CMEpopulation.WPP2024.csv"),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_female,
-                 livebirths.file = here::here("input/data_livebirths_female.csv"),
+                 livebirths.file = file.path("input/data_livebirths_female.csv"),
                  year.target = year.lastestimatepublished, est.years = seq(1950.5,year.lastestimatepublished,1),
                  regiontypes.select = c("Adhoc"),
                  test=FALSE,

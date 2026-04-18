@@ -1,0 +1,67 @@
+#' Normalize upload input for the app, allowing files without Region
+#' @noRd
+normalize_app_region_iso_input <- function(region_iso) {
+  dt <- data.table::as.data.table(region_iso)
+  valid_iso <- build_app_context()$ISOs
+
+  iso_cols <- names(dt)[grepl("ISO", toupper(names(dt)))]
+  if (length(iso_cols) == 0L) {
+    stop("Could not find ISO3Code column. Please ensure your file has an 'ISO3Code' column.")
+  }
+
+  data.table::setnames(dt, iso_cols[1], "ISO3Code")
+  dt[, ISO3Code := toupper(trimws(as.character(ISO3Code)))]
+
+  if (!"Region" %in% names(dt)) {
+    dt[, Region := "Adhoc"]
+  } else {
+    dt[, Region := trimws(as.character(Region))]
+    dt[is.na(Region) | !nzchar(Region), Region := "Adhoc"]
+  }
+
+  if ("Region_Code" %in% names(dt)) {
+    dt[, Region_Code := trimws(as.character(Region_Code))]
+  }
+
+  if ("OfficialName" %in% names(dt)) {
+    dt[, OfficialName := trimws(as.character(OfficialName))]
+  }
+
+  dt <- dt[!is.na(ISO3Code) & nzchar(ISO3Code)]
+  dt <- dt[ISO3Code %in% valid_iso]
+
+  if (nrow(dt) == 0L) {
+    stop("Input contains no valid Region/ISO3Code rows.")
+  }
+
+  dt[]
+}
+
+#' Read a region/ISO upload file for the app
+#' @noRd
+read_app_region_iso_file <- function(path) {
+  ext <- tolower(tools::file_ext(path))
+  dt <- switch(
+    ext,
+    csv = data.table::fread(path),
+    xlsx = data.table::setDT(readxl::read_excel(path)),
+    xls = data.table::setDT(readxl::read_excel(path)),
+    stop("Currently accept csv, xlsx, or xls files. Please re-upload.")
+  )
+
+  normalize_app_region_iso_input(dt)
+}
+
+#' Compute packaged aggregate outputs used by the app
+#' @noRd
+get_CME_aggregate_results <- function(region_iso, adhoc_name = NULL) {
+  normalized <- normalize_region_iso_input(region_iso)
+  workspace <- create_runtime_workspace()
+  on.exit(unlink(workspace, recursive = TRUE, force = TRUE), add = TRUE)
+
+  membership <- write_adhoc_country_info(normalized, workspace)
+  run_full_aggregate_pipeline(workspace)
+  results <- read_runtime_results(workspace, adhoc_name = adhoc_name)
+  results$region_code_lookup <- membership$region_code_lookup
+  results
+}

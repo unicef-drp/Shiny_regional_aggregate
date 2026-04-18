@@ -6,6 +6,8 @@
 #            windowTitle = "Child Mortality Estimation")
 
 get.headerPanel <- function(){
-headerPanel(img(src = "logo.png", height = "60px", width = "250px"), 
-            windowTitle = "Child Mortality Estimation")
+shiny::headerPanel(
+  shiny::tags$img(src = "www/logo.png", height = "60px", width = "250px"),
+  windowTitle = "Child Mortality Estimation"
+)
 }

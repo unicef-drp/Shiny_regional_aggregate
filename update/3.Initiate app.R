@@ -13,18 +13,16 @@ check.and.install.pkgs <- function(pkgs){
   suppressPackageStartupMessages(invisible(lapply(pkgs, library, character.only = TRUE)))
 }
 check.and.install.pkgs(c("shiny", "shinyWidgets", "shinyjs",
-                         "DT","data.table", "dplyr", "here", 
-                         "ggplot2", "plotly", "readxl"))
+                         "DT","data.table", "dplyr", "ggplot2", "plotly", "readxl"))
 
 # source code
-invisible(sapply(list.files(here::here("R"), full.names = TRUE, recursive = TRUE), source))
+invisible(sapply(list.files(file.path("R"), full.names = TRUE, recursive = TRUE), source))
 
 # update packages if certain visions are required
 invisible(sapply(c("shiny", "DT", "data.table"), update.package.version))
 
 suppressPackageStartupMessages({
   # it seems listing the libraries is necessary if want to publish on shinyapps.io
-  library("here")
   library("shiny")    # for shiny apps
   library("shinyWidgets")
   library("shinyjs")  # for  reset
@@ -39,10 +37,10 @@ suppressPackageStartupMessages({
 # Dataset and Parameters -----------------------------------------------------------------
 
 # dc: country.info.CME dataset
-dc <- fread(here::here("input/country.info.CME.csv"))
+dc <- fread(file.path(dir_input, "country.info.CME.csv"))
 country.info <- dc
-dc.5.14 <- fread(here::here("input/country.info.CME.5_14.csv"))
-dc.15.24 <- fread(here::here("input/country.info.CME.15_24.csv"))
+dc.5.14 <- fread(file.path(dir_input, "country.info.CME.5_14.csv"))
+dc.15.24 <- fread(file.path(dir_input, "country.info.CME.15_24.csv"))
 
 
 # median results for selected countries will be included in the downloaded data
@@ -78,9 +76,9 @@ year.lastestimatepublished <- year_ended + 0.5  # e.g. 2019.5 for IGME 2020
 
 # for under-five, run M49 in advance, so this initiating step is required to run
 # before running the App
-OutputAggregates(results.U5MR.file = here::here("output", runname.U5MR, "Results.csv"),
-                 results.IMR.file = here::here("output", runname.IMR, "Results.csv"),
-                 results.NMR.file = here::here("output", file_name_NMR),
+OutputAggregates(results.U5MR.file = file.path(dir_output, runname.U5MR, "Results.csv"),
+                 results.IMR.file = file.path(dir_output, runname.IMR, "Results.csv"),
+                 results.NMR.file = file.path(dir_output, file_name_NMR),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_total,
@@ -94,14 +92,14 @@ OutputAggregates(results.U5MR.file = here::here("output", runname.U5MR, "Results
                  replace.rates.cat=NULL)
 
 
-OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/Results_u5mr_m.csv"),
-                 results.IMR.file = here::here("output/Sex_forDeathCalculation/Results_imr_m.csv"),
+OutputAggregates(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_u5mr_m.csv"),
+                 results.IMR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_imr_m.csv"),
                  results.NMR.file = NULL,
-                 population.file = here::here("input/data_male_CMEpopulation.WPP2024.csv"),
+                 population.file = file.path(dir_input, "data_male_CMEpopulation.WPP2024.csv"),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_male,
-                 livebirths.file = here::here("input/data_livebirths_male.csv"),
+                 livebirths.file = file.path(dir_input, "data_livebirths_male.csv"),
                  year.target = year.lastestimatepublished, est.years = seq(1950.5,year.lastestimatepublished,1),
                  regiontypes.select = c("M49"),
                  test=FALSE,
@@ -111,14 +109,14 @@ OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/
                  replace.rates.cat=NULL)
 
 
-OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/Results_u5mr_f.csv"),
-                 results.IMR.file = here::here("output/Sex_forDeathCalculation/Results_imr_f.csv"),
+OutputAggregates(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_u5mr_f.csv"),
+                 results.IMR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_imr_f.csv"),
                  results.NMR.file = NULL,
-                 population.file = here::here("input/data_female_CMEpopulation.WPP2024.csv"),
+                 population.file = file.path(dir_input, "data_female_CMEpopulation.WPP2024.csv"),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_female,
-                 livebirths.file = here::here("input/data_livebirths_female.csv"),
+                 livebirths.file = file.path(dir_input, "data_livebirths_female.csv"),
                  year.target = year.lastestimatepublished, 
                  est.years = seq(1950.5,year.lastestimatepublished,1),
                  regiontypes.select = c("M49"),
@@ -133,7 +131,7 @@ OutputAggregates(results.U5MR.file = here::here("output/Sex_forDeathCalculation/
 
 # check if results match for under-five
 dirold <- file.path(dir_aggu5_median, "Rates & Deaths_M49Region.csv") # for comparison
-dirnew <- file.path(here::here("median_results_total/Rates & Deaths_M49Region.csv"))
+dirnew <- file.path(dir_median_total, "Rates & Deaths_M49Region.csv")
 dt1 <- read.region.summary(dirold)
 dt2 <- read.region.summary(dirnew)
 setnames(dt2, "value", "value.new")
@@ -154,16 +152,16 @@ dc.15.24[,AdhocCountries:=""]
 dc.15.24[OfficialName %in% init_select, AdhocCountries:="Adhoc"]
 
 # Apply multi region input to all datasets
-# dc_input <- fread("Upload_ISO_example_WB.csv")
+# dc_input <- fread(file.path(dir_examples, "Upload_ISO_example_WB.csv"))
 # dc <- apply.multi.region(dc, dc_input)
 # dc.5.14 <- apply.multi.region(dc.5.14, dc_input)
 # dc.15.24 <- apply.multi.region(dc.15.24, dc_input)
 
-write.csv(dc, file = here::here("input", "country.info.CME_adhoc.csv"))
-write.csv(dc.5.14, file = here::here("input", "country.info.CME.5_14_adhoc.csv"))
-write.csv(dc.15.24, file = here::here("input", "country.info.CME.15_24_adhoc.csv"))
+write.csv(dc, file = file.path(dir_input, "country.info.CME_adhoc.csv"))
+write.csv(dc.5.14, file = file.path(dir_input, "country.info.CME.5_14_adhoc.csv"))
+write.csv(dc.15.24, file = file.path(dir_input, "country.info.CME.15_24_adhoc.csv"))
 
-invisible(sapply(list.files(here::here("R"), full.names = TRUE, recursive = TRUE), source))
+invisible(sapply(list.files(file.path("R"), full.names = TRUE, recursive = TRUE), source))
 
 # basically what the app runs are these: first run with reuse.replacement.country = FALSE
 system.time({

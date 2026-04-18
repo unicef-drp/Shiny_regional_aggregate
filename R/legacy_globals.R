@@ -1,0 +1,23 @@
+# Legacy runtime bindings populated by with_legacy_state().
+runname.U5MR <- NULL
+runname.IMR <- NULL
+runname.NMR <- NULL
+file_name_NMR <- NULL
+file_name_total <- NULL
+file_name_female <- NULL
+file_name_male <- NULL
+file_name_total_5_24 <- NULL
+file_name_female_5_24 <- NULL
+file_name_male_5_24 <- NULL
+year_started <- NULL
+year.lastestimatepublished <- NULL
+dir_median_total <- NULL
+dir_median_female <- NULL
+dir_median_male <- NULL
+dir_median_total_5_14 <- NULL
+dir_median_female_5_14 <- NULL
+dir_median_male_5_14 <- NULL
+dir_median_total_15_24 <- NULL
+dir_median_female_15_24 <- NULL
+dir_median_male_15_24 <- NULL
+country.info <- NULL

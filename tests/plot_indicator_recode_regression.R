@@ -1,5 +1,5 @@
 test_env <- new.env(parent = globalenv())
-source("R/helper funcs for app.R", local = test_env)
+source("R/helper_funcs_for_app.R", local = test_env)
 
 if (!exists("RecodePlotIndicators", envir = test_env, inherits = FALSE)) {
   stop("RecodePlotIndicators helper is missing", call. = FALSE)

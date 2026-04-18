@@ -4,9 +4,9 @@
 # 10/24/2020
 ##
 get.about.panel <- function(update_string){
-  tabPanel("About",
-           p(),
-           p("
+  shiny::tabPanel("About",
+           shiny::p(),
+           shiny::p("
              Global and regional estimates of under-five mortality rates are
              derived by aggregating the number of country-specific under-five
              deaths estimated by the UN IGME and the country-specific births
@@ -14,7 +14,7 @@ get.about.panel <- function(update_string){
              cohort approach.
              "),
            
-           p("
+           shiny::p("
               A birth-week cohort method is used to calculate the absolute number of deaths
               among neonates, infants and children under age 5. First, each annual birth
               cohort is divided into 52 equal birth-week cohorts. Then each birth-week
@@ -36,20 +36,20 @@ get.about.panel <- function(update_string){
              "),
            
            
-           p("For more information, please refer to",
-             a("childmortality.org", 
+           shiny::p("For more information, please refer to",
+             shiny::a("childmortality.org", 
                href = "https://childmortality.org", target = "_blank"), "."),
-           p("This app was created and maintained by UN IGME.",
+           shiny::p("This app was created and maintained by UN IGME.",
              "For any questions, feedback or suggestion, please contact us at childmortality@unicef.org."),
-           p("Please use the latest version of Google Chrome, Mozilla Firefox or Internet Explorer."),
-           br(), br(),
-           p(update_string,
-             br("Created in ",
-                a("R", 
-                  href = "http://www.r-project.org/", target = "_blank"),
-                "| Powered by ",
-                a("Shiny", 
-                  href = "http://www.rstudio.com/shiny/", target = "_blank")),
+           shiny::p("Please use the latest version of Google Chrome, Mozilla Firefox or Internet Explorer."),
+           shiny::br(), shiny::br(),
+           shiny::p(
+             update_string,
+             shiny::br(),
+             "Created in ",
+             shiny::a("R", href = "http://www.r-project.org/", target = "_blank"),
+             " | Powered by ",
+             shiny::a("Shiny", href = "http://www.rstudio.com/shiny/", target = "_blank"),
              align = "center")
   )
 }

@@ -5,9 +5,6 @@
 update_string0 <- "Last updated: March, 2026"
 
 # now, first source this script and then walk through following steps:
-
-library("here")
-
 # 1. If needed (like in the 2022 round, we add the number of countries, or WPP
 # got updated), update a0.csv, livebirths files and male/female population from
 # the IGME round input folder. Copy-paste from Dropbox\UN IGME data\202x Round
@@ -17,16 +14,23 @@ library("here")
 # The "country.info.CME.csv" files are updated by code later. No need to update
 # "country.info.CME_adhoc.csv" --- you can delete all the "_adhoc.csv"
 
+# Package data locations ------------------------------------------------------
+dir_extdata <- file.path("inst", "extdata")
+dir_input <- file.path(dir_extdata, "input")
+dir_output <- file.path(dir_extdata, "output")
+dir_examples <- file.path(dir_extdata, "examples")
+dir_www <- file.path("inst", "app", "www")
+
 # 2. Delete all these folders
-dir_median_total  <- here::here("median_results_total")
-dir_median_female <- here::here("median_results_female")
-dir_median_male   <- here::here("median_results_male")
-dir_median_total_5_14   <- here::here("median_results_total_5_14")
-dir_median_female_5_14  <- here::here("median_results_female_5_14")
-dir_median_male_5_14    <- here::here("median_results_male_5_14")
-dir_median_total_15_24  <- here::here("median_results_total_15_24")
-dir_median_female_15_24 <- here::here("median_results_female_15_24")
-dir_median_male_15_24   <- here::here("median_results_male_15_24")
+dir_median_total  <- file.path(dir_extdata, "median_results_total")
+dir_median_female <- file.path(dir_extdata, "median_results_female")
+dir_median_male   <- file.path(dir_extdata, "median_results_male")
+dir_median_total_5_14   <- file.path(dir_extdata, "median_results_total_5_14")
+dir_median_female_5_14  <- file.path(dir_extdata, "median_results_female_5_14")
+dir_median_male_5_14    <- file.path(dir_extdata, "median_results_male_5_14")
+dir_median_total_15_24  <- file.path(dir_extdata, "median_results_total_15_24")
+dir_median_female_15_24 <- file.path(dir_extdata, "median_results_female_15_24")
+dir_median_male_15_24   <- file.path(dir_extdata, "median_results_male_15_24")
 
 
 # 3. Modify and run "update/1.Update median agg and results.csv.R" to copy
