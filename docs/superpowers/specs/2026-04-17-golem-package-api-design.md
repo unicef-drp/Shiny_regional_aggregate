@@ -21,6 +21,7 @@ The Shiny app will become a thin interface over the package API rather than the 
 - Accept region and ISO3 input as a tabular object rather than relying on browser upload state.
 - Preserve the current long-format downloadable output shape, including under-five, sex-specific, and older-children results.
 - Reduce global state and runtime sourcing so the code is testable and package-friendly.
+- Remove all `here::here()` usage from the codebase as part of the migration.
 
 ## Non-Goals
 
@@ -206,6 +207,7 @@ Instead:
 - baseline reference data will be resolved from package-owned paths
 - derived adhoc files and generated aggregate outputs will be written into a run-specific working directory
 - the app and the API will resolve paths through package helpers rather than assuming `here::here()`
+- development and yearly update scripts will also stop using `here::here()` and instead use explicit `file.path()`-style project-relative paths
 
 The working directory can be temporary by default, with an override for development or debugging if needed.
 

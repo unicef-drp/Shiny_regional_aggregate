@@ -1,8 +1,8 @@
 # Initializing app after updating every year
 # run the whole script
-# I also use this script to help debugging, basically it runs everything without running the app.
+# Generate M49 intermediate files that is required by aggregates for other regions
+# also check results before deploying 
 
-source("update_me_every_year.R")
 
 # Libraries
 check.and.install.pkgs <- function(pkgs){
@@ -15,7 +15,14 @@ check.and.install.pkgs(c("shiny", "shinyWidgets", "shinyjs",
                          "DT","data.table", "dplyr", "ggplot2", "plotly", "readxl"))
 
 # source code
-invisible(sapply(list.files(file.path("R"), full.names = TRUE, recursive = TRUE), source))
+source_files <- list.files(
+  file.path("R"),
+  full.names = TRUE,
+  recursive = TRUE,
+  pattern = "\\.[Rr]$"
+)
+source_files <- source_files[basename(source_files) != "legacy_globals.R"]
+invisible(lapply(source_files, source))
 
 # update packages if certain visions are required
 invisible(sapply(c("shiny", "DT", "data.table"), update.package.version))
@@ -32,6 +39,17 @@ suppressPackageStartupMessages({
   library("plotly")
   library("readxl")
 })
+
+source("update_me_every_year.R")
+
+USERPROFILE <- Sys.getenv("USERPROFILE") # leading dir to Dropbox
+source(file.path(USERPROFILE, "Dropbox/UNICEF Work/profile.R"))
+dir_CC_code <- file.path(USERPROFILE, "Dropbox/UNICEF Work/Country consultation/Code_for_CC")
+source(file.path(dir_CC_code, "R/Dropbox_results_directories_2025.R"))
+
+work_dir_report <- file.path(dir_SP, "IGME report/2025/Code_for_report")
+source(file.path(work_dir_report, "Dropbox_aggresults_directories_2025.R"))
+
 
 # Dataset and Parameters -----------------------------------------------------------------
 
@@ -78,9 +96,13 @@ year.lastestimatepublished <- year_ended + 0.5  # e.g. 2019.5 for IGME 2020
 OutputAggregates(results.U5MR.file = file.path(dir_output, runname.U5MR, "Results.csv"),
                  results.IMR.file = file.path(dir_output, runname.IMR, "Results.csv"),
                  results.NMR.file = file.path(dir_output, file_name_NMR),
+                 country.info.file = file.path(dir_input, "country.info.CME.csv"),
+                 population.file = file.path(dir_input, "country.info.CME.csv"),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_total,
+                 livebirths.file = file.path(dir_input, "data_livebirths.csv"),
+                 data.a0.file = file.path(dir_input, "a0.csv"),
                  year.target = year.lastestimatepublished,
                  est.years = seq(1950.5, year.lastestimatepublished,1),
                  test=FALSE,
@@ -94,11 +116,13 @@ OutputAggregates(results.U5MR.file = file.path(dir_output, runname.U5MR, "Result
 OutputAggregates(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_u5mr_m.csv"),
                  results.IMR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_imr_m.csv"),
                  results.NMR.file = NULL,
+                 country.info.file = file.path(dir_input, "country.info.CME.csv"),
                  population.file = file.path(dir_input, "data_male_CMEpopulation.WPP2024.csv"),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_male,
                  livebirths.file = file.path(dir_input, "data_livebirths_male.csv"),
+                 data.a0.file = file.path(dir_input, "a0.csv"),
                  year.target = year.lastestimatepublished, est.years = seq(1950.5,year.lastestimatepublished,1),
                  regiontypes.select = c("M49"),
                  test=FALSE,
@@ -111,11 +135,13 @@ OutputAggregates(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculat
 OutputAggregates(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_u5mr_f.csv"),
                  results.IMR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_imr_f.csv"),
                  results.NMR.file = NULL,
+                 country.info.file = file.path(dir_input, "country.info.CME.csv"),
                  population.file = file.path(dir_input, "data_female_CMEpopulation.WPP2024.csv"),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_female,
                  livebirths.file = file.path(dir_input, "data_livebirths_female.csv"),
+                 data.a0.file = file.path(dir_input, "a0.csv"),
                  year.target = year.lastestimatepublished, 
                  est.years = seq(1950.5,year.lastestimatepublished,1),
                  regiontypes.select = c("M49"),
@@ -135,6 +161,7 @@ OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "10q5", "Results.
                      results.IMR.file  = file.path(dir_output, "5q5",  "Results.csv"),
                      country.info.file = file.path(dir_input, "country.info.CME.5_14.csv"),
                      population.file   = file.path(dir_input, "country.info.CME.5_14.csv"),
+                     data.a0.file      = file.path(dir_input, "a0.csv"),
                      output.dir = dir_median_total_5_14,
                      regiontypes.select = c("SDGSimple"))
 
@@ -143,6 +170,7 @@ OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalc
                      results.IMR.file  = file.path(dir_output, "Sex_forDeathCalculation", "Results_5q5_m.csv"),
                      country.info.file = file.path(dir_input, "country.info.CME.5_14.csv"),
                      population.file   = file.path(dir_input, "data_male_CME_WPP2024_10q5.csv"),
+                     data.a0.file      = file.path(dir_input, "a0.csv"),
                      output.dir = dir_median_male_5_14,
                      regiontypes.select = c("SDGSimple"))
 # Female 5-14
@@ -150,6 +178,7 @@ OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalc
                      results.IMR.file  = file.path(dir_output, "Sex_forDeathCalculation", "Results_5q5_f.csv"),
                      country.info.file = file.path(dir_input, "country.info.CME.5_14.csv"),
                      population.file   = file.path(dir_input, "data_female_CME_WPP2024_10q5.csv"),
+                     data.a0.file      = file.path(dir_input, "a0.csv"),
                      output.dir = dir_median_female_5_14,
                      regiontypes.select = c("SDGSimple"))
 
@@ -159,6 +188,7 @@ OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "10q15", "Results
                      results.IMR.file  = file.path(dir_output, "5q15",  "Results.csv"),
                      country.info.file = file.path(dir_input, "country.info.CME.15_24.csv"),
                      population.file   = file.path(dir_input, "country.info.CME.15_24.csv"),
+                     data.a0.file      = file.path(dir_input, "a0.csv"),
                      output.dir = dir_median_total_15_24,
                      regiontypes.select = c("SDGSimple"))
 
@@ -168,6 +198,7 @@ OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalc
                      results.IMR.file  = file.path(dir_output, "Sex_forDeathCalculation", "Results_5q15_f.csv"),
                      country.info.file = file.path(dir_input, "country.info.CME.15_24.csv"),
                      population.file   = file.path(dir_input, "data_female_CME_WPP2024_10q15.csv"),
+                     data.a0.file      = file.path(dir_input, "a0.csv"),
                      output.dir = dir_median_female_15_24,
                      regiontypes.select = c("SDGSimple"))
 
@@ -176,6 +207,7 @@ OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalc
                      results.IMR.file  = file.path(dir_output, "Sex_forDeathCalculation", "Results_5q15_m.csv"),
                      country.info.file = file.path(dir_input, "country.info.CME.15_24.csv"),
                      population.file   = file.path(dir_input, "data_male_CME_WPP2024_10q15.csv"),
+                     data.a0.file      = file.path(dir_input, "a0.csv"),
                      output.dir = dir_median_male_15_24,
                      regiontypes.select = c("SDGSimple"))
 
@@ -259,7 +291,14 @@ write.csv(dc.5.14, file = file.path(dir_input, "country.info.CME.5_14_adhoc.csv"
 write.csv(dc.15.24, file = file.path(dir_input, "country.info.CME.15_24_adhoc.csv"))
 
 
-invisible(sapply(list.files(file.path("R"), full.names = TRUE, recursive = TRUE), source))
+source_files <- list.files(
+  file.path("R"),
+  full.names = TRUE,
+  recursive = TRUE,
+  pattern = "\\.[Rr]$"
+)
+source_files <- source_files[basename(source_files) != "legacy_globals.R"]
+invisible(lapply(source_files, source))
 
 # basically what the app runs are these: first run with reuse.replacement.country = FALSE
 system.time({
@@ -281,39 +320,30 @@ system.time({
 })
 
 
+# clean up, make the app smaller ------------------------------------------
 
-dt5_14  <- (fread(file.path(dir_median_total_5_14,  "Rates & Deaths(ADJUSTED)_AdhocCountries.csv")))
-dt15_24 <- (fread(file.path(dir_median_total_15_24, "Rates & Deaths(ADJUSTED)_AdhocCountries.csv")))
-dt5_14  <- recode_ind_5_14(dt5_14)
-dt15_24 <- recode_ind_15_24(dt15_24)
-setkey(dt5_14, Region, Year)
-setkey(dt15_24, Region, Year)
-dt15_24 <- dt15_24[dt5_14]
-dt15_24 <- calculate.10q10(dt15_24)[, Sex := "Both"]
-both_5_24 <- dt15_24[Year >= 1990,]
+# Clean up under-five cache files after replacement-country caches are built.
+# Keep enough to use reuse.replacement.country = TRUE and avoid recomputing
+# country trajectories in future median total and sex-specific runs.
+invisible(lapply(
+  c(dir_median_total, dir_median_male, dir_median_female),
+  cleanup.outputaggregate.cache,
+  replace.rates.reg = "M49Region",
+  cache.type = "under_five"
+))
 
-# Process female 5-24
-dt5_14_f  <- (fread(file.path(dir_median_female_5_14,  "Rates & Deaths_AdhocCountries.csv")))
-dt15_24_f <- (fread(file.path(dir_median_female_15_24, "Rates & Deaths_AdhocCountries.csv")))
-dt5_14_f  <- recode_ind_5_14(dt5_14_f)
-dt15_24_f <- recode_ind_15_24(dt15_24_f)
-setkey(dt5_14_f, Region, Year)
-setkey(dt15_24_f, Region, Year)
-dt15_24_f <- dt15_24_f[dt5_14_f]
-dt15_24_f <- calculate.10q10(dt15_24_f)[, Sex := "Female"]
-f_5_24 <- dt15_24_f[Year >= 1990,]
-
-
-# Process male 5-24
-dt5_14_m  <- (fread(file.path(dir_median_male_5_14,  "Rates & Deaths_AdhocCountries.csv")))
-dt15_24_m <- (fread(file.path(dir_median_male_15_24, "Rates & Deaths_AdhocCountries.csv")))
-dt5_14_m  <- recode_ind_5_14(dt5_14_m)
-dt15_24_m <- recode_ind_15_24(dt15_24_m)
-setkey(dt5_14_m, Region, Year)
-setkey(dt15_24_m, Region, Year)
-dt15_24_m <- dt15_24_m[dt5_14_m]
-dt15_24_m <- calculate.10q10(dt15_24_m)[, Sex := "Male"]
-m_5_24 <- dt15_24_m[Year >= 1990,]
+invisible(lapply(
+  c(
+    dir_median_total_5_14,
+    dir_median_female_5_14,
+    dir_median_male_5_14,
+    dir_median_total_15_24,
+    dir_median_female_15_24,
+    dir_median_male_15_24
+  ),
+  cleanup.outputaggregate.cache,
+  cache.type = "older_children"
+))
 
 
 

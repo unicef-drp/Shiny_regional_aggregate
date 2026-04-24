@@ -2,18 +2,20 @@
 # For older-children total ------------------------------------------------
 
 run.outputaggregates.5.24 <- function(year.lastestimatepublished){
-  OutputAggregates.ori(results.U5MR.file = file.path("output", "10q5", "Results.csv"),
-                       results.IMR.file  = file.path("output", "5q5",  "Results.csv"),
-                       country.info.file = file.path("input", "country.info.CME.5_14_adhoc.csv"),
-                       population.file   = file.path("input", "country.info.CME.5_14_adhoc.csv"),
+  OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "10q5", "Results.csv"),
+                       results.IMR.file  = file.path(dir_output, "5q5",  "Results.csv"),
+                       country.info.file = file.path(dir_input, "country.info.CME.5_14_adhoc.csv"),
+                       population.file   = file.path(dir_input, "country.info.CME.5_14_adhoc.csv"),
+                       data.a0.file      = file.path(dir_input, "a0.csv"),
                        output.dir = dir_median_total_5_14,
                        year.target = year.lastestimatepublished,
                        regiontypes.select = "Adhoc")
   
-  OutputAggregates.ori(results.U5MR.file = file.path("output", "10q15", "Results.csv"),
-                       results.IMR.file  = file.path("output", "5q15",  "Results.csv"),
-                       country.info.file = file.path("input", "country.info.CME.15_24_adhoc.csv"),
-                       population.file   = file.path("input", "country.info.CME.15_24_adhoc.csv"),
+  OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "10q15", "Results.csv"),
+                       results.IMR.file  = file.path(dir_output, "5q15",  "Results.csv"),
+                       country.info.file = file.path(dir_input, "country.info.CME.15_24_adhoc.csv"),
+                       population.file   = file.path(dir_input, "country.info.CME.15_24_adhoc.csv"),
+                       data.a0.file      = file.path(dir_input, "a0.csv"),
                        output.dir = dir_median_total_15_24,
                        year.target = year.lastestimatepublished,
                        regiontypes.select = c("Adhoc"))
@@ -25,37 +27,41 @@ run.outputaggregates.5.24 <- function(year.lastestimatepublished){
 run.outputaggregates.5.24.gender <- function(year.lastestimatepublished){
   
   # Male 5-14 ----
-  OutputAggregates.ori(results.U5MR.file = file.path("output", "Sex_forDeathCalculation", "Results_10q5_m.csv"),
-                       results.IMR.file  = file.path("output", "Sex_forDeathCalculation", "Results_5q5_m.csv"),
-                       country.info.file = file.path("input", "country.info.CME.5_14_adhoc.csv"),
-                       population.file   = file.path("input", "country.info.CME.5_14_adhoc.csv"),
+  OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_10q5_m.csv"),
+                       results.IMR.file  = file.path(dir_output, "Sex_forDeathCalculation", "Results_5q5_m.csv"),
+                       country.info.file = file.path(dir_input, "country.info.CME.5_14_adhoc.csv"),
+                       population.file   = file.path(dir_input, "country.info.CME.5_14_adhoc.csv"),
+                       data.a0.file      = file.path(dir_input, "a0.csv"),
                        output.dir = dir_median_male_5_14,
                        year.target = year.lastestimatepublished,
                        regiontypes.select = "Adhoc")
   
   # Male 15-24 ----
-  OutputAggregates.ori(results.U5MR.file = file.path("output", "Sex_forDeathCalculation", "Results_10q15_m.csv"),
-                       results.IMR.file  = file.path("output", "Sex_forDeathCalculation", "Results_5q15_m.csv"),
-                       country.info.file = file.path("input", "country.info.CME.15_24_adhoc.csv"),
-                       population.file   = file.path("input", "country.info.CME.15_24_adhoc.csv"),
+  OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_10q15_m.csv"),
+                       results.IMR.file  = file.path(dir_output, "Sex_forDeathCalculation", "Results_5q15_m.csv"),
+                       country.info.file = file.path(dir_input, "country.info.CME.15_24_adhoc.csv"),
+                       population.file   = file.path(dir_input, "country.info.CME.15_24_adhoc.csv"),
+                       data.a0.file      = file.path(dir_input, "a0.csv"),
                        output.dir = dir_median_male_15_24,
                        year.target = year.lastestimatepublished,
                        regiontypes.select = "Adhoc")
   
   # Female 5-14 ----
-  OutputAggregates.ori(results.U5MR.file = file.path("output", "Sex_forDeathCalculation", "Results_10q5_f.csv"),
-                       results.IMR.file  = file.path("output", "Sex_forDeathCalculation", "Results_5q5_f.csv"),
-                       country.info.file = file.path("input", "country.info.CME.5_14_adhoc.csv"),
-                       population.file   = file.path("input", "country.info.CME.5_14_adhoc.csv"),
+  OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_10q5_f.csv"),
+                       results.IMR.file  = file.path(dir_output, "Sex_forDeathCalculation", "Results_5q5_f.csv"),
+                       country.info.file = file.path(dir_input, "country.info.CME.5_14_adhoc.csv"),
+                       population.file   = file.path(dir_input, "country.info.CME.5_14_adhoc.csv"),
+                       data.a0.file      = file.path(dir_input, "a0.csv"),
                        output.dir = dir_median_female_5_14,
                        year.target = year.lastestimatepublished,
                        regiontypes.select = "Adhoc")
   
   # Female 15-24 ----
-  OutputAggregates.ori(results.U5MR.file = file.path("output", "Sex_forDeathCalculation", "Results_10q15_f.csv"),
-                       results.IMR.file  = file.path("output", "Sex_forDeathCalculation", "Results_5q15_f.csv"),
-                       country.info.file = file.path("input", "country.info.CME.15_24_adhoc.csv"),
-                       population.file   = file.path("input", "country.info.CME.15_24_adhoc.csv"),
+  OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_10q15_f.csv"),
+                       results.IMR.file  = file.path(dir_output, "Sex_forDeathCalculation", "Results_5q15_f.csv"),
+                       country.info.file = file.path(dir_input, "country.info.CME.15_24_adhoc.csv"),
+                       population.file   = file.path(dir_input, "country.info.CME.15_24_adhoc.csv"),
+                       data.a0.file      = file.path(dir_input, "a0.csv"),
                        output.dir = dir_median_female_15_24,
                        year.target = year.lastestimatepublished,
                        regiontypes.select = "Adhoc")

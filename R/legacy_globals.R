@@ -2,6 +2,10 @@
 runname.U5MR <- NULL
 runname.IMR <- NULL
 runname.NMR <- NULL
+dir_extdata <- NULL
+dir_input <- NULL
+dir_output <- NULL
+dir_examples <- NULL
 file_name_NMR <- NULL
 file_name_total <- NULL
 file_name_female <- NULL
