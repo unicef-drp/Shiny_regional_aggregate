@@ -226,6 +226,14 @@ RecodePlotIndicators <- function(x, indicator.order = NULL, recode.values = new_
   factor(recoded, levels = c(unique(recoded.order), setdiff(unique(recoded), recoded.order)))
 }
 
+should_show_world_in_plots <- function(show_world_input, single_group_run) {
+  if (is.null(show_world_input)) {
+    return(isTRUE(single_group_run))
+  }
+
+  isTRUE(show_world_input)
+}
+
 # for revising the country names for the map
 new_country_name_list <- c(
   "Antigua" = "Antigua and Barbuda",
@@ -337,6 +345,9 @@ new_varname_list <- c(
   "U5MR" = "Under-five Mortality Rate",
   "IMR" = "Infant Mortality Rate",
   "NMR" = "Neonatal Mortality Rate",
+  "SBR" = "Stillbirth rate",
+  "SB" = "Stillbirths",
+  "LB" = "Live births",
   "U5MR median" = "Under-five Mortality Rate",
   "IMR median"  = "Infant Mortality Rate",
   "NMR median"  = "Neonatal Mortality Rate",

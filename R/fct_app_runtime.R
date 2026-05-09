@@ -62,6 +62,7 @@ get_CME_aggregate_results <- function(region_iso, adhoc_name = NULL) {
   membership <- write_adhoc_country_info(normalized, workspace)
   run_full_aggregate_pipeline(workspace)
   results <- read_runtime_results(workspace, adhoc_name = adhoc_name)
+  results <- add_stillbirth_medians(results, normalized)
   results$region_code_lookup <- membership$region_code_lookup
   results
 }

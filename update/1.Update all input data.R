@@ -47,6 +47,19 @@ file.copy(from = file.path(work_dir_5_14, "input/country.info.CME.csv"),
 file.copy(from = file.path(work_dir_15_24, "input/country.info.CME.csv"), 
           to = file.path(dir_input, "country.info.CME.15_24.csv"), overwrite = TRUE)
 
+# stillbirth median-only country input ---------------------------------------
+file_stillbirth_country_results <- file.path(dir_stillbirth_aggregate_results, file_name_stillbirth_country_results)
+stopifnot(file.exists(file_stillbirth_country_results))
+stillbirth_country_medians <- data.table::fread(
+  file_stillbirth_country_results,
+  select = c("ISO3Code", "CountryName", "Shortind", "Year", "Indicator", "Median")
+)
+stillbirth_country_medians <- stillbirth_country_medians[Shortind %in% c("SBR", "SB", "LB")]
+data.table::fwrite(
+  stillbirth_country_medians,
+  file.path(dir_input, file_name_stillbirth_country_medians),
+  na = ""
+)
 
 # population file ------------------------------------------------------------
 # only need to copy once 

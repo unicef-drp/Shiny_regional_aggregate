@@ -52,6 +52,11 @@ file_name_total_5_24 <- "Rates & Deaths(ADJUSTED)_Country Summary.csv"
 file_name_female_5_24 <- "Rates & Deaths_Country Summary.csv"
 file_name_male_5_24 <- "Rates & Deaths_Country Summary.csv"
 
+# Stillbirth median-only input for the app.
+dir_stillbirth_aggregate_results <- file.path(Sys.getenv("USERPROFILE"), "Dropbox/UNICEF Stillbirth/Aggregate results 2026-01-28")
+file_name_stillbirth_country_results <- "UNIGME_SBR_CountryResults.csv"
+file_name_stillbirth_country_medians <- "stillbirth_country_medians.csv"
+
 # 4. Build M49 region and initiate folder structure, all the files in these
 # "median_results" median folders will be created by the script: 
 # "update/2.Create M49 regions and initiate app.R"

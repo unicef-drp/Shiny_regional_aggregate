@@ -49,9 +49,17 @@ app_ui <- function(request) {
               "(Optional) Upload your ISO 3 country codes",
               br(),
               "Download examples: ",
-              a("single-region", href = "www/Upload_ISO3Code_example_single_region.csv", target = "_blank"),
+              a(
+                "single-region",
+                href = "www/Upload_ISO3Code_example_single_region.csv",
+                download = "Upload_ISO3Code_example_single_region.csv"
+              ),
               " - ",
-              a("multi-region", href = "www/Upload_ISO3Code_example_multiple_regions.csv", target = "_blank")
+              a(
+                "multi-region",
+                href = "www/Upload_ISO3Code_example_multiple_regions.csv",
+                download = "Upload_ISO3Code_example_multiple_regions.csv"
+              )
             ),
             placeholder = "Column name shall contain \"ISO\"",
             accept = c(".csv", ".xlsx", ".xls")

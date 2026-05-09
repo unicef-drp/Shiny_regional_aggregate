@@ -126,6 +126,10 @@ app_server <- function(input, output, session) {
     data.table::uniqueN(region_structure$normalized$Region)
   }
 
+  show_world_in_current_plots <- function() {
+    should_show_world_in_plots(input$show_world, single_group_run())
+  }
+
   observeEvent(input$click_reset, {
     shinyWidgets::updatePickerInput(
       session,
@@ -350,11 +354,20 @@ app_server <- function(input, output, session) {
       h4(strong(panel_title1.1)),
       h5(strong(textOutput("selected_countries_click_run"))),
       br(),
-      checkboxInput("show_world", "Show results for the world in plots", value = TRUE),
+      checkboxInput(
+        "show_world",
+        "Show results for the world in plots",
+        value = should_show_world_in_plots(NULL, single_group_run())
+      ),
       h5(a("Download definition of indicators", href = "www/Indicator definition and unit.xlsx", target = "_blank")),
       plotly::plotlyOutput("plot_rate"),
       br(),
       plotly::plotlyOutput("plot_death"),
+      br(),
+      fluidRow(
+        column(stillbirth_plot_column_width(), plotly::plotlyOutput("plot_stillbirth_rate")),
+        column(stillbirth_plot_column_width(), plotly::plotlyOutput("plot_stillbirth_count"))
+      ),
       br(),
       br()
     )
@@ -373,7 +386,7 @@ app_server <- function(input, output, session) {
 
     fluidRow(
       h4(strong(panel_title1.2)),
-      if (isTRUE(input$show_world)) {
+      if (show_world_in_current_plots()) {
         plotly::plotlyOutput("plot_rate_gender", height = paste0(plot_height * 1.1, "px"))
       } else {
         plotly::plotlyOutput("plot_rate_gender", height = paste0(plot_height, "px"))
@@ -539,14 +552,13 @@ app_server <- function(input, output, session) {
       )
   }
 
-  plot.death <- function(dt) {
+  plot.count <- function(dt, vars0, title0 = "Number") {
     dt <- limit.plot.regions(dt)
     dt <- dt[Year >= ctx$year_started]
-    death.vars <- grep("deaths", colnames(dt), value = TRUE)
-    dt_long <- data.table::melt(dt, measure.vars = death.vars, value.name = "Deaths", variable.name = "type")
-    dt_long[, type := RecodePlotIndicators(type, indicator.order = death.vars)]
+    dt_long <- data.table::melt(dt, measure.vars = vars0, value.name = "Count", variable.name = "type")
+    dt_long[, type := RecodePlotIndicators(type, indicator.order = vars0)]
 
-    p <- ggplot2::ggplot(dt_long[!is.na(Deaths), ], ggplot2::aes(x = Year, y = Deaths, color = Region)) +
+    p <- ggplot2::ggplot(dt_long[!is.na(Count), ], ggplot2::aes(x = Year, y = Count, color = Region)) +
       ggplot2::geom_line(linewidth = 1) +
       ggplot2::theme_bw() +
       ggplot2::labs(y = "", x = "", color = "") +
@@ -557,9 +569,9 @@ app_server <- function(input, output, session) {
       ggplot2::scale_x_continuous(breaks = c(1990, 2000, 2010, ctx$year_ended)) +
       ggplot2::scale_y_continuous(labels = scales::label_number(suffix = "k", scale = 1E-3, big.mark = ","))
 
-    plotly::ggplotly(p, tooltip = c("Year", "Deaths")) |>
+    plotly::ggplotly(p, tooltip = c("Year", "Count")) |>
       plotly::layout(
-        yaxis = list(title = "Number of deaths", titlefont = list(size = titlefont0), tickfont = list(size = 10)),
+        yaxis = list(title = title0, titlefont = list(size = titlefont0), tickfont = list(size = 10)),
         legend = region.legend.layout(dt_long$Region)
       )
   }
@@ -569,10 +581,21 @@ app_server <- function(input, output, session) {
       return()
     }
     dt <- reactive.run()$both
-    if (!isTRUE(input$show_world)) {
+    if (!show_world_in_current_plots()) {
       dt <- dt[Region != "World", ]
     }
-    plot.rate(dt, vars0 = c("U5MR median", "IMR median", "NMR median"))
+    plot.rate(dt, vars0 = under_five_rate_plot_indicators())
+  })
+
+  output$plot_stillbirth_rate <- plotly::renderPlotly({
+    if (is.null(reactive.run())) {
+      return()
+    }
+    dt <- reactive.run()$both
+    if (!show_world_in_current_plots()) {
+      dt <- dt[Region != "World", ]
+    }
+    plot.rate(dt, vars0 = stillbirth_rate_plot_indicators(), title0 = "Stillbirths per 1,000 total births")
   })
 
   output$plot_rate_older1 <- plotly::renderPlotly({
@@ -580,7 +603,7 @@ app_server <- function(input, output, session) {
       return()
     }
     dt <- reactive.run()$both_5_24
-    if (!isTRUE(input$show_world)) {
+    if (!show_world_in_current_plots()) {
       dt <- dt[Region != "World", ]
     }
     plot.rate(dt, vars0 = c("Mortality rate age 5-24", "Mortality rate age 10-19"), title0 = "Deaths per 1,000")
@@ -591,7 +614,7 @@ app_server <- function(input, output, session) {
       return()
     }
     dt <- reactive.run()$both_5_24
-    if (!isTRUE(input$show_world)) {
+    if (!show_world_in_current_plots()) {
       dt <- dt[Region != "World", ]
     }
     plot.rate(dt, vars0 = c("Mortality rate age 5-14", "Mortality rate age 5-9", "Mortality rate age 10-14"), title0 = "Deaths per 1,000")
@@ -602,7 +625,7 @@ app_server <- function(input, output, session) {
       return()
     }
     dt <- reactive.run()$both_5_24
-    if (!isTRUE(input$show_world)) {
+    if (!show_world_in_current_plots()) {
       dt <- dt[Region != "World", ]
     }
     plot.rate(dt, vars0 = c("Mortality rate age 15-24", "Mortality rate age 15-19", "Mortality rate age 20-24"), title0 = "Deaths per 1,000")
@@ -613,10 +636,21 @@ app_server <- function(input, output, session) {
       return()
     }
     dt <- reactive.run()$both
-    if (!isTRUE(input$show_world)) {
+    if (!show_world_in_current_plots()) {
       dt <- dt[Region != "World", ]
     }
-    plot.death(dt)
+    plot.count(dt, vars0 = under_five_count_plot_indicators(colnames(dt)), title0 = "Number of deaths")
+  })
+
+  output$plot_stillbirth_count <- plotly::renderPlotly({
+    if (is.null(reactive.run())) {
+      return()
+    }
+    dt <- reactive.run()$both
+    if (!show_world_in_current_plots()) {
+      dt <- dt[Region != "World", ]
+    }
+    plot.count(dt, vars0 = stillbirth_count_plot_indicators(colnames(dt)), title0 = "Number of stillbirths")
   })
 
   output$plot_rate_gender <- plotly::renderPlotly({
@@ -631,7 +665,7 @@ app_server <- function(input, output, session) {
     dt_long <- rbind(dt_long_f, dt_long_m)
     dt_long$Region <- as.factor(dt_long$Region)
     dt_long$Sex <- factor(as.factor(dt_long$Sex), levels = c("Male", "Female"))
-    if (!isTRUE(input$show_world)) {
+    if (!show_world_in_current_plots()) {
       dt_long <- dt_long[Region != "World", ]
     }
     dt_long <- limit.plot.regions(dt_long)
@@ -660,7 +694,7 @@ app_server <- function(input, output, session) {
     dt <- reactive.run()$both
     DT::formatRound(
       DT::datatable(clean.table(dt)),
-      columns = c("Under-five Mortality Rate", "Infant Mortality Rate", "Neonatal Mortality Rate"),
+      columns = c("Under-five Mortality Rate", "Infant Mortality Rate", "Neonatal Mortality Rate", "Stillbirth rate"),
       digits = 2
     )
   })
