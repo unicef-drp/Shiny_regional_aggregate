@@ -1,21 +1,23 @@
-ensure_cran_package <- function(package) {
-	if (!requireNamespace(package, quietly = TRUE)) {
-		install.packages(package, repos = "https://cloud.r-project.org")
-	}
+# Minimal example for installing shinyregionalaggregate from GitHub and running
+# get_CME_aggregate() without launching the Shiny app.
+
+cran_packages <- c("data.table", "remotes")
+
+for (pkg in cran_packages) {
+  if (!requireNamespace(pkg, quietly = TRUE)) {
+    install.packages(pkg, repos = "https://cloud.r-project.org")
+  }
 }
 
-ensure_github_package <- function(package, repo) {
-	if (!requireNamespace(package, quietly = TRUE)) {
-		ensure_cran_package("remotes")
-		remotes::install_github(repo, upgrade = "never")
-	}
+options(timeout = 600)
+options(download.file.method = "libcurl")
+
+if (!requireNamespace("shinyregionalaggregate", quietly = TRUE)) {
+  remotes::install_github("unicef-drp/Shiny_regional_aggregate", force = TRUE)
 }
 
-ensure_cran_package("data.table")
-ensure_github_package("shinyregionalaggregate", "unicef-drp/Shiny_regional_aggregate")
-
-library(data.table)
-library(shinyregionalaggregate)
+library("data.table")
+library("shinyregionalaggregate")
 
 example_input <- fread(
 	"https://raw.githubusercontent.com/unicef-drp/Country-and-Region-Metadata/refs/heads/main/output/AUREC.csv"

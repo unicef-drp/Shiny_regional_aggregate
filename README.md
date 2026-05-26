@@ -83,6 +83,7 @@ shinyregionalaggregate::run_app(
 ## Programmatic aggregation API
 
 `get_CME_aggregate()` accepts a `data.frame` or `data.table` with at least `Region` and `ISO3Code` columns and returns the same long-format table that the app downloads.
+The `quick_cme_aggregate_example.R` script is a minimal end-to-end example for using this API from a fresh R session: it installs required packages, installs `shinyregionalaggregate` from GitHub if needed, reads an example regional ISO file, and runs `get_CME_aggregate()` without launching the Shiny app.
 
 ```r
 library(data.table)
