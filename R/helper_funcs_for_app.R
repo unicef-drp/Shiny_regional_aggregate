@@ -280,7 +280,7 @@ new_country_name_list <- c(
 
 get.world.map <- function() {
   # 1) maps::map -> sf
-  m <- maps::map("world", fill = TRUE, plot = FALSE)
+  m <- maps::map("world", fill = TRUE, plot = FALSE, wrap = c(-180, 180))
   
   # 2) Temporarily disable s2 to avoid topology hiccups during unions
   old_s2 <- sf::sf_use_s2()

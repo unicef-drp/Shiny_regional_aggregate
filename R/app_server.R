@@ -15,75 +15,6 @@ app_server <- function(input, output, session) {
   uploaded_region_structure <- reactiveVal(NULL)
   single_group_run <- reactiveVal(TRUE)
 
-  build_grouped_country_html <- function(selected_countries, region_structure, country_lookup) {
-    if (is.null(region_structure)) {
-      return(NULL)
-    }
-
-    dt_wide <- data.table::copy(region_structure$data)
-    region_cols <- intersect(region_structure$region_cols, colnames(dt_wide))
-    if (length(region_cols) == 0) {
-      return(NULL)
-    }
-
-    selected_iso <- unique(country_lookup[OfficialName %in% selected_countries, ISO3Code])
-    dt_wide <- dt_wide[ISO3Code %in% selected_iso]
-    if (nrow(dt_wide) == 0) {
-      return(NULL)
-    }
-
-    dt_wide[country_lookup[, .(ISO3Code, OfficialName)], OfficialName := i.OfficialName, on = "ISO3Code"]
-    dt_wide[, country_order := seq_len(.N)]
-
-    dt_long <- data.table::melt(
-      dt_wide,
-      id.vars = c("ISO3Code", "OfficialName", "country_order"),
-      measure.vars = region_cols,
-      variable.name = "RegionLevel",
-      value.name = "Region",
-      variable.factor = FALSE
-    )
-    dt_long <- dt_long[Region != "" & !is.na(Region)]
-    if (nrow(dt_long) == 0) {
-      return(NULL)
-    }
-
-    dt_long[, DisplayName := ifelse(is.na(OfficialName) | OfficialName == "", ISO3Code, OfficialName)]
-    dt_long <- unique(dt_long[, .(Region, DisplayName, country_order)])
-
-    region_groups <- dt_long[, .(
-      Countries = paste(sort(unique(DisplayName)), collapse = ", "),
-      group_order = min(country_order)
-    ), by = Region][order(group_order)]
-
-    if (nrow(region_groups) <= 1) {
-      return(NULL)
-    }
-
-    assigned_countries <- unique(dt_long$DisplayName)
-    ungrouped_countries <- sort(unique(setdiff(selected_countries, assigned_countries)))
-    if (length(ungrouped_countries) > 0) {
-      region_groups <- rbind(
-        region_groups,
-        data.table::data.table(
-          Region = "Ungrouped",
-          Countries = paste(ungrouped_countries, collapse = ", "),
-          group_order = Inf
-        ),
-        fill = TRUE
-      )
-    }
-
-    paste(
-      sprintf(
-        "<strong>%s:</strong> %s",
-        htmltools::htmlEscape(region_groups$Region),
-        htmltools::htmlEscape(region_groups$Countries)
-      ),
-      collapse = "<br>"
-    )
-  }
-
   rename.single.region <- function(values) {
     custom_group_name <- if (is.null(input$adhoc_name)) "" else trimws(input$adhoc_name)
     values <- as.character(values)
@@ -229,9 +160,29 @@ app_server <- function(input, output, session) {
     input$country_input_select
   })
 
-  output$selected_countries_click_run <- renderText({
+  output$selected_countries_click_run <- renderUI({
     cs <- reactive.selected.countries()
-    paste(length(cs), if (length(cs) == 1) "Country:" else "Countries:", paste(sort(cs), collapse = ", "))
+    region_structure <- uploaded_region_structure()
+    num_regions <- if (is.null(region_structure)) 1L else get_total_regions(region_structure)
+    grouped_country_html <- if (!is.null(region_structure) && num_regions > 1L) {
+      build_grouped_country_summary_html(cs, region_structure, ctx$dc[, .(ISO3Code, OfficialName)])
+    } else {
+      NULL
+    }
+
+    if (!is.null(grouped_country_html)) {
+      return(tagList(
+        h5(strong(paste(
+          length(cs),
+          if (length(cs) == 1) "Country across" else "Countries across",
+          num_regions,
+          if (num_regions == 1) "region:" else "regions:"
+        ))),
+        h5(HTML(grouped_country_html))
+      ))
+    }
+
+    h5(strong(paste(length(cs), if (length(cs) == 1) "Country:" else "Countries:", paste(sort(cs), collapse = ", "))))
   })
 
   output$header_selected_countries <- renderUI({
@@ -268,7 +219,7 @@ app_server <- function(input, output, session) {
     num_regions <- if (is.null(region_structure)) 1L else get_total_regions(region_structure)
     flat_country_list <- paste(sort(cs), collapse = ", ")
     grouped_country_html <- if (!is.null(region_structure) && num_regions > 1L) {
-      build_grouped_country_html(cs, region_structure, ctx$dc[, .(ISO3Code, OfficialName)])
+      build_grouped_country_summary_html(cs, region_structure, ctx$dc[, .(ISO3Code, OfficialName)])
     } else {
       NULL
     }
@@ -352,7 +303,7 @@ app_server <- function(input, output, session) {
     }
     fluidRow(
       h4(strong(panel_title1.1)),
-      h5(strong(textOutput("selected_countries_click_run"))),
+      uiOutput("selected_countries_click_run"),
       br(),
       checkboxInput(
         "show_world",

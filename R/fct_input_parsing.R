@@ -83,3 +83,91 @@ build_region_membership_wide <- function(region_iso) {
     region_code_lookup = region_code_lookup
   )
 }
+
+#' Build an HTML country summary grouped by uploaded regions
+#' @noRd
+build_grouped_country_summary_html <- function(selected_countries, region_structure, country_lookup) {
+  if (is.null(region_structure)) {
+    return(NULL)
+  }
+
+  dt_wide <- data.table::copy(region_structure$data)
+  region_cols <- intersect(region_structure$region_cols, colnames(dt_wide))
+  if (length(region_cols) == 0) {
+    return(NULL)
+  }
+
+  selected_lookup <- data.table::copy(country_lookup)
+  if (!is.null(region_structure$normalized) &&
+      all(c("ISO3Code", "OfficialName") %in% colnames(region_structure$normalized))) {
+    selected_lookup <- unique(rbind(
+      selected_lookup,
+      region_structure$normalized[, .(ISO3Code, OfficialName)],
+      fill = TRUE
+    ))
+  }
+
+  selected_iso <- unique(selected_lookup[OfficialName %in% selected_countries, ISO3Code])
+  dt_wide <- dt_wide[ISO3Code %in% selected_iso]
+  if (nrow(dt_wide) == 0) {
+    return(NULL)
+  }
+
+  dt_wide[country_lookup[, .(ISO3Code, OfficialName)], OfficialName := i.OfficialName, on = "ISO3Code"]
+  dt_wide[, country_order := seq_len(.N)]
+
+  dt_long <- data.table::melt(
+    dt_wide,
+    id.vars = c("ISO3Code", "OfficialName", "country_order"),
+    measure.vars = region_cols,
+    variable.name = "RegionLevel",
+    value.name = "Region",
+    variable.factor = FALSE
+  )
+  dt_long <- dt_long[Region != "" & !is.na(Region)]
+  if (nrow(dt_long) == 0) {
+    return(NULL)
+  }
+
+  dt_long[, DisplayName := ifelse(is.na(OfficialName) | OfficialName == "", ISO3Code, OfficialName)]
+  assigned_iso <- unique(dt_long$ISO3Code)
+  dt_long <- unique(dt_long[, .(Region, DisplayName, country_order)])
+
+  region_groups <- dt_long[, .(
+    Countries = paste(sort(unique(DisplayName)), collapse = ", "),
+    group_order = min(country_order)
+  ), by = Region][order(group_order)]
+
+  if (nrow(region_groups) <= 1) {
+    return(NULL)
+  }
+
+  ungrouped_iso <- unique(setdiff(selected_iso, assigned_iso))
+  if (length(ungrouped_iso) > 0) {
+    ungrouped_lookup <- unique(country_lookup[ISO3Code %in% ungrouped_iso, .(ISO3Code, OfficialName)])
+    ungrouped_countries <- sort(unique(ifelse(
+      is.na(ungrouped_lookup$OfficialName) | ungrouped_lookup$OfficialName == "",
+      ungrouped_lookup$ISO3Code,
+      ungrouped_lookup$OfficialName
+    )))
+
+    region_groups <- rbind(
+      region_groups,
+      data.table::data.table(
+        Region = "Ungrouped",
+        Countries = paste(ungrouped_countries, collapse = ", "),
+        group_order = Inf
+      ),
+      fill = TRUE
+    )
+  }
+
+  paste(
+    sprintf(
+      "<strong>%s:</strong> %s",
+      htmltools::htmlEscape(region_groups$Region),
+      htmltools::htmlEscape(region_groups$Countries)
+    ),
+    collapse = "<br>"
+  )
+}
