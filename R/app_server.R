@@ -198,9 +198,39 @@ app_server <- function(input, output, session) {
 
   output$mymap <- renderLeaflet({
     validate(need(input$country_input_select, "Please select countries."))
-    leaflet::leaflet(quakes, options = leaflet::leafletOptions(minZoom = 2, maxZoom = 3)) |>
+
+    selected_map <- build_selected_world_map(
+      world_map = ctx$world_map,
+      selected_countries = input$country_input_select,
+      country_lookup = ctx$dc[, .(ISO3Code, OfficialName)],
+      region_structure = uploaded_region_structure(),
+      default_region = ctx$adhoc_name
+    )
+    validate(need(nrow(selected_map) > 0, "Selected countries are not available on the map."))
+
+    map <- leaflet::leaflet(selected_map, options = leaflet::leafletOptions(minZoom = 2, maxZoom = 3)) |>
       leaflet::addTiles("http://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png") |>
-      leaflet::addPolygons(data = subset(ctx$world_map, country %in% input$country_input_select), weight = 2)
+      leaflet::addPolygons(
+        fillColor = ~fillColor,
+        fillOpacity = 0.75,
+        color = "#6B7280",
+        opacity = 1,
+        weight = 1,
+        label = ~paste(country, Region, sep = ": ")
+      )
+
+    map_regions <- unique(selected_map@data[, c("Region", "fillColor")])
+    if (nrow(map_regions) > 1L) {
+      map <- leaflet::addLegend(
+        map,
+        position = "bottomright",
+        colors = map_regions$fillColor,
+        labels = map_regions$Region,
+        opacity = 0.75
+      )
+    }
+
+    map
   })
 
   reactive.run <- eventReactive(input$click_run, {

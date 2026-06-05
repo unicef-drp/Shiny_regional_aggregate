@@ -171,3 +171,122 @@ build_grouped_country_summary_html <- function(selected_countries, region_struct
     collapse = "<br>"
   )
 }
+
+#' Build selected map polygons with one fill color per uploaded region
+#' @noRd
+build_selected_world_map <- function(
+  world_map,
+  selected_countries,
+  country_lookup,
+  region_structure = NULL,
+  default_region = "Selected Countries"
+) {
+  empty_map <- function() {
+    out <- world_map[FALSE, ]
+    out$Region <- character(0)
+    out$fillColor <- character(0)
+    out
+  }
+
+  selected_countries <- unique(trimws(as.character(selected_countries)))
+  selected_countries <- selected_countries[!is.na(selected_countries) & nzchar(selected_countries)]
+  if (length(selected_countries) == 0L) {
+    return(empty_map())
+  }
+
+  lookup <- data.table::as.data.table(country_lookup)
+  lookup <- unique(lookup[, .(ISO3Code, OfficialName)])
+  selected_lookup <- lookup[OfficialName %in% selected_countries]
+
+  if (!is.null(region_structure) && !is.null(region_structure$normalized)) {
+    normalized <- data.table::copy(region_structure$normalized)
+    normalized[, upload_order := seq_len(.N)]
+    selected_regions <- normalized[ISO3Code %in% selected_lookup$ISO3Code]
+    selected_regions <- selected_regions[order(upload_order)]
+    selected_regions <- unique(selected_regions[, .(ISO3Code, Region, upload_order)], by = "ISO3Code")
+
+    country_region <- selected_regions[
+      lookup,
+      on = "ISO3Code",
+      nomatch = 0
+    ][, .(country = OfficialName, Region, upload_order)]
+
+    missing_uploaded <- setdiff(selected_lookup$OfficialName, country_region$country)
+    if (length(missing_uploaded) > 0L) {
+      country_region <- data.table::rbindlist(
+        list(
+          country_region,
+          data.table::data.table(
+            country = missing_uploaded,
+            Region = default_region,
+            upload_order = seq.int(nrow(country_region) + 1L, nrow(country_region) + length(missing_uploaded))
+          )
+        ),
+        fill = TRUE
+      )
+    }
+  } else {
+    country_region <- selected_lookup[, .(
+      country = OfficialName,
+      Region = default_region,
+      upload_order = seq_len(.N)
+    )]
+  }
+
+  direct_map_names <- setdiff(selected_countries, lookup$OfficialName)
+  direct_map_names <- direct_map_names[direct_map_names %in% world_map$country]
+  if (length(direct_map_names) > 0L) {
+    country_region <- data.table::rbindlist(
+      list(
+        country_region,
+        data.table::data.table(
+          country = direct_map_names,
+          Region = default_region,
+          upload_order = seq.int(nrow(country_region) + 1L, nrow(country_region) + length(direct_map_names))
+        )
+      ),
+      fill = TRUE
+    )
+  }
+
+  country_region <- country_region[!is.na(country) & nzchar(country) & !is.na(Region) & nzchar(Region)]
+  if (nrow(country_region) == 0L) {
+    return(empty_map())
+  }
+
+  country_region <- country_region[order(upload_order)]
+  country_region <- unique(country_region, by = "country")
+
+  if ("China" %in% country_region$country &&
+      "Taiwan" %in% world_map$country &&
+      !"Taiwan" %in% country_region$country) {
+    china_region <- country_region[country == "China"][1]
+    country_region <- data.table::rbindlist(
+      list(
+        country_region,
+        data.table::data.table(
+          country = "Taiwan",
+          Region = china_region$Region,
+          upload_order = china_region$upload_order + 0.1
+        )
+      ),
+      fill = TRUE
+    )
+  }
+
+  region_colors <- data.table::data.table(
+    Region = unique(country_region$Region),
+    fillColor = ResolvePlotColors(data.table::uniqueN(country_region$Region))
+  )
+  country_region[region_colors, fillColor := i.fillColor, on = "Region"]
+
+  selected_map <- world_map[world_map$country %in% country_region$country, ]
+  if (nrow(selected_map) == 0L) {
+    return(empty_map())
+  }
+
+  country_match <- match(selected_map$country, country_region$country)
+  selected_map$Region <- country_region$Region[country_match]
+  selected_map$fillColor <- country_region$fillColor[country_match]
+  selected_map
+}

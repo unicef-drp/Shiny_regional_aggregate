@@ -16,3 +16,18 @@ testthat::test_that("world map polygons selected by WB upload do not wrap across
 
   testthat::expect_lt(max(polygon_longitude_spans(selected_map)), 180)
 })
+
+testthat::test_that("WB upload country names match all available world map polygons", {
+  raw <- pkg_fn("read_region_iso_file")(
+    testthat::test_path("..", "..", "inst", "extdata", "examples", "Upload_ISO_example_WB.csv")
+  )
+  dc <- data.table::fread(
+    testthat::test_path("..", "..", "inst", "extdata", "input", "country.info.CME.csv")
+  )
+  selected_countries <- unique(dc[ISO3Code %in% raw$ISO3Code, OfficialName])
+  world_map <- pkg_fn("get.world.map")()
+
+  missing_from_map <- setdiff(selected_countries, world_map$country)
+
+  testthat::expect_setequal(missing_from_map, "Tuvalu")
+})

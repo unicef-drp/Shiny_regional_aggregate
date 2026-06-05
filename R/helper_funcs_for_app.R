@@ -240,9 +240,11 @@ new_country_name_list <- c(
   "Bolivia" = "Bolivia (Plurinational State of)",
   "Brunei" = "Brunei Darussalam",
   "Cape Verde" = "Cabo Verde",
-  "Ivory Coast" = "Cote d'Ivoire",
+  "Ivory Coast" = "C\u00f4te d'Ivoire",
   "Czech Republic" = "Czechia",
   "North Korea" = "Democratic People's Republic of Korea",
+  "Kosovo" = "Kosovo (UNSCR 1244)",
+  "Netherlands" = "Netherlands (Kingdom of the)",
   "Republic of Congo" = "Congo",
   "Swaziland" = "Eswatini",
   "Iran" = "Iran (Islamic Republic of)",
@@ -256,13 +258,15 @@ new_country_name_list <- c(
   "Saint Vincent" = "Saint Vincent and the Grenadines",
   "Palestine" = "State of Palestine",
   "Syria" = "Syrian Arab Republic",
+  "Turkey" = "T\u00fcrkiye",
   "Tobago" = "Trinidad and Tobago",
   "Trinidad" = "Trinidad and Tobago", # also note the duplicated country name created
   "Tanzania" = "United Republic of Tanzania",
   "Venezuela" = "Venezuela (Bolivarian Republic of)",
   "Vietnam" = "Viet Nam",
   "UK" = "United Kingdom", 
-  "USA" = "United States of America",
+  "USA" = "United States",
+  "Virgin Islands, British" = "British Virgin Islands",
   "Republic of Congo" = "Congo"
 )
 
