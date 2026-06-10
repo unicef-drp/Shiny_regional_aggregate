@@ -209,7 +209,9 @@ app_server <- function(input, output, session) {
     validate(need(nrow(selected_map) > 0, "Selected countries are not available on the map."))
 
     map <- leaflet::leaflet(selected_map, options = leaflet::leafletOptions(minZoom = 2, maxZoom = 3)) |>
-      leaflet::addTiles("http://a.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}.png") |>
+      # Use Leaflet's provider shortcut so the basemap stays on HTTPS/CDN defaults
+      # instead of hard-coding a CARTO tile URL.
+      leaflet::addProviderTiles(leaflet::providers$CartoDB.PositronNoLabels) |>
       leaflet::addPolygons(
         fillColor = ~fillColor,
         fillOpacity = 0.75,

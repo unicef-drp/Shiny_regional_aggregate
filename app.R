@@ -14,3 +14,10 @@ if (requireNamespace("shinyregionalaggregate", quietly = TRUE)) {
   shinyregionalaggregate::run_app()
 }
 
+# Without installing the package, you can also run the app with:
+if (!requireNamespace("devtools", quietly = TRUE)) {
+  install.packages("devtools")
+}
+devtools::load_all(".")
+shinyregionalaggregate::run_app()
+
