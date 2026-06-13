@@ -239,7 +239,7 @@ cp_UNICEF_div = c("#002759", "#0058AB", "#1CABE2", "#69DBFF", "#CFF4FF", "#FFF09
                              "#FFC20E", "#F26A21", "#E2231A", "#B50800")
 
 sex_plot_colors <- function() {
-  c(Male = "#0058AB", Female = "#E2231A")
+  c(Male = "#1CABE2", Female = "#F26A21")
 }
 
 ResolvePlotColors <- function(n, base.colors = cp_UNICEF_div) {

@@ -69,9 +69,6 @@ app_server <- function(input, output, session) {
 
     regions <- unique(as.character(reactive.run()$m$Region))
     regions <- regions[!is.na(regions) & nzchar(regions)]
-    if (!show_world_in_current_plots()) {
-      regions <- regions[regions != "World"]
-    }
 
     region_dt <- data.table::data.table(Region = regions)
     unique(as.character(limit.plot.regions(region_dt)$Region))
@@ -684,9 +681,6 @@ app_server <- function(input, output, session) {
     dt_long <- rbind(dt_long_f, dt_long_m)
     dt_long$Region <- as.factor(dt_long$Region)
     dt_long$Sex <- factor(as.factor(dt_long$Sex), levels = c("Male", "Female"))
-    if (!show_world_in_current_plots()) {
-      dt_long <- dt_long[Region != "World", ]
-    }
     dt_long <- limit.plot.regions(dt_long)
     selected_region <- selected_sex_specific_region()
     if (is.null(selected_region)) {

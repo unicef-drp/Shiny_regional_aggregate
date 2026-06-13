@@ -54,7 +54,7 @@ testthat::test_that("sex-specific chart uses explicit male and female colors", {
       country_input_select = "Afghanistan",
       run_gender = TRUE,
       run_older_total = FALSE,
-      show_world = TRUE
+      show_world = FALSE
     )
     session$setInputs(click_run = 1)
 
@@ -73,10 +73,10 @@ testthat::test_that("sex-specific chart uses explicit male and female colors", {
     testthat::expect_match(plot_json, "Rate: 55", fixed = TRUE)
     testthat::expect_false(grepl("Rate: 11", plot_json, fixed = TRUE))
     testthat::expect_true(
-      grepl('"color":"rgba\\(0,88,171,1\\)".*?"name":"Male"', plot_json, perl = TRUE)
+      grepl('"color":"rgba\\(28,171,226,1\\)".*?"name":"Male"', plot_json, perl = TRUE)
     )
     testthat::expect_true(
-      grepl('"color":"rgba\\(226,35,26,1\\)".*?"name":"Female"', plot_json, perl = TRUE)
+      grepl('"color":"rgba\\(242,106,33,1\\)".*?"name":"Female"', plot_json, perl = TRUE)
     )
     testthat::expect_match(plot_json, "Sex: Male", fixed = TRUE)
     testthat::expect_match(plot_json, "Sex: Female", fixed = TRUE)
