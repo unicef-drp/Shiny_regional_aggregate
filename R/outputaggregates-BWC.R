@@ -713,6 +713,81 @@ BuildReplacementCountryCacheFilesBWC <- function(replace.rates.reg, nn.exists = 
   files.country.replace
 }
 
+# What it does: Lists countries that should stay structurally present but absent from replacement death calculations.
+# Why it is needed: Stable country-row alignment is still needed for trajectory inputs, but aggregate totals must not include these rows.
+ExcludedReplacementIsoCodesBWC <- function() {
+  "LIE"
+}
+
+# What it does: Checks that reusable replacement-country death caches keep excluded ISO rows empty.
+# Why it is needed: Old replacement caches can predate exclusion rules and must not feed world/regional totals.
+ValidateReplacementCountryCacheBWC <- function(
+    output.dir.samplescombined,
+    replace.rates.reg,
+    nn.exists = FALSE,
+    excluded.iso = ExcludedReplacementIsoCodesBWC()
+) {
+  if (is.null(replace.rates.reg) || length(excluded.iso) < 1L) {
+    return(TRUE)
+  }
+
+  info.path <- file.path(output.dir.samplescombined, "info.rda")
+  if (!file.exists(info.path)) {
+    return(FALSE)
+  }
+
+  info.env <- new.env(parent = emptyenv())
+  load(info.path, envir = info.env)
+  if (!exists("info", envir = info.env, inherits = FALSE)) {
+    return(FALSE)
+  }
+  info <- get("info", envir = info.env, inherits = FALSE)
+  excluded.idx <- match(excluded.iso, info$iso.c)
+  excluded.idx <- excluded.idx[!is.na(excluded.idx)]
+  if (length(excluded.idx) < 1L) {
+    return(TRUE)
+  }
+
+  object.names <- c("death0.ctj", "death1to4.ctj", "deathu5.ctj")
+  if (isTRUE(nn.exists)) {
+    object.names <- c(object.names, "deathnn.ctj")
+  }
+
+  for (object.name in object.names) {
+    cache.path <- file.path(output.dir.samplescombined, paste0(object.name, ".", replace.rates.reg, "-replace.rda"))
+    if (!file.exists(cache.path)) {
+      return(FALSE)
+    }
+    cache.env <- new.env(parent = emptyenv())
+    load(cache.path, envir = cache.env)
+    if (!exists(object.name, envir = cache.env, inherits = FALSE)) {
+      return(FALSE)
+    }
+    cache.value <- get(object.name, envir = cache.env, inherits = FALSE)
+    if (is.null(dim(cache.value)) || length(dim(cache.value)) < 3L ||
+        max(excluded.idx) > dim(cache.value)[1]) {
+      return(FALSE)
+    }
+    if (any(!is.na(cache.value[excluded.idx, , , drop = FALSE]))) {
+      return(FALSE)
+    }
+  }
+
+  TRUE
+}
+
+# What it does: Decides whether world outputs should be regenerated.
+# Why it is needed: `get.world.results = TRUE` and replacement-country rebuilds both require fresh world files.
+ShouldRegenerateWorldResultsBWC <- function(get.world.results, world.files.exist, replacement.needs.rebuild = FALSE) {
+  if (isTRUE(replacement.needs.rebuild)) {
+    return(TRUE)
+  }
+  if (!isTRUE(get.world.results)) {
+    return(FALSE)
+  }
+  TRUE
+}
+
 ShouldGenerateOrdinaryCountryResultsBWC <- function(
     country.combined.exists,
     country.trajectories.exist,
@@ -1070,6 +1145,18 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
         ". Rebuild the country cache once without reuse.replacement.country=TRUE first."
       ))
     }
+    if (!ValidateReplacementCountryCacheBWC(
+      output.dir.samplescombined = output.dir.samplescombined,
+      replace.rates.reg = replace.rates.reg,
+      nn.exists = !is.null(nmr.ctj)
+    )) {
+      warning(paste0(
+        "reuse.replacement.country=TRUE requested, but replacement-country cache for ",
+        replace.rates.reg,
+        " contains excluded-country values or could not be validated. Rebuilding replacement-country cache."
+      ))
+      reuse.replacement.country <- FALSE
+    }
   }
   
   phase.times$preprocess <- GetPhaseElapsedBWC(overall.start)
@@ -1316,7 +1403,7 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
   #-------------------------------------------------------------------------
   # get world results
   world.phase.start <- proc.time()[["elapsed"]]
-  if(get.world.results){
+  if(isTRUE(get.world.results) || isTRUE(replacement.needs.rebuild)){
     if (isTRUE(replacement.needs.rebuild)) {
       DeleteWorldOutputsBWC(
         output.dir.samplescombined = output.dir.samplescombined,
@@ -1354,7 +1441,12 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
       files.world <- c(files.world, "global.RoDs.ui.rda")
     }
     
-    if (sum(!file.exists(file.path(output.dir.samplescombined, files.world))) > 0) {
+    world.files.exist <- sum(!file.exists(file.path(output.dir.samplescombined, files.world))) == 0
+    if (ShouldRegenerateWorldResultsBWC(
+      get.world.results = get.world.results,
+      world.files.exist = world.files.exist,
+      replacement.needs.rebuild = replacement.needs.rebuild
+    )) {
       if(is.null(replace.rates.reg)){
         cat(paste("Generating world results...\n"))
       } else {
@@ -1381,7 +1473,7 @@ OutputAggregates <- function( # Calculate and output aggregated rates and number
              envir = environment())
       cat(paste("World results loaded from ", output.dir.samplescombined, "\n"))
     }
-  } # if(get.world.results)
+  } # if(isTRUE(get.world.results) || isTRUE(replacement.needs.rebuild))
   phase.times$world <- GetPhaseElapsedBWC(world.phase.start)
   #-------------------------------------------------------------------------
   # get regional results
@@ -2263,6 +2355,19 @@ CalculateCountryDeathsBWC.replacemissingrates <- function( # DJS add 2018-07-24 
   # k loop for countries
   k.seq <- if (is.null(selected.country.idx)) seq_len(nrow(u5mr.ct)) else selected.country.idx
   for(k in k.seq){
+    if (iso.c[k] %in% ExcludedReplacementIsoCodesBWC()) {
+      death0.ct[k, ] <- NA_real_
+      death1to4.ct[k, ] <- NA_real_
+      deathu5.ct[k, ] <- NA_real_
+      dx.array.by.c[, , k] <- NA_real_
+      lx.array.by.c[, , k] <- NA_real_
+      if(!is.null(nmr.ctj)){
+        deathnn.ct[k, ] <- NA_real_
+        dx.nn.array.by.c[, , k] <- NA_real_
+        lx.nn.array.by.c[, , k] <- NA_real_
+      }
+      next
+    }
     replace.row.idx <- match(regions.constant[k], M49RegionAll)
     if (is.na(replace.row.idx)) next
     country.life.table <- BuildCountryLifeTableBWC(

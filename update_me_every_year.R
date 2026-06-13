@@ -3,6 +3,7 @@
 
 # Change release date in the `About` panel, please revise the date every year: 
 update_string0 <- "Last updated: March, 2026"
+WPP_Year <- 2024L
 
 # now, first source this script and then walk through following steps:
 # 1. If needed (like in the 2022 round, we add the number of countries, or WPP

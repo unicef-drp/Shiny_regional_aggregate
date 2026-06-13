@@ -243,31 +243,7 @@ app_server <- function(input, output, session) {
     )
     validate(need(nrow(selected_map) > 0, "Selected countries are not available on the map."))
 
-    map <- leaflet::leaflet(selected_map, options = leaflet::leafletOptions(minZoom = 2, maxZoom = 3)) |>
-      # Use Leaflet's provider shortcut so the basemap stays on HTTPS/CDN defaults
-      # instead of hard-coding a CARTO tile URL.
-      leaflet::addProviderTiles(leaflet::providers$CartoDB.PositronNoLabels) |>
-      leaflet::addPolygons(
-        fillColor = ~fillColor,
-        fillOpacity = 0.75,
-        color = "#6B7280",
-        opacity = 1,
-        weight = 1,
-        label = ~paste(country, Region, sep = ": ")
-      )
-
-    map_regions <- unique(selected_map@data[, c("Region", "fillColor")])
-    if (nrow(map_regions) > 1L) {
-      map <- leaflet::addLegend(
-        map,
-        position = "bottomright",
-        colors = map_regions$fillColor,
-        labels = map_regions$Region,
-        opacity = 0.75
-      )
-    }
-
-    map
+    build_selected_leaflet_map(selected_map)
   })
 
   observeEvent(input$click_run, {
@@ -740,7 +716,7 @@ app_server <- function(input, output, session) {
     dt <- reactive.run()$both
     DT::formatRound(
       DT::datatable(clean.table(dt)),
-      columns = c("Under-five Mortality Rate", "Infant Mortality Rate", "Neonatal Mortality Rate", "Stillbirth rate"),
+      columns = c("Under-five Mortality Rate", "Infant Mortality Rate", "Neonatal Mortality Rate", "Stillbirth Rate"),
       digits = 2
     )
   })
@@ -776,7 +752,7 @@ app_server <- function(input, output, session) {
       return()
     }
     DT::formatRound(
-      DT::datatable(clean.table(reactive.run()$both_5_24)),
+      DT::datatable(clean_older_children_table(reactive.run()$both_5_24)),
       columns = ctx$col_order_older_children_all_rate,
       digits = 2
     )
@@ -789,7 +765,7 @@ app_server <- function(input, output, session) {
     dt <- data.table::copy(reactive.run()$f_5_24)
     dt[, Sex := "Female"]
     DT::formatRound(
-      DT::datatable(clean.table(dt)),
+      DT::datatable(clean_older_children_table(dt)),
       columns = ctx$col_order_older_children_all_rate,
       digits = 2
     )
@@ -802,7 +778,7 @@ app_server <- function(input, output, session) {
     dt <- data.table::copy(reactive.run()$m_5_24)
     dt[, Sex := "Male"]
     DT::formatRound(
-      DT::datatable(clean.table(dt)),
+      DT::datatable(clean_older_children_table(dt)),
       columns = ctx$col_order_older_children_all_rate,
       digits = 2
     )
@@ -894,11 +870,11 @@ app_server <- function(input, output, session) {
     content = function(file) {
       dtout <- data.table::rbindlist(
         list(
-          clean.table(reactive.run()$both_5_24),
+          clean_older_children_table(reactive.run()$both_5_24),
           reactive.run()$c_median_total_older,
-          clean.table(reactive.run()$f_5_24),
+          clean_older_children_table(reactive.run()$f_5_24),
           reactive.run()$c_median_f_older,
-          clean.table(reactive.run()$m_5_24),
+          clean_older_children_table(reactive.run()$m_5_24),
           reactive.run()$c_median_m_older
         ),
         fill = TRUE
@@ -913,7 +889,7 @@ app_server <- function(input, output, session) {
     },
     content = function(file) {
       dtout <- data.table::rbindlist(
-        list(clean.table(reactive.run()$f_5_24), reactive.run()$c_median_f_older),
+        list(clean_older_children_table(reactive.run()$f_5_24), reactive.run()$c_median_f_older),
         fill = TRUE
       )
       write.csv(dtout, file, row.names = FALSE, na = "")
@@ -926,7 +902,7 @@ app_server <- function(input, output, session) {
     },
     content = function(file) {
       dtout <- data.table::rbindlist(
-        list(clean.table(reactive.run()$m_5_24), reactive.run()$c_median_m_older),
+        list(clean_older_children_table(reactive.run()$m_5_24), reactive.run()$c_median_m_older),
         fill = TRUE
       )
       write.csv(dtout, file, row.names = FALSE, na = "")

@@ -75,6 +75,67 @@ testthat::test_that("build_long_download includes appended stillbirth medians", 
   testthat::expect_setequal(out$Median, c(15, 100))
 })
 
+testthat::test_that("append_country_stillbirth_medians fills country download rows", {
+  country_results <- data.table::data.table(
+    Region = c("Official A", "Official A"),
+    Year = c(2000, 2001),
+    Sex = "Total",
+    `Under-five Mortality Rate` = c(50, 49)
+  )
+  stillbirth_country <- data.table::data.table(
+    ISO3Code = "AAA",
+    CountryName = "Raw A",
+    Shortind = c("SBR", "SB"),
+    Year = c(2000, 2000),
+    Median = c(15, 100)
+  )
+  country_lookup <- data.table::data.table(
+    ISO3Code = "AAA",
+    OfficialName = "Official A"
+  )
+
+  out <- pkg_fn("append_country_stillbirth_medians")(
+    country_results = country_results,
+    stillbirth_country = stillbirth_country,
+    country_lookup = country_lookup
+  )
+
+  testthat::expect_true(all(c("Stillbirth Rate", "Stillbirths") %in% names(out)))
+  testthat::expect_equal(out[Year == 2000]$`Stillbirth Rate`, 15)
+  testthat::expect_equal(out[Year == 2000]$Stillbirths, 100)
+  testthat::expect_true(is.na(out[Year == 2001]$`Stillbirth Rate`))
+})
+
+testthat::test_that("build_long_download excludes country median tables", {
+  results <- list(
+    both = data.table::data.table(
+      Region = "Group A",
+      Year = 2000,
+      Sex = "Total",
+      `Stillbirth rate` = 15,
+      Stillbirths = 100
+    ),
+    f = NULL,
+    m = NULL,
+    both_5_24 = NULL,
+    f_5_24 = NULL,
+    m_5_24 = NULL,
+    c_median_total = data.table::data.table(
+      Region = "Official A",
+      Year = 2000,
+      Sex = "Total",
+      `Stillbirth Rate` = 16,
+      Stillbirths = 101
+    )
+  )
+
+  out <- pkg_fn("build_long_download")(results)
+
+  country_rows <- out[Region == "Official A"]
+  testthat::expect_equal(nrow(country_rows), 0)
+  testthat::expect_setequal(unique(out$Region), "Group A")
+})
+
 testthat::test_that("stillbirth chart indicators are separated from under-five chart indicators", {
   columns <- c(
     "Under-five Deaths",

@@ -1,7 +1,7 @@
 # Initializing app after updating every year
 # run the whole script
 # Generate M49 intermediate files that is required by aggregates for other regions
-# also check results before deploying 
+# also check results before deploying
 
 
 # Libraries
@@ -13,6 +13,14 @@ check.and.install.pkgs <- function(pkgs){
 }
 check.and.install.pkgs(c("shiny", "shinyWidgets", "shinyjs",
                          "DT","data.table", "dplyr", "ggplot2", "plotly", "readxl"))
+
+
+USERPROFILE <- Sys.getenv("USERPROFILE") # leading dir to Dropbox
+source(file.path(USERPROFILE, "Dropbox/UNICEF Work/profile.R"))
+
+work_dir_report <- file.path(dir_SP, "IGME report/2025/Code_for_report")
+source(file.path(work_dir_report, "Dropbox_aggresults_directories_2025.R"))
+
 
 # source code
 source_files <- list.files(
@@ -32,23 +40,16 @@ suppressPackageStartupMessages({
   library("shiny")    # for shiny apps
   library("shinyWidgets")
   library("shinyjs")  # for  reset
-  library("DT")       # for shiny table 
-  library("data.table") 
+  library("DT")       # for shiny table
+  library("data.table")
   library("dplyr")
   library("ggplot2")
   library("plotly")
   library("readxl")
 })
 
+
 source("update_me_every_year.R")
-
-USERPROFILE <- Sys.getenv("USERPROFILE") # leading dir to Dropbox
-source(file.path(USERPROFILE, "Dropbox/UNICEF Work/profile.R"))
-dir_CC_code <- file.path(USERPROFILE, "Dropbox/UNICEF Work/Country consultation/Code_for_CC")
-source(file.path(dir_CC_code, "R/Dropbox_results_directories_2025.R"))
-
-work_dir_report <- file.path(dir_SP, "IGME report/2025/Code_for_report")
-source(file.path(work_dir_report, "Dropbox_aggresults_directories_2025.R"))
 
 
 # Dataset and Parameters -----------------------------------------------------------------
@@ -80,7 +81,7 @@ c_median_f_15_24 <- recode_ind_15_24(c_median_f_15_24)
 c_median_m_15_24 <- recode_ind_15_24(c_median_m_15_24)
 
 c_median_5_14    <- rbindlist(list(c_median_total_5_14, c_median_f_5_14, c_median_m_5_14))
-c_median_15_24   <- rbindlist(list(c_median_total_15_24, c_median_f_15_24, c_median_m_15_24)) 
+c_median_15_24   <- rbindlist(list(c_median_total_15_24, c_median_f_15_24, c_median_m_15_24))
 c_median_total_older <- merge(c_median_5_14, c_median_15_24)
 c_median_total_older <- calculate.10q10(c_median_total_older)
 
@@ -228,8 +229,18 @@ dt2 <- read.region.summary(dirnew)
 setnames(dt2, "value", "value.new")
 dtc <- merge(dt1, dt2)
 dtc[, diff:= round(value.new - value, 4)]
-dtc[diff!=0,] # should be none 
+dtc[diff!=0,] # should be none
 
+
+# check if results match for under-five
+dirold <- file.path(dir_aggu5_median, "Rates & Deaths_M49Region.csv") # for comparison
+dirnew <- file.path(dir_median_total, "Rates & Deaths_M49Region.csv")
+dt1 <- read.region.summary(dirold)
+dt2 <- read.region.summary(dirnew)
+setnames(dt2, "value", "value.new")
+dtc <- merge(dt1, dt2)
+dtc[, diff:= round(value.new - value, 4)]
+dtc[diff!=0,] # should be none
 
 
 # check if results match for older children 5-14
@@ -248,7 +259,9 @@ dt2[, Shortind := dplyr::recode(Shortind, !!!recode5_14)]
 setnames(dt2, "value", "value2")
 dtc <- merge(dt1, dt2)
 dtc[, diff:= round(value- value2, 4)]
-dtc[diff!=0,] # should be none 
+dtc[diff!=0,] # should be none
+
+
 
 
 # check if results match for total 15-24
@@ -270,7 +283,7 @@ dtc[, diff:= round(value- value2, 4)]
 dtc[diff!=0]
 
 
-# If results match, 
+# If results match,
 # run aggregates for the selected countries ----------------------------------
 init_select <- "Afghanistan"
 dc[,AdhocCountries:=""]
@@ -309,6 +322,16 @@ run.outputaggregates.5.24(year.lastestimatepublished)
 run.outputaggregates.5.24.gender(year.lastestimatepublished)
 adjust.total.death.5.24()
 })
+
+# check if results match for world
+dirold <- file.path(dir_aggu5_median, "Rates & Deaths_World.csv") # for comparison
+dirnew <- file.path(dir_median_total, "Rates & Deaths_World.csv")
+dt1 <- read.region.summary(dirold)
+dt2 <- read.region.summary(dirnew)
+setnames(dt2, "value", "value.new")
+dtc <- merge(dt1, dt2)
+dtc[, diff:= round(value.new - value, 4)]
+dtc[diff!=0,] # should be none
 
 system.time({
   run.outputaggregates(year.lastestimatepublished, reuse.replacement.country = TRUE)

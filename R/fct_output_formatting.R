@@ -18,6 +18,7 @@ clean_table_for_download <- function(dt) {
   out <- out[Year >= release_metadata()$year_started]
   idx <- match(names(out), names(new_varname_list))
   names(out)[!is.na(idx)] <- unname(new_varname_list[idx[!is.na(idx)]])
+  names(out)[names(out) == "Stillbirth Rate"] <- "Stillbirth rate"
   out[]
 }
 

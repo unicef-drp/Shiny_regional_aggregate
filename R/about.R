@@ -3,7 +3,9 @@
 # Yang Liu
 # 10/24/2020
 ##
-get.about.panel <- function(update_string){
+get.about.panel <- function(update_string, WPP_Year = release_metadata()$WPP_Year){
+  WPP_Year <- as.integer(WPP_Year)
+
   shiny::tabPanel("About",
            shiny::p(),
            shiny::p("
@@ -14,26 +16,26 @@ get.about.panel <- function(update_string){
              cohort approach.
              "),
            
-           shiny::p("
-              A birth-week cohort method is used to calculate the absolute number of deaths
-              among neonates, infants and children under age 5. First, each annual birth
-              cohort is divided into 52 equal birth-week cohorts. Then each birth-week
-              cohort is exposed throughout the first five years of life to the appropriate
-              calendar year- and age-specific mortality rates depending on cohort age. For
-              example, the twentieth birth-week cohort of the year 2000 will be exposed to
-              the infant mortality rates in both 2000 and 2001. All deaths from birth-week
-              cohorts occurring as a result of exposure to the mortality rate for a given
-              calendar year are allocated to that year and are summed by age group at death
-              to get the total number of deaths for a given year and age group. Continuing
-              with the above example, deaths from the twentieth birth-week cohort of the
-              year 2000 would contribute to infant deaths in year 2000 and 2001. Any deaths
-              occurring among the twentieth birth-week cohort of year 2000 after the
-              twentieth week in 2001 would contribute to under-five deaths for year 2001 and
-              so forth. Under-five deaths in each calendar year are calculated by summing up
-              all the deaths under age five across all age group cohorts in that year. The
-              annual estimate of the number of live births in each country from the World
-              Population Prospects 2022 is used to calculate the number of deaths.
-             "),
+           shiny::p(paste0(
+             "A birth-week cohort method is used to calculate the absolute number of deaths ",
+             "among neonates, infants and children under age 5. First, each annual birth ",
+             "cohort is divided into 52 equal birth-week cohorts. Then each birth-week ",
+             "cohort is exposed throughout the first five years of life to the appropriate ",
+             "calendar year- and age-specific mortality rates depending on cohort age. For ",
+             "example, the twentieth birth-week cohort of the year 2000 will be exposed to ",
+             "the infant mortality rates in both 2000 and 2001. All deaths from birth-week ",
+             "cohorts occurring as a result of exposure to the mortality rate for a given ",
+             "calendar year are allocated to that year and are summed by age group at death ",
+             "to get the total number of deaths for a given year and age group. Continuing ",
+             "with the above example, deaths from the twentieth birth-week cohort of the ",
+             "year 2000 would contribute to infant deaths in year 2000 and 2001. Any deaths ",
+             "occurring among the twentieth birth-week cohort of year 2000 after the ",
+             "twentieth week in 2001 would contribute to under-five deaths for year 2001 and ",
+             "so forth. Under-five deaths in each calendar year are calculated by summing up ",
+             "all the deaths under age five across all age group cohorts in that year. The ",
+             "annual estimate of the number of live births in each country from the World ",
+             "Population Prospects ", WPP_Year, " is used to calculate the number of deaths."
+           )),
            
            
            shiny::p("For more information, please refer to",

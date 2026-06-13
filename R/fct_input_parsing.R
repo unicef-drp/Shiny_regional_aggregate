@@ -1,5 +1,20 @@
 #' Read a region/ISO upload file
 #' @noRd
+app_excluded_iso_codes <- function() {
+  "LIE"
+}
+
+#' @noRd
+filter_app_country_info <- function(dt) {
+  dt <- data.table::as.data.table(dt)
+  if (!"ISO3Code" %in% colnames(dt)) {
+    return(dt)
+  }
+
+  dt[!ISO3Code %in% app_excluded_iso_codes()]
+}
+
+#' @noRd
 read_region_iso_file <- function(path) {
   ext <- tolower(tools::file_ext(path))
   dt <- switch(
@@ -17,7 +32,9 @@ read_region_iso_file <- function(path) {
 #' @noRd
 normalize_region_iso_input <- function(region_iso) {
   dt <- data.table::as.data.table(region_iso)
-  valid_iso <- unique(data.table::fread(release_path("input", "country.info.CME.csv"))[["ISO3Code"]])
+  valid_iso <- unique(filter_app_country_info(
+    data.table::fread(release_path("input", "country.info.CME.csv"))
+  )[["ISO3Code"]])
 
   iso_cols <- names(dt)[grepl("ISO", toupper(names(dt)))]
   if (length(iso_cols) == 0L) {
@@ -289,4 +306,49 @@ build_selected_world_map <- function(
   selected_map$Region <- country_region$Region[country_match]
   selected_map$fillColor <- country_region$fillColor[country_match]
   selected_map
+}
+
+#' Build the leaflet widget for selected country polygons
+#' @noRd
+build_selected_leaflet_map <- function(selected_map) {
+  single_world_zoom <- 2
+  initial_latitude <- 18
+
+  map <- leaflet::leaflet(
+    selected_map,
+    options = leaflet::leafletOptions(
+      minZoom = single_world_zoom,
+      maxZoom = 3,
+      worldCopyJump = FALSE
+    )
+  ) |>
+    leaflet::setView(lng = 0, lat = initial_latitude, zoom = single_world_zoom) |>
+    leaflet::setMaxBounds(lng1 = -180, lat1 = -85, lng2 = 180, lat2 = 85) |>
+    # Use Leaflet's provider shortcut so the basemap stays on HTTPS/CDN defaults
+    # instead of hard-coding a CARTO tile URL.
+    leaflet::addProviderTiles(
+      leaflet::providers$CartoDB.PositronNoLabels,
+      options = leaflet::providerTileOptions(noWrap = TRUE)
+    ) |>
+    leaflet::addPolygons(
+      fillColor = ~fillColor,
+      fillOpacity = 0.75,
+      color = "#6B7280",
+      opacity = 1,
+      weight = 1,
+      label = ~paste(country, Region, sep = ": ")
+    )
+
+  map_regions <- unique(selected_map@data[, c("Region", "fillColor")])
+  if (nrow(map_regions) > 1L) {
+    map <- leaflet::addLegend(
+      map,
+      position = "bottomright",
+      colors = map_regions$fillColor,
+      labels = map_regions$Region,
+      opacity = 0.75
+    )
+  }
+
+  map
 }

@@ -6,6 +6,22 @@ testthat::test_that("normalize_region_iso_input keeps the required columns from 
   testthat::expect_true(all(out$ISO3Code != ""))
 })
 
+testthat::test_that("normalize_region_iso_input excludes countries unavailable for app aggregates", {
+  raw <- data.table::data.table(
+    Region = c("Selected", "Selected"),
+    ISO3Code = c("AFG", "LIE")
+  )
+
+  out <- pkg_fn("normalize_region_iso_input")(raw)
+
+  testthat::expect_setequal(out$ISO3Code, "AFG")
+  testthat::expect_error(
+    pkg_fn("normalize_region_iso_input")(data.table::data.table(Region = "Selected", ISO3Code = "LIE")),
+    "no valid Region/ISO3Code rows",
+    fixed = TRUE
+  )
+})
+
 testthat::test_that("build_region_membership_wide converts long input to AdhocCountries columns", {
   raw <- data.table::data.table(
     Region = c("Group A", "Group B", "Group B"),

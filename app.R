@@ -13,5 +13,3 @@ if (requireNamespace("shinyregionalaggregate", quietly = TRUE)) {
   pkgload::load_all(".", export_all = FALSE, helpers = FALSE, quiet = TRUE)
   shinyregionalaggregate::run_app()
 }
-
-

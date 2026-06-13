@@ -194,7 +194,44 @@ clean.table <- function(dt){
   dt[, Region2 := NULL]
   # rename 
   colnames(dt) <- dplyr::recode(colnames(dt), !!!new_varname_list)
+  colnames(dt) <- dplyr::recode(colnames(dt), "Stillbirth rate" = "Stillbirth Rate")
   return(dt)
+}
+
+older_children_age_order <- function() {
+  c("5-9", "10-14", "5-14", "15-19", "20-24", "15-24", "10-19", "5-24")
+}
+
+older_children_death_age_order <- function() {
+  c("5 to 9", "10 to 14", "5 to 14", "15 to 19", "20 to 24", "15 to 24", "10 to 19", "5 to 24")
+}
+
+older_children_ordered_value_cols <- function(value_cols, ordered, pattern) {
+  matched <- intersect(ordered, value_cols)
+  remaining <- grep(pattern, value_cols, value = TRUE)
+  c(matched, setdiff(remaining, matched))
+}
+
+clean_older_children_table <- function(dt) {
+  out <- clean.table(data.table::copy(dt))
+  if (is.null(out)) return(NULL)
+
+  id_cols <- c("Region", "Year", "Sex")
+  value_cols <- setdiff(colnames(out), id_cols)
+  rate_cols <- older_children_ordered_value_cols(
+    value_cols,
+    ordered = paste("Mortality rate age", older_children_age_order()),
+    pattern = "^Mortality rate age"
+  )
+  deaths_cols <- older_children_ordered_value_cols(
+    value_cols,
+    ordered = paste("Deaths age", older_children_death_age_order()),
+    pattern = "^Deaths age"
+  )
+  other_cols <- setdiff(value_cols, c(rate_cols, deaths_cols))
+
+  data.table::setcolorder(out, c(id_cols, rate_cols, deaths_cols, other_cols))
+  out
 }
 
 # scales::show_col(cp_UNICEF_div)

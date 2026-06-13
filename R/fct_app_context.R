@@ -9,9 +9,9 @@ build_app_context <- local({
     }
 
     meta <- release_metadata()
-    dc <- data.table::fread(release_path("input", "country.info.CME.csv"))
-    dc.5.14 <- data.table::fread(release_path("input", "country.info.CME.5_14.csv"))
-    dc.15.24 <- data.table::fread(release_path("input", "country.info.CME.15_24.csv"))
+    dc <- filter_app_country_info(data.table::fread(release_path("input", "country.info.CME.csv")))
+    dc.5.14 <- filter_app_country_info(data.table::fread(release_path("input", "country.info.CME.5_14.csv")))
+    dc.15.24 <- filter_app_country_info(data.table::fread(release_path("input", "country.info.CME.15_24.csv")))
 
     dc[, UNICEF_region := ifelse(UNICEFReportRegion2 == "", UNICEFReportRegion1, UNICEFReportRegion2)]
     dc[, SDG_region := ifelse(SDGSimpleRegion1 != "Oceania", SDGSimpleRegion1, SDGSimpleRegion2)]
@@ -39,6 +39,11 @@ build_app_context <- local({
     c_median_m <- read.country.summary(
       dir_dt_cs = release_path("median_results_male", meta$file_name_male),
       year_wanted = meta$year_started:2030
+    )
+    c_median_total <- append_country_stillbirth_medians(
+      c_median_total,
+      read_stillbirth_country_medians(),
+      dc
     )
 
     c_median_total_5_14 <- read.country.summary(
@@ -99,6 +104,7 @@ build_app_context <- local({
     cache <<- list(
       meta = meta,
       update_string = meta$update_string,
+      WPP_Year = meta$WPP_Year,
       year_started = meta$year_started,
       year_ended = year_ended,
       year.lastestimatepublished = year_ended + 0.5,

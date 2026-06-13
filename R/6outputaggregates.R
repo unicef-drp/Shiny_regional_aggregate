@@ -22,7 +22,6 @@ if(!file.exists(file.path(dir_median_total, "Rates & Deaths_M49Region.csv")))
                    year.target = year.lastestimatepublished,
                    est.years = seq(1950.5, year.lastestimatepublished,1),
                    test=FALSE,
-                   get.world.results = FALSE,
                    round.output = FALSE,
                    output.rates.of.decline = FALSE,
                    regiontypes.select = c("M49"),

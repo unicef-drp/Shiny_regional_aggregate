@@ -98,6 +98,129 @@ aggregate_stillbirth_medians <- function(region_iso, stillbirth_country, include
   data.table::rbindlist(list(selected, aggregate_membership(world_membership)), use.names = TRUE, fill = TRUE)
 }
 
+#' Build country-level stillbirth medians for download tables
+#' @noRd
+country_stillbirth_medians <- function(stillbirth_country, country_lookup = NULL) {
+  if (is.null(stillbirth_country) || nrow(stillbirth_country) == 0L) {
+    return(NULL)
+  }
+
+  country <- data.table::copy(stillbirth_country)
+  country[, ISO3Code := toupper(trimws(as.character(ISO3Code)))]
+  country[, Shortind := as.character(Shortind)]
+  country[, Year := as.integer(floor(as.numeric(Year)))]
+  country[, Median := as.numeric(Median)]
+  country <- country[Shortind %in% c("SBR", "SB", "LB")]
+  if (nrow(country) == 0L) {
+    return(NULL)
+  }
+
+  id_cols <- c("ISO3Code", "Year")
+  if ("CountryName" %in% names(country)) {
+    id_cols <- c("ISO3Code", "CountryName", "Year")
+  }
+  country_wide <- data.table::dcast(
+    country,
+    stats::as.formula(paste(paste(id_cols, collapse = " + "), "~ Shortind")),
+    value.var = "Median",
+    fun.aggregate = function(x) x[1],
+    fill = NA_real_
+  )
+
+  if (!"SB" %in% names(country_wide) && all(c("SBR", "LB") %in% names(country_wide))) {
+    country_wide[, SB := round(LB * (SBR / 1000) / (1 - SBR / 1000))]
+  }
+  if (!"SBR" %in% names(country_wide) && all(c("SB", "LB") %in% names(country_wide))) {
+    country_wide[, SBR := data.table::fifelse(
+      !is.na(SB) & !is.na(LB) & (SB + LB) > 0,
+      SB / (SB + LB) * 1000,
+      NA_real_
+    )]
+  }
+  for (col in c("SBR", "SB")) {
+    if (!col %in% names(country_wide)) {
+      country_wide[, (col) := NA_real_]
+    }
+  }
+
+  if (!is.null(country_lookup) && nrow(country_lookup) > 0L) {
+    lookup <- data.table::as.data.table(country_lookup)
+    lookup_iso_cols <- names(lookup)[grepl("ISO", toupper(names(lookup)))]
+    lookup_name_cols <- intersect(c("OfficialName", "CountryName", "Region"), names(lookup))
+    if (length(lookup_iso_cols) > 0L && length(lookup_name_cols) > 0L) {
+      lookup <- data.table::copy(lookup)
+      data.table::setnames(lookup, lookup_iso_cols[1], "ISO3Code")
+      lookup[, ISO3Code := toupper(trimws(as.character(ISO3Code)))]
+      lookup[, Region := trimws(as.character(get(lookup_name_cols[1])))]
+      lookup <- unique(lookup[!is.na(Region) & nzchar(Region), .(ISO3Code, Region)], by = "ISO3Code")
+      country_wide <- merge(country_wide, lookup, by = "ISO3Code", all.x = TRUE, sort = FALSE)
+    }
+  }
+
+  if (!"Region" %in% names(country_wide)) {
+    if ("CountryName" %in% names(country_wide)) {
+      country_wide[, Region := CountryName]
+    } else {
+      country_wide[, Region := ISO3Code]
+    }
+  }
+  country_wide[, Region := trimws(as.character(Region))]
+
+  country_wide[
+    !is.na(Region) & nzchar(Region),
+    .(
+      Region,
+      Year,
+      Sex = "Total",
+      `Stillbirth rate` = SBR,
+      Stillbirths = SB
+    )
+  ]
+}
+
+#' Append country-level stillbirth medians to total country download rows
+#' @noRd
+append_country_stillbirth_medians <- function(
+  country_results,
+  stillbirth_country = read_stillbirth_country_medians(),
+  country_lookup = NULL
+) {
+  if (is.null(country_results) || nrow(country_results) == 0L) {
+    return(country_results)
+  }
+
+  stillbirth <- country_stillbirth_medians(stillbirth_country, country_lookup)
+  if (is.null(stillbirth) || nrow(stillbirth) == 0L) {
+    return(country_results)
+  }
+
+  out <- data.table::copy(country_results)
+  if (!"Sex" %in% names(out)) {
+    out[, Sex := "Total"]
+  }
+
+  data.table::setnames(stillbirth, "Stillbirth rate", "Stillbirth Rate")
+  stillbirth_cols <- c("Stillbirth Rate", "Stillbirths")
+  for (col in stillbirth_cols) {
+    if (!col %in% names(out)) {
+      out[, (col) := NA_real_]
+    }
+  }
+
+  out[, Year := as.integer(floor(as.numeric(Year)))]
+  out[, Sex := as.character(Sex)]
+  stillbirth[, Year := as.integer(floor(as.numeric(Year)))]
+  stillbirth[, Sex := as.character(Sex)]
+
+  out[
+    stillbirth,
+    (stillbirth_cols) := list(`i.Stillbirth Rate`, i.Stillbirths),
+    on = c("Region", "Year", "Sex")
+  ]
+
+  out[]
+}
+
 #' Append stillbirth median columns to total aggregate results
 #' @noRd
 append_stillbirth_results <- function(results, stillbirth_results) {

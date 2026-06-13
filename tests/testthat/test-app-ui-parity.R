@@ -21,3 +21,17 @@ testthat::test_that("upload examples are actual downloads", {
     'href="www/Upload_ISO3Code_example_multiple_regions.csv"[^>]+download="Upload_ISO3Code_example_multiple_regions.csv"'
   )
 })
+
+testthat::test_that("map output reserves enough space for the world view", {
+  html <- as.character(htmltools::renderTags(pkg_fn("app_ui")(NULL))[["html"]])
+
+  testthat::expect_match(html, 'id="mymap"', fixed = TRUE)
+  testthat::expect_match(html, "height:500px", fixed = TRUE)
+})
+
+testthat::test_that("About panel uses the configured WPP year", {
+  html <- as.character(htmltools::renderTags(pkg_fn("app_ui")(NULL))[["html"]])
+
+  testthat::expect_match(html, "World Population Prospects 2024", fixed = TRUE)
+  testthat::expect_false(grepl("World Population Prospects 2022", html, fixed = TRUE))
+})

@@ -58,3 +58,28 @@ testthat::test_that("Taiwan inherits China's map fill color", {
     selected_map$fillColor[selected_map$country == "China"][[1]]
   )
 })
+
+testthat::test_that("selected leaflet map cannot zoom out past the single-world view", {
+  country_lookup <- data.table::fread(
+    testthat::test_path("..", "..", "inst", "extdata", "input", "country.info.CME.csv")
+  )[, .(ISO3Code, OfficialName)]
+
+  selected_map <- pkg_fn("build_selected_world_map")(
+    world_map = pkg_fn("get.world.map")(),
+    selected_countries = c("Afghanistan", "Brazil"),
+    country_lookup = country_lookup
+  )
+
+  map <- pkg_fn("build_selected_leaflet_map")(selected_map)
+  tile_call <- map$x$calls[[which(vapply(
+    map$x$calls,
+    function(call) identical(call$method, "addProviderTiles"),
+    logical(1)
+  ))[[1]]]]
+  tile_options <- tile_call$args[[4]]
+
+  testthat::expect_equal(map$x$options$minZoom, 2)
+  testthat::expect_equal(map$x$setView[[1]], c(18, 0))
+  testthat::expect_equal(map$x$setView[[2]], 2)
+  testthat::expect_true(isTRUE(tile_options$noWrap))
+})

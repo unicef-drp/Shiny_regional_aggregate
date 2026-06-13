@@ -99,7 +99,7 @@ app_ui <- function(request) {
             br(),
             br(),
             h4("Map"),
-            leafletOutput("mymap"),
+            leafletOutput("mymap", height = "500px"),
             h6(note_map)
           ),
           tabPanel(
@@ -115,7 +115,7 @@ app_ui <- function(request) {
             br(),
             uiOutput("panel_results_table_older_gender")
           ),
-          get.about.panel(update_string = ctx$update_string)
+          get.about.panel(update_string = ctx$update_string, WPP_Year = ctx$WPP_Year)
         )
       ),
 
