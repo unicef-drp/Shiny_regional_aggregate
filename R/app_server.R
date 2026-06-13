@@ -363,14 +363,9 @@ app_server <- function(input, output, session) {
         value = should_show_world_in_plots(NULL, single_group_run())
       ),
       h5(a("Download definition of indicators", href = "www/Indicator definition and unit.xlsx", target = "_blank")),
-      plot_loading_output("plot_rate"),
+      plot_loading_output("plot_rate", height = "620px"),
       br(),
-      plot_loading_output("plot_death"),
-      br(),
-      fluidRow(
-        column(stillbirth_plot_column_width(), plot_loading_output("plot_stillbirth_rate")),
-        column(stillbirth_plot_column_width(), plot_loading_output("plot_stillbirth_count"))
-      ),
+      plot_loading_output("plot_death", height = "620px"),
       br(),
       br()
     )
@@ -587,18 +582,11 @@ app_server <- function(input, output, session) {
     if (!show_world_in_current_plots()) {
       dt <- dt[Region != "World", ]
     }
-    plot.rate(dt, vars0 = under_five_rate_plot_indicators())
-  })
-
-  output$plot_stillbirth_rate <- plotly::renderPlotly({
-    if (is.null(reactive.run())) {
-      return()
-    }
-    dt <- reactive.run()$both
-    if (!show_world_in_current_plots()) {
-      dt <- dt[Region != "World", ]
-    }
-    plot.rate(dt, vars0 = stillbirth_rate_plot_indicators(), title0 = "Stillbirths per 1,000 total births")
+    plot.rate(
+      dt,
+      vars0 = c(under_five_rate_plot_indicators(), stillbirth_rate_plot_indicators()),
+      ncol = 2
+    )
   })
 
   output$plot_rate_older <- plotly::renderPlotly({
@@ -655,18 +643,15 @@ app_server <- function(input, output, session) {
     if (!show_world_in_current_plots()) {
       dt <- dt[Region != "World", ]
     }
-    plot.count(dt, vars0 = under_five_count_plot_indicators(colnames(dt)), title0 = "Number of deaths")
-  })
-
-  output$plot_stillbirth_count <- plotly::renderPlotly({
-    if (is.null(reactive.run())) {
-      return()
-    }
-    dt <- reactive.run()$both
-    if (!show_world_in_current_plots()) {
-      dt <- dt[Region != "World", ]
-    }
-    plot.count(dt, vars0 = stillbirth_count_plot_indicators(colnames(dt)), title0 = "Number of stillbirths")
+    plot.count(
+      dt,
+      vars0 = c(
+        under_five_count_plot_indicators(colnames(dt)),
+        stillbirth_count_plot_indicators(colnames(dt))
+      ),
+      title0 = "Number of deaths and stillbirths",
+      ncol = 2
+    )
   })
 
   output$plot_rate_gender <- plotly::renderPlotly({
