@@ -24,10 +24,14 @@ testthat::test_that("reset clears previously computed aggregate results", {
     m_5_24 = NULL,
     region_code_lookup = NULL
   )
+  checkbox_updates <- list()
 
   testthat::local_mocked_bindings(
     build_app_context = function(force = FALSE) test_context,
     get_CME_aggregate_results = function(region_input) aggregate_results,
+    updateCheckboxInput = function(session, inputId, value = NULL, ...) {
+      checkbox_updates[[inputId]] <<- value
+    },
     .package = "shinyregionalaggregate"
   )
 
@@ -42,5 +46,7 @@ testthat::test_that("reset clears previously computed aggregate results", {
 
     session$setInputs(click_reset = 1)
     testthat::expect_null(reactive.run())
+    testthat::expect_identical(checkbox_updates$run_gender, TRUE)
+    testthat::expect_identical(checkbox_updates$run_older_total, TRUE)
   })
 })

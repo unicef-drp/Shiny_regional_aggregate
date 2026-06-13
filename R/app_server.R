@@ -70,7 +70,7 @@ app_server <- function(input, output, session) {
       selected = ctx$default_select
     )
     updateCheckboxInput(session, inputId = "input_by_region", value = FALSE)
-    updateCheckboxInput(session, inputId = "run_gender", value = FALSE)
+    updateCheckboxInput(session, inputId = "run_gender", value = TRUE)
     updateCheckboxInput(session, inputId = "run_older_total", value = TRUE)
     uploaded_region_structure(NULL)
     single_group_run(TRUE)

@@ -25,14 +25,13 @@ older_children_plot_test_data <- function() {
   out
 }
 
-testthat::test_that("older children and adolescents results are selected by default", {
+testthat::test_that("optional result checkboxes are selected by default", {
   html <- htmltools::renderTags(pkg_fn("app_ui")(NULL))$html
-  checkbox <- regmatches(
-    html,
-    regexpr('<input[^>]+id="run_older_total"[^>]*>', html, perl = TRUE)
-  )
+  sex_checkbox <- regmatches(html, regexpr('<input[^>]+id="run_gender"[^>]*>', html, perl = TRUE))
+  older_checkbox <- regmatches(html, regexpr('<input[^>]+id="run_older_total"[^>]*>', html, perl = TRUE))
 
-  testthat::expect_match(checkbox, "checked", fixed = TRUE)
+  testthat::expect_match(sex_checkbox, "checked", fixed = TRUE)
+  testthat::expect_match(older_checkbox, "checked", fixed = TRUE)
 })
 
 testthat::test_that("older children plot panel shows six age groups as rates then deaths", {
