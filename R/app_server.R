@@ -111,11 +111,16 @@ app_server <- function(input, output, session) {
           list(normalized = normalized)
         ))
 
-        matched_countries <- ctx$dc[ISO3Code %in% membership$data$ISO3Code, OfficialName]
+        country_picker_update <- build_uploaded_country_picker_update(
+          country_lookup = ctx$dc[, .(ISO3Code, OfficialName)],
+          membership = membership,
+          choices = ctx$countries
+        )
         shinyWidgets::updatePickerInput(
           session,
           inputId = "country_input_select",
-          selected = matched_countries
+          choices = country_picker_update$choices,
+          selected = country_picker_update$selected
         )
 
         num_regions <- data.table::uniqueN(normalized$Region)

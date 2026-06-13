@@ -52,6 +52,22 @@ read_app_region_iso_file <- function(path) {
   normalize_app_region_iso_input(dt)
 }
 
+#' Build the picker update after a successful uploaded ISO file
+#' @noRd
+build_uploaded_country_picker_update <- function(country_lookup, membership, choices) {
+  lookup <- data.table::as.data.table(country_lookup)
+  membership_iso <- unique(toupper(trimws(as.character(membership$data$ISO3Code))))
+
+  selected <- unique(lookup[ISO3Code %in% membership_iso, OfficialName])
+  selected <- selected[!is.na(selected) & nzchar(selected)]
+  selected <- choices[choices %in% selected]
+
+  list(
+    choices = choices,
+    selected = selected
+  )
+}
+
 #' Compute packaged aggregate outputs used by the app
 #' @noRd
 get_CME_aggregate_results <- function(region_iso, adhoc_name = NULL) {
