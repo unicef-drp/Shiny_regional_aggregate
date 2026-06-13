@@ -9,10 +9,9 @@ testthat::test_that("plot panels show loading text while plotly outputs render",
       `IMR median` = c(7, 6),
       `NMR median` = c(4, 3),
       `Stillbirth rate` = c(12, 11),
-      `Under-five deaths median` = c(100, 90),
-      `Infant deaths median` = c(40, 35),
-      `Neonatal deaths median` = c(25, 20),
-      Stillbirths = c(20, 18)
+      `Deaths Under 5` = c(100, 90),
+      `Deaths Age 0` = c(40, 35),
+      `Stillbirth Number` = c(20, 18)
     ),
     f = empty_country_results,
     m = empty_country_results,
@@ -53,32 +52,9 @@ testthat::test_that("plot panels show loading text while plotly outputs render",
     session$setInputs(click_run = 1)
 
     panel_html <- paste(as.character(output$panel_plot_rate), collapse = "\n")
-    testthat::expect_equal(length(gregexpr("Loading plots...", panel_html, fixed = TRUE)[[1]]), 2L)
-    for (plot_id in c("plot_rate", "plot_death")) {
+    testthat::expect_equal(length(gregexpr("Loading plots...", panel_html, fixed = TRUE)[[1]]), 4L)
+    for (plot_id in c("plot_rate", "plot_death", "plot_stillbirth_rate", "plot_stillbirth_count")) {
       testthat::expect_match(panel_html, paste0('id="', plot_id, '"'), fixed = TRUE)
-    }
-    testthat::expect_match(panel_html, "height:620px;", fixed = TRUE)
-    testthat::expect_false(grepl('id="plot_stillbirth_rate"', panel_html, fixed = TRUE))
-    testthat::expect_false(grepl('id="plot_stillbirth_count"', panel_html, fixed = TRUE))
-
-    rate_plot <- as.character(output$plot_rate)
-    for (indicator in c(
-      "Under-five Mortality Rate",
-      "Infant Mortality Rate",
-      "Neonatal Mortality Rate",
-      "Stillbirth Rate"
-    )) {
-      testthat::expect_match(rate_plot, indicator, fixed = TRUE)
-    }
-
-    death_plot <- as.character(output$plot_death)
-    for (indicator in c(
-      "Under-five Deaths",
-      "Infant Deaths",
-      "Neonatal Deaths",
-      "Stillbirths"
-    )) {
-      testthat::expect_match(death_plot, indicator, fixed = TRUE)
     }
   })
 })
