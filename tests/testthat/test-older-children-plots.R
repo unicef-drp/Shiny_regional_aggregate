@@ -78,6 +78,7 @@ testthat::test_that("older children plot panel combines six rates and deaths int
     session$setInputs(click_run = 1)
 
     panel_html <- as.character(output$panel_plot_older_children)
+    testthat::expect_equal(length(gregexpr("Loading plots...", panel_html, fixed = TRUE)[[1]]), 2L)
     plot_ids <- regmatches(panel_html, gregexpr('id="plot_[^"]+"', panel_html, perl = TRUE))[[1]]
     testthat::expect_identical(
       plot_ids,

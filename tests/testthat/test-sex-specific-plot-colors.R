@@ -64,6 +64,7 @@ testthat::test_that("sex-specific chart uses explicit male and female colors", {
     testthat::expect_match(panel_html, 'id="plot_rate_gender"', fixed = TRUE)
     testthat::expect_match(panel_html, "width:80%;", fixed = TRUE)
     testthat::expect_match(panel_html, "height:416px;", fixed = TRUE)
+    testthat::expect_match(panel_html, "Loading plots...", fixed = TRUE)
 
     session$setInputs(sex_region_tab = "World")
     plot_json <- as.character(output$plot_rate_gender)

@@ -90,6 +90,13 @@ app_server <- function(input, output, session) {
     selected
   }
 
+  plot_loading_output <- function(outputId, width = "100%", height = "400px") {
+    shinycssloaders::withSpinner(
+      plotly::plotlyOutput(outputId, width = width, height = height),
+      caption = "Loading plots..."
+    )
+  }
+
   observeEvent(input$click_reset, {
     shinyWidgets::updatePickerInput(
       session,
@@ -359,13 +366,13 @@ app_server <- function(input, output, session) {
         value = should_show_world_in_plots(NULL, single_group_run())
       ),
       h5(a("Download definition of indicators", href = "www/Indicator definition and unit.xlsx", target = "_blank")),
-      plotly::plotlyOutput("plot_rate"),
+      plot_loading_output("plot_rate"),
       br(),
-      plotly::plotlyOutput("plot_death"),
+      plot_loading_output("plot_death"),
       br(),
       fluidRow(
-        column(stillbirth_plot_column_width(), plotly::plotlyOutput("plot_stillbirth_rate")),
-        column(stillbirth_plot_column_width(), plotly::plotlyOutput("plot_stillbirth_count"))
+        column(stillbirth_plot_column_width(), plot_loading_output("plot_stillbirth_rate")),
+        column(stillbirth_plot_column_width(), plot_loading_output("plot_stillbirth_count"))
       ),
       br(),
       br()
@@ -391,7 +398,7 @@ app_server <- function(input, output, session) {
     fluidRow(
       h4(strong(panel_title1.2)),
       do.call(tabsetPanel, c(tabs, list(id = "sex_region_tab", selected = regions[[1]]))),
-      plotly::plotlyOutput("plot_rate_gender", width = "80%", height = "416px")
+      plot_loading_output("plot_rate_gender", width = "80%", height = "416px")
     )
   })
 
@@ -401,9 +408,9 @@ app_server <- function(input, output, session) {
     }
     fluidRow(
       h4(strong(panel_title1.3)),
-      plotly::plotlyOutput("plot_rate_older", height = "650px"),
+      plot_loading_output("plot_rate_older", height = "650px"),
       br(),
-      plotly::plotlyOutput("plot_death_older", height = "650px"),
+      plot_loading_output("plot_death_older", height = "650px"),
       br(),
       br()
     )
