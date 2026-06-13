@@ -77,7 +77,7 @@ app_ui <- function(request) {
           checkboxInput(
             inputId = "run_older_total",
             label = strong("Run older children and adolescents results?"),
-            value = FALSE
+            value = TRUE
           ),
           actionButton("click_run", strong("Run the Aggregates"), width = "200px"),
           br(),

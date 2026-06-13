@@ -71,7 +71,7 @@ app_server <- function(input, output, session) {
     )
     updateCheckboxInput(session, inputId = "input_by_region", value = FALSE)
     updateCheckboxInput(session, inputId = "run_gender", value = FALSE)
-    updateCheckboxInput(session, inputId = "run_older_total", value = FALSE)
+    updateCheckboxInput(session, inputId = "run_older_total", value = TRUE)
     uploaded_region_structure(NULL)
     single_group_run(TRUE)
     aggregate_results(NULL)
@@ -399,7 +399,9 @@ app_server <- function(input, output, session) {
       br(),
       plotly::plotlyOutput("plot_rate_older2"),
       br(),
-      plotly::plotlyOutput("plot_rate_older3"),
+      plotly::plotlyOutput("plot_death_older1"),
+      br(),
+      plotly::plotlyOutput("plot_death_older2"),
       br(),
       br()
     )
@@ -594,36 +596,63 @@ app_server <- function(input, output, session) {
   })
 
   output$plot_rate_older1 <- plotly::renderPlotly({
-    if (is.null(reactive.run())) {
+    if (is.null(reactive.run()$both_5_24) || !isTRUE(input$run_older_total)) {
       return()
     }
     dt <- reactive.run()$both_5_24
     if (!show_world_in_current_plots()) {
       dt <- dt[Region != "World", ]
     }
-    plot.rate(dt, vars0 = c("Mortality rate age 5-24", "Mortality rate age 10-19"), title0 = "Deaths per 1,000")
+    plot.rate(
+      dt,
+      vars0 = c("Mortality rate age 5-9", "Mortality rate age 10-14", "Mortality rate age 15-19"),
+      title0 = "Deaths per 1,000"
+    )
   })
 
   output$plot_rate_older2 <- plotly::renderPlotly({
-    if (is.null(reactive.run())) {
+    if (is.null(reactive.run()$both_5_24) || !isTRUE(input$run_older_total)) {
       return()
     }
     dt <- reactive.run()$both_5_24
     if (!show_world_in_current_plots()) {
       dt <- dt[Region != "World", ]
     }
-    plot.rate(dt, vars0 = c("Mortality rate age 5-14", "Mortality rate age 5-9", "Mortality rate age 10-14"), title0 = "Deaths per 1,000")
+    plot.rate(
+      dt,
+      vars0 = c("Mortality rate age 20-24", "Mortality rate age 10-19", "Mortality rate age 5-24"),
+      title0 = "Deaths per 1,000"
+    )
   })
 
-  output$plot_rate_older3 <- plotly::renderPlotly({
-    if (is.null(reactive.run())) {
+  output$plot_death_older1 <- plotly::renderPlotly({
+    if (is.null(reactive.run()$both_5_24) || !isTRUE(input$run_older_total)) {
       return()
     }
     dt <- reactive.run()$both_5_24
     if (!show_world_in_current_plots()) {
       dt <- dt[Region != "World", ]
     }
-    plot.rate(dt, vars0 = c("Mortality rate age 15-24", "Mortality rate age 15-19", "Mortality rate age 20-24"), title0 = "Deaths per 1,000")
+    plot.count(
+      dt,
+      vars0 = c("Deaths age 5 to 9", "Deaths age 10 to 14", "Deaths age 15 to 19"),
+      title0 = "Number of deaths"
+    )
+  })
+
+  output$plot_death_older2 <- plotly::renderPlotly({
+    if (is.null(reactive.run()$both_5_24) || !isTRUE(input$run_older_total)) {
+      return()
+    }
+    dt <- reactive.run()$both_5_24
+    if (!show_world_in_current_plots()) {
+      dt <- dt[Region != "World", ]
+    }
+    plot.count(
+      dt,
+      vars0 = c("Deaths age 20 to 24", "Deaths age 10 to 19", "Deaths age 5 to 24"),
+      title0 = "Number of deaths"
+    )
   })
 
   output$plot_death <- plotly::renderPlotly({
