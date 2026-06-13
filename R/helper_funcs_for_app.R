@@ -201,6 +201,10 @@ clean.table <- function(dt){
 cp_UNICEF_div = c("#002759", "#0058AB", "#1CABE2", "#69DBFF", "#CFF4FF", "#FFF09C",
                              "#FFC20E", "#F26A21", "#E2231A", "#B50800")
 
+sex_plot_colors <- function() {
+  c(Male = "#0058AB", Female = "#E2231A")
+}
+
 ResolvePlotColors <- function(n, base.colors = cp_UNICEF_div) {
   n <- as.integer(n)[1]
   if (is.na(n) || n < 1L) return(character(0))

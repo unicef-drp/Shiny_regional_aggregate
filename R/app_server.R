@@ -671,6 +671,7 @@ app_server <- function(input, output, session) {
       ggplot2::geom_line(linewidth = 1) +
       ggplot2::theme_bw() +
       ggplot2::labs(y = "", x = "", color = "") +
+      ggplot2::scale_color_manual(values = sex_plot_colors(), breaks = names(sex_plot_colors())) +
       ggplot2::scale_x_continuous(breaks = c(1990, 2000, 2010, ctx$year_ended)) +
       ggplot2::facet_wrap(facets = ~ Indicator + Region) +
       ggplot2::theme(strip.text.x = ggplot2::element_text(margin = ggplot2::margin(.3, 0, .3, 0, "cm")))
