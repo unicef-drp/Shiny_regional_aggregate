@@ -62,6 +62,34 @@ app_server <- function(input, output, session) {
     should_show_world_in_plots(input$show_world, single_group_run())
   }
 
+  sex_specific_regions <- function() {
+    if (is.null(reactive.run()$m)) {
+      return(character(0))
+    }
+
+    regions <- unique(as.character(reactive.run()$m$Region))
+    regions <- regions[!is.na(regions) & nzchar(regions)]
+    if (!show_world_in_current_plots()) {
+      regions <- regions[regions != "World"]
+    }
+
+    region_dt <- data.table::data.table(Region = regions)
+    unique(as.character(limit.plot.regions(region_dt)$Region))
+  }
+
+  selected_sex_specific_region <- function() {
+    regions <- sex_specific_regions()
+    if (length(regions) == 0L) {
+      return(NULL)
+    }
+
+    selected <- input$sex_region_tab
+    if (is.null(selected) || !selected %in% regions) {
+      selected <- regions[[1]]
+    }
+    selected
+  }
+
   observeEvent(input$click_reset, {
     shinyWidgets::updatePickerInput(
       session,
@@ -373,19 +401,21 @@ app_server <- function(input, output, session) {
       return()
     }
 
-    regions <- unique(reactive.run()$both$Region)
-    regions_non_world <- regions[regions != "World"]
-    n_regions <- length(regions_non_world)
-    base_height <- 800
-    plot_height <- if (n_regions > 2) base_height * 1.2 else base_height
+    regions <- sex_specific_regions()
+    if (length(regions) == 0L) {
+      return()
+    }
+    tabs <- lapply(
+      regions,
+      function(region) {
+        tabPanel(title = region, value = region)
+      }
+    )
 
     fluidRow(
       h4(strong(panel_title1.2)),
-      if (show_world_in_current_plots()) {
-        plotly::plotlyOutput("plot_rate_gender", height = paste0(plot_height * 1.1, "px"))
-      } else {
-        plotly::plotlyOutput("plot_rate_gender", height = paste0(plot_height, "px"))
-      }
+      do.call(tabsetPanel, c(tabs, list(id = "sex_region_tab", selected = regions[[1]]))),
+      plotly::plotlyOutput("plot_rate_gender", width = "80%", height = "416px")
     )
   })
 
@@ -395,13 +425,9 @@ app_server <- function(input, output, session) {
     }
     fluidRow(
       h4(strong(panel_title1.3)),
-      plotly::plotlyOutput("plot_rate_older1"),
+      plotly::plotlyOutput("plot_rate_older", height = "650px"),
       br(),
-      plotly::plotlyOutput("plot_rate_older2"),
-      br(),
-      plotly::plotlyOutput("plot_death_older1"),
-      br(),
-      plotly::plotlyOutput("plot_death_older2"),
+      plotly::plotlyOutput("plot_death_older", height = "650px"),
       br(),
       br()
     )
@@ -528,7 +554,7 @@ app_server <- function(input, output, session) {
     )
   }
 
-  plot.rate <- function(dt, vars0, title0 = "Deaths per 1,000 live births") {
+  plot.rate <- function(dt, vars0, title0 = "Deaths per 1,000 live births", ncol = NULL) {
     dt <- limit.plot.regions(dt)
     dt_long <- get.long(dt, vars0)
     dt_long[, Indicator := RecodePlotIndicators(Indicator, indicator.order = vars0)]
@@ -536,7 +562,7 @@ app_server <- function(input, output, session) {
       ggplot2::geom_line(linewidth = 1) +
       ggplot2::theme_bw() +
       ggplot2::labs(y = "", x = "", color = "") +
-      ggplot2::facet_wrap(~ Indicator) +
+      ggplot2::facet_wrap(~ Indicator, ncol = ncol) +
       ggplot2::guides(color = ggplot2::guide_legend(nrow = 2, byrow = TRUE)) +
       ggplot2::theme(legend.position = "bottom") +
       ggplot2::scale_color_manual(values = ResolvePlotColors(data.table::uniqueN(dt_long$Region))) +
@@ -549,7 +575,7 @@ app_server <- function(input, output, session) {
       )
   }
 
-  plot.count <- function(dt, vars0, title0 = "Number") {
+  plot.count <- function(dt, vars0, title0 = "Number", ncol = NULL) {
     dt <- limit.plot.regions(dt)
     dt <- dt[Year >= ctx$year_started]
     dt_long <- data.table::melt(dt, measure.vars = vars0, value.name = "Count", variable.name = "type")
@@ -559,7 +585,7 @@ app_server <- function(input, output, session) {
       ggplot2::geom_line(linewidth = 1) +
       ggplot2::theme_bw() +
       ggplot2::labs(y = "", x = "", color = "") +
-      ggplot2::facet_wrap(facets = ~ type) +
+      ggplot2::facet_wrap(facets = ~ type, ncol = ncol) +
       ggplot2::guides(color = ggplot2::guide_legend(nrow = 2, byrow = TRUE)) +
       ggplot2::theme(legend.position = "bottom") +
       ggplot2::scale_color_manual(values = ResolvePlotColors(data.table::uniqueN(dt_long$Region))) +
@@ -595,7 +621,7 @@ app_server <- function(input, output, session) {
     plot.rate(dt, vars0 = stillbirth_rate_plot_indicators(), title0 = "Stillbirths per 1,000 total births")
   })
 
-  output$plot_rate_older1 <- plotly::renderPlotly({
+  output$plot_rate_older <- plotly::renderPlotly({
     if (is.null(reactive.run()$both_5_24) || !isTRUE(input$run_older_total)) {
       return()
     }
@@ -605,42 +631,20 @@ app_server <- function(input, output, session) {
     }
     plot.rate(
       dt,
-      vars0 = c("Mortality rate age 5-9", "Mortality rate age 10-14", "Mortality rate age 15-19"),
-      title0 = "Deaths per 1,000"
+      vars0 = c(
+        "Mortality rate age 5-9",
+        "Mortality rate age 10-14",
+        "Mortality rate age 15-19",
+        "Mortality rate age 20-24",
+        "Mortality rate age 10-19",
+        "Mortality rate age 5-24"
+      ),
+      title0 = "Deaths per 1,000",
+      ncol = 3
     )
   })
 
-  output$plot_rate_older2 <- plotly::renderPlotly({
-    if (is.null(reactive.run()$both_5_24) || !isTRUE(input$run_older_total)) {
-      return()
-    }
-    dt <- reactive.run()$both_5_24
-    if (!show_world_in_current_plots()) {
-      dt <- dt[Region != "World", ]
-    }
-    plot.rate(
-      dt,
-      vars0 = c("Mortality rate age 20-24", "Mortality rate age 10-19", "Mortality rate age 5-24"),
-      title0 = "Deaths per 1,000"
-    )
-  })
-
-  output$plot_death_older1 <- plotly::renderPlotly({
-    if (is.null(reactive.run()$both_5_24) || !isTRUE(input$run_older_total)) {
-      return()
-    }
-    dt <- reactive.run()$both_5_24
-    if (!show_world_in_current_plots()) {
-      dt <- dt[Region != "World", ]
-    }
-    plot.count(
-      dt,
-      vars0 = c("Deaths age 5 to 9", "Deaths age 10 to 14", "Deaths age 15 to 19"),
-      title0 = "Number of deaths"
-    )
-  })
-
-  output$plot_death_older2 <- plotly::renderPlotly({
+  output$plot_death_older <- plotly::renderPlotly({
     if (is.null(reactive.run()$both_5_24) || !isTRUE(input$run_older_total)) {
       return()
     }
@@ -650,8 +654,16 @@ app_server <- function(input, output, session) {
     }
     plot.count(
       dt,
-      vars0 = c("Deaths age 20 to 24", "Deaths age 10 to 19", "Deaths age 5 to 24"),
-      title0 = "Number of deaths"
+      vars0 = c(
+        "Deaths age 5 to 9",
+        "Deaths age 10 to 14",
+        "Deaths age 15 to 19",
+        "Deaths age 20 to 24",
+        "Deaths age 10 to 19",
+        "Deaths age 5 to 24"
+      ),
+      title0 = "Number of deaths",
+      ncol = 3
     )
   })
 
@@ -693,19 +705,28 @@ app_server <- function(input, output, session) {
       dt_long <- dt_long[Region != "World", ]
     }
     dt_long <- limit.plot.regions(dt_long)
+    selected_region <- selected_sex_specific_region()
+    if (is.null(selected_region)) {
+      return()
+    }
+    dt_long <- dt_long[Region == selected_region]
     data.table::setorder(dt_long, Indicator, Region, Sex, Year)
     dt_long[, Indicator := RecodePlotIndicators(Indicator, indicator.order = vars0)]
+    dt_long[, tooltip_text := paste0("Year: ", Year, "<br />Rate: ", Rate, "<br />Sex: ", Sex)]
 
-    p <- ggplot2::ggplot(dt_long, ggplot2::aes(x = Year, y = Rate, color = Sex, group = interaction(Region, Sex))) +
+    p <- ggplot2::ggplot(
+      dt_long,
+      ggplot2::aes(x = Year, y = Rate, color = Sex, group = Sex, text = tooltip_text)
+    ) +
       ggplot2::geom_line(linewidth = 1) +
       ggplot2::theme_bw() +
       ggplot2::labs(y = "", x = "", color = "") +
       ggplot2::scale_color_manual(values = sex_plot_colors(), breaks = names(sex_plot_colors())) +
       ggplot2::scale_x_continuous(breaks = c(1990, 2000, 2010, ctx$year_ended)) +
-      ggplot2::facet_wrap(facets = ~ Indicator + Region) +
+      ggplot2::facet_wrap(facets = ~ Indicator, ncol = 2) +
       ggplot2::theme(strip.text.x = ggplot2::element_text(margin = ggplot2::margin(.3, 0, .3, 0, "cm")))
 
-    plotly::ggplotly(p, tooltip = c("Year", "Rate")) |>
+    plotly::ggplotly(p, tooltip = "text") |>
       plotly::layout(
         yaxis = list(title = "Deaths per 1,000 live births", titlefont = list(size = titlefont0)),
         legend = list(orientation = "h", x = 0.4, y = -0.1)
