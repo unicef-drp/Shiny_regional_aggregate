@@ -14,6 +14,7 @@ app_server <- function(input, output, session) {
 
   uploaded_region_structure <- reactiveVal(NULL)
   single_group_run <- reactiveVal(TRUE)
+  aggregate_results <- reactiveVal(NULL)
 
   rename.single.region <- function(values) {
     custom_group_name <- if (is.null(input$adhoc_name)) "" else trimws(input$adhoc_name)
@@ -73,6 +74,7 @@ app_server <- function(input, output, session) {
     updateCheckboxInput(session, inputId = "run_older_total", value = FALSE)
     uploaded_region_structure(NULL)
     single_group_run(TRUE)
+    aggregate_results(NULL)
   }, ignoreInit = TRUE)
 
   observeEvent(input$input_by_region, {
@@ -240,14 +242,15 @@ app_server <- function(input, output, session) {
     map
   })
 
-  reactive.run <- eventReactive(input$click_run, {
+  observeEvent(input$click_run, {
     if (length(input$country_input_select) == 0) {
       showModal(modalDialog(
         title = "Please select countries first.",
         footer = "You may click anywhere to dismiss this message",
         easyClose = TRUE
       ))
-      return(NULL)
+      aggregate_results(NULL)
+      return(invisible(NULL))
     }
 
     cs <- input$country_input_select
@@ -331,8 +334,12 @@ app_server <- function(input, output, session) {
     results$c_median_total_older <- ctx$c_median_total_older[Region %in% cs]
     results$c_median_f_older <- ctx$c_median_f_older[Region %in% cs]
     results$c_median_m_older <- ctx$c_median_m_older[Region %in% cs]
-    results
+    aggregate_results(results)
   }, ignoreInit = TRUE)
+
+  reactive.run <- reactive({
+    aggregate_results()
+  })
 
   output$panel_plot_rate <- renderUI({
     if (is.null(reactive.run())) {
