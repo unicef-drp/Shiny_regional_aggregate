@@ -289,5 +289,5 @@ stillbirth_count_plot_indicators <- function(columns) {
 #' Bootstrap column width for stillbirth plots in the app
 #' @noRd
 stillbirth_plot_column_width <- function() {
-  4L
+  5L
 }

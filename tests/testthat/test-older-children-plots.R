@@ -94,6 +94,8 @@ testthat::test_that("older children plot panel combines six rates and deaths int
 
     rate_plot <- as.character(output$plot_rate_older)
     death_plot <- as.character(output$plot_death_older)
+    rate_plot_json <- jsonlite::fromJSON(rate_plot, simplifyVector = FALSE)
+    death_plot_json <- jsonlite::fromJSON(death_plot, simplifyVector = FALSE)
 
     for (indicator in c(
       "Mortality rate age 5-9",
@@ -121,5 +123,10 @@ testthat::test_that("older children plot panel combines six rates and deaths int
     testthat::expect_false(grepl("Mortality rate age 15-24", rate_plot, fixed = TRUE))
     testthat::expect_false(grepl("Deaths age 5 to 14", death_plot, fixed = TRUE))
     testthat::expect_false(grepl("Deaths age 15 to 24", death_plot, fixed = TRUE))
+
+    testthat::expect_identical(rate_plot_json$x$layout$yaxis$title, "Deaths per 1,000")
+    testthat::expect_identical(rate_plot_json$x$layout$yaxis2$title, "Deaths per 1,000")
+    testthat::expect_identical(death_plot_json$x$layout$yaxis$title, "Number of deaths")
+    testthat::expect_identical(death_plot_json$x$layout$yaxis2$title, "Number of deaths")
   })
 })

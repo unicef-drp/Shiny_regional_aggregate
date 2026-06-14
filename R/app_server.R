@@ -534,6 +534,23 @@ app_server <- function(input, output, session) {
     )
   }
 
+  facet.yaxis.layout <- function(title, titlefont, tickfont = NULL, facet_count = 1L, ncol = NULL) {
+    axis_layout <- list(title = title, titlefont = titlefont)
+    if (!is.null(tickfont)) {
+      axis_layout$tickfont <- tickfont
+    }
+
+    layout <- list(yaxis = axis_layout)
+    if (is.null(ncol) || ncol < 1L || facet_count <= ncol) {
+      return(layout)
+    }
+
+    for (row_index in seq.int(2L, ceiling(facet_count / ncol))) {
+      layout[[paste0("yaxis", row_index)]] <- axis_layout
+    }
+    layout
+  }
+
   plot.rate <- function(dt, vars0, title0 = "Deaths per 1,000 live births", ncol = NULL) {
     dt <- limit.plot.regions(dt)
     dt_long <- get.long(dt, vars0)
@@ -548,11 +565,17 @@ app_server <- function(input, output, session) {
       ggplot2::scale_color_manual(values = ResolvePlotColors(data.table::uniqueN(dt_long$Region))) +
       ggplot2::scale_x_continuous(breaks = c(1990, 2000, 2010, ctx$year_ended))
 
-    plotly::ggplotly(p, tooltip = c("Year", "Rate")) |>
-      plotly::layout(
-        yaxis = list(title = title0, titlefont = list(size = titlefont0)),
-        legend = region.legend.layout(dt_long$Region)
-      )
+    yaxis_layout <- facet.yaxis.layout(
+      title = title0,
+      titlefont = list(size = titlefont0),
+      facet_count = data.table::uniqueN(dt_long$Indicator),
+      ncol = ncol
+    )
+    plotly_plot <- plotly::ggplotly(p, tooltip = c("Year", "Rate"))
+    do.call(
+      plotly::layout,
+      c(list(p = plotly_plot), yaxis_layout, list(legend = region.legend.layout(dt_long$Region)))
+    )
   }
 
   plot.count <- function(dt, vars0, title0 = "Number", ncol = NULL) {
@@ -572,11 +595,18 @@ app_server <- function(input, output, session) {
       ggplot2::scale_x_continuous(breaks = c(1990, 2000, 2010, ctx$year_ended)) +
       ggplot2::scale_y_continuous(labels = scales::label_number(suffix = "k", scale = 1E-3, big.mark = ","))
 
-    plotly::ggplotly(p, tooltip = c("Year", "Count")) |>
-      plotly::layout(
-        yaxis = list(title = title0, titlefont = list(size = titlefont0), tickfont = list(size = 10)),
-        legend = region.legend.layout(dt_long$Region)
-      )
+    yaxis_layout <- facet.yaxis.layout(
+      title = title0,
+      titlefont = list(size = titlefont0),
+      tickfont = list(size = 10),
+      facet_count = data.table::uniqueN(dt_long$type),
+      ncol = ncol
+    )
+    plotly_plot <- plotly::ggplotly(p, tooltip = c("Year", "Count"))
+    do.call(
+      plotly::layout,
+      c(list(p = plotly_plot), yaxis_layout, list(legend = region.legend.layout(dt_long$Region)))
+    )
   }
 
   output$plot_rate <- plotly::renderPlotly({

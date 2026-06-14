@@ -149,5 +149,5 @@ testthat::test_that("stillbirth chart indicators are separated from under-five c
   testthat::expect_identical(pkg_fn("stillbirth_rate_plot_indicators")(), "Stillbirth rate")
   testthat::expect_false("Stillbirths" %in% pkg_fn("under_five_count_plot_indicators")(columns))
   testthat::expect_identical(pkg_fn("stillbirth_count_plot_indicators")(columns), "Stillbirths")
-  testthat::expect_identical(pkg_fn("stillbirth_plot_column_width")(), 4L)
+  testthat::expect_identical(pkg_fn("stillbirth_plot_column_width")(), 5L)
 })
