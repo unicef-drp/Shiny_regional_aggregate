@@ -4,13 +4,14 @@
 # Male --------------------------------------------------------------------
 
 run.outputaggregates.gender <- function(year.lastestimatepublished, reuse.replacement.country = TRUE){
+meta <- release_metadata()
 if(!file.exists(file.path(dir_median_male, "Rates & Deaths_M49Region.csv")))
 {
   OutputAggregates(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_u5mr_m.csv"),
                    results.IMR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_imr_m.csv"),
                    results.NMR.file = NULL,
                    country.info.file = file.path(dir_input, "country.info.CME.csv"),
-                   population.file = file.path(dir_input, "data_male_CMEpopulation.WPP2024.csv"),
+                   population.file = file.path(dir_input, meta$population_file_male),
                    run.on.server = FALSE,
                    year4 = year.lastestimatepublished,
                    output.dir = dir_median_male,
@@ -30,7 +31,7 @@ OutputAggregates(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculat
                  results.IMR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_imr_m.csv"),
                  results.NMR.file = NULL,
                  country.info.file = file.path(dir_input, "country.info.CME_adhoc.csv"),
-                 population.file = file.path(dir_input, "data_male_CMEpopulation.WPP2024.csv"),
+                 population.file = file.path(dir_input, meta$population_file_male),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_male,
@@ -60,7 +61,7 @@ if(!file.exists(file.path(dir_median_female, "Rates & Deaths_M49Region.csv")))
                    results.IMR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_imr_f.csv"),
                    results.NMR.file = NULL,
                    country.info.file = file.path(dir_input, "country.info.CME.csv"),
-                   population.file = file.path(dir_input, "data_female_CMEpopulation.WPP2024.csv"),
+                   population.file = file.path(dir_input, meta$population_file_female),
                    run.on.server = FALSE,
                    year4 = year.lastestimatepublished,
                    output.dir = dir_median_female,
@@ -81,7 +82,7 @@ OutputAggregates(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculat
                  results.IMR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_imr_f.csv"),
                  results.NMR.file = NULL,
                  country.info.file = file.path(dir_input, "country.info.CME_adhoc.csv"),
-                 population.file = file.path(dir_input, "data_female_CMEpopulation.WPP2024.csv"),
+                 population.file = file.path(dir_input, meta$population_file_female),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_female,

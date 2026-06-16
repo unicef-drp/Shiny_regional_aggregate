@@ -40,3 +40,38 @@ testthat::test_that("repository R files no longer use here::here", {
 
   testthat::expect_false(any(hits), info = paste(r_files[hits], collapse = "\n"))
 })
+
+testthat::test_that("WPP input file names are derived from release metadata", {
+  r_files <- c(
+    file.path(repo_root, "R", "6outputaggregates_gender.R"),
+    file.path(repo_root, "update", "2.Create M49 regions and initiate files for app.R")
+  )
+  hits <- vapply(
+    r_files,
+    function(path) any(grepl("WPP20[0-9]{2}", readLines(path, warn = FALSE))),
+    logical(1)
+  )
+
+  testthat::expect_false(any(hits), info = paste(r_files[hits], collapse = "\n"))
+})
+
+testthat::test_that("annual update scripts explicitly load release metadata", {
+  update_files <- file.path(
+    repo_root,
+    "update",
+    c("1.Update all input data.R", "2.Create M49 regions and initiate files for app.R")
+  )
+
+  for (path in update_files) {
+    lines <- readLines(path, warn = FALSE)
+
+    testthat::expect_true(
+      any(grepl("release_meta <- release_metadata\\(\\)", lines)),
+      info = path
+    )
+    testthat::expect_true(
+      any(grepl("list2env\\(release_meta, envir = environment\\(\\)\\)", lines)),
+      info = path
+    )
+  }
+})

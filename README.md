@@ -100,25 +100,42 @@ dt_agg_out <- get_CME_aggregate(example_input)
 
 ## Yearly update workflow
 
-Use `update_me_every_year.R` as the canonical yearly update checklist.
+Use `R/fct_release_metadata.R` as the single place for annual release settings.
+The `fct` prefix is short for "function"; this file contains the functions that
+define app release metadata.
+
+At the start of each annual update, edit `release_metadata_defaults()` in
+`R/fct_release_metadata.R`:
+
+- `update_string`: release date text shown in the app's About panel.
+- `WPP_Year`: World Population Prospects year. WPP population input filenames are
+  derived from this value, so do not edit WPP file names in the update scripts.
+- `stillbirth_aggregate_results_dir`: source folder for stillbirth aggregate
+  results when that input changes.
+
+After that, source `update_me_every_year.R`. It loads `release_metadata()` and
+creates the legacy variables expected by the update scripts, such as `dir_input`,
+`dir_median_total`, `file_name_total`, `year_started`, and `WPP_Year`.
 
 At a high level:
 
-1. Update release date text in `update_me_every_year.R`, which is used in the app's About panel.
-2. Refresh required input datasets in `inst/extdata/input/` when a new IGME round requires them.
-3. Rebuild median result folders using scripts under `update/`.
-4. Recreate region metadata and packaged output folders under `inst/extdata/`.
-5. Validate that the app runs and exports the expected tables.
+1. Update annual release settings in `R/fct_release_metadata.R`.
+2. Source `update_me_every_year.R` and follow its checklist comments.
+3. Refresh required input datasets in `inst/extdata/input/` when a new IGME round requires them.
+4. Rebuild median result folders using scripts under `update/`.
+5. Recreate region metadata and packaged output folders under `inst/extdata/`.
+6. Validate that the app runs and exports the expected tables.
 
-The script includes detailed comments about which files usually change and which typically remain unchanged.
+`update_me_every_year.R` is now a workflow checklist and metadata loader, not the
+place to edit annual values.
 
 ## Repository structure
 
 - `app.R`: Main Shiny application launcher.
-- `R/`: Package functions, including `run_app()` and `get_CME_aggregate()`.
+- `R/`: Package functions, including `run_app()`, `get_CME_aggregate()`, and release metadata helpers such as `fct_release_metadata.R`.
 - `inst/extdata/`: Packaged input data, output data, median result folders, and examples.
 - `inst/app/www/`: Static assets for the Shiny UI.
-- `update_me_every_year.R`: Yearly update instructions and shared parameters.
+- `update_me_every_year.R`: Yearly update checklist that loads shared parameters from `R/fct_release_metadata.R`.
 - `update/`: Scripts used during annual data refresh and folder regeneration.
 
 ## Major updates

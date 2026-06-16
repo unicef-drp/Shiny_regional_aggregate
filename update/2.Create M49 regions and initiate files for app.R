@@ -50,6 +50,9 @@ suppressPackageStartupMessages({
 
 
 source("update_me_every_year.R")
+release_meta <- release_metadata()
+list2env(release_meta, envir = environment())
+meta <- release_meta
 
 
 # Dataset and Parameters -----------------------------------------------------------------
@@ -118,7 +121,7 @@ OutputAggregates(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculat
                  results.IMR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_imr_m.csv"),
                  results.NMR.file = NULL,
                  country.info.file = file.path(dir_input, "country.info.CME.csv"),
-                 population.file = file.path(dir_input, "data_male_CMEpopulation.WPP2024.csv"),
+                 population.file = file.path(dir_input, meta$population_file_male),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_male,
@@ -137,7 +140,7 @@ OutputAggregates(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculat
                  results.IMR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_imr_f.csv"),
                  results.NMR.file = NULL,
                  country.info.file = file.path(dir_input, "country.info.CME.csv"),
-                 population.file = file.path(dir_input, "data_female_CMEpopulation.WPP2024.csv"),
+                 population.file = file.path(dir_input, meta$population_file_female),
                  run.on.server = FALSE,
                  year4 = year.lastestimatepublished,
                  output.dir = dir_median_female,
@@ -170,7 +173,7 @@ OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "10q5", "Results.
 OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_10q5_m.csv"),
                      results.IMR.file  = file.path(dir_output, "Sex_forDeathCalculation", "Results_5q5_m.csv"),
                      country.info.file = file.path(dir_input, "country.info.CME.5_14.csv"),
-                     population.file   = file.path(dir_input, "data_male_CME_WPP2024_10q5.csv"),
+                     population.file   = file.path(dir_input, meta$population_file_male_10q5),
                      data.a0.file      = file.path(dir_input, "a0.csv"),
                      output.dir = dir_median_male_5_14,
                      regiontypes.select = c("SDGSimple"))
@@ -178,7 +181,7 @@ OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalc
 OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_10q5_f.csv"),
                      results.IMR.file  = file.path(dir_output, "Sex_forDeathCalculation", "Results_5q5_f.csv"),
                      country.info.file = file.path(dir_input, "country.info.CME.5_14.csv"),
-                     population.file   = file.path(dir_input, "data_female_CME_WPP2024_10q5.csv"),
+                     population.file   = file.path(dir_input, meta$population_file_female_10q5),
                      data.a0.file      = file.path(dir_input, "a0.csv"),
                      output.dir = dir_median_female_5_14,
                      regiontypes.select = c("SDGSimple"))
@@ -198,7 +201,7 @@ OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "10q15", "Results
 OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_10q15_f.csv"),
                      results.IMR.file  = file.path(dir_output, "Sex_forDeathCalculation", "Results_5q15_f.csv"),
                      country.info.file = file.path(dir_input, "country.info.CME.15_24.csv"),
-                     population.file   = file.path(dir_input, "data_female_CME_WPP2024_10q15.csv"),
+                     population.file   = file.path(dir_input, meta$population_file_female_10q15),
                      data.a0.file      = file.path(dir_input, "a0.csv"),
                      output.dir = dir_median_female_15_24,
                      regiontypes.select = c("SDGSimple"))
@@ -207,7 +210,7 @@ OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalc
 OutputAggregates.ori(results.U5MR.file = file.path(dir_output, "Sex_forDeathCalculation", "Results_10q15_m.csv"),
                      results.IMR.file  = file.path(dir_output, "Sex_forDeathCalculation", "Results_5q15_m.csv"),
                      country.info.file = file.path(dir_input, "country.info.CME.15_24.csv"),
-                     population.file   = file.path(dir_input, "data_male_CME_WPP2024_10q15.csv"),
+                     population.file   = file.path(dir_input, meta$population_file_male_10q15),
                      data.a0.file      = file.path(dir_input, "a0.csv"),
                      output.dir = dir_median_male_15_24,
                      regiontypes.select = c("SDGSimple"))

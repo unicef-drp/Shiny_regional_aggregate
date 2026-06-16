@@ -31,7 +31,8 @@ testthat::test_that("map output reserves enough space for the world view", {
 
 testthat::test_that("About panel uses the configured WPP year", {
   html <- as.character(htmltools::renderTags(pkg_fn("app_ui")(NULL))[["html"]])
+  expected <- paste("World Population Prospects", pkg_fn("release_metadata_defaults")()$WPP_Year)
 
-  testthat::expect_match(html, "World Population Prospects 2024", fixed = TRUE)
+  testthat::expect_match(html, expected, fixed = TRUE)
   testthat::expect_false(grepl("World Population Prospects 2022", html, fixed = TRUE))
 })

@@ -2,6 +2,8 @@
 
 # Modify this script to copy the correct files from each round's outputs
 source("update_me_every_year.R")
+release_meta <- release_metadata()
+list2env(release_meta, envir = environment())
 
 USERPROFILE <- Sys.getenv("USERPROFILE") # leading dir to Dropbox
 source(file.path(USERPROFILE, "Dropbox/UNICEF Work/profile.R"))
