@@ -6,7 +6,7 @@ normalize_app_region_iso_input <- function(region_iso) {
 
   iso_cols <- names(dt)[grepl("ISO", toupper(names(dt)))]
   if (length(iso_cols) == 0L) {
-    stop("Could not find ISO3Code column. Please ensure your file has an 'ISO3Code' column.")
+    stop("Could not find an ISO3Code column. Please ensure your file has a column named 'ISO3Code'.")
   }
 
   data.table::setnames(dt, iso_cols[1], "ISO3Code")
@@ -46,7 +46,7 @@ read_app_region_iso_file <- function(path) {
     csv = data.table::fread(path),
     xlsx = data.table::setDT(readxl::read_excel(path)),
     xls = data.table::setDT(readxl::read_excel(path)),
-    stop("Currently accept csv, xlsx, or xls files. Please re-upload.")
+    stop("Accepted file types are CSV, XLSX, and XLS. Please upload the file again.")
   )
 
   normalize_app_region_iso_input(dt)

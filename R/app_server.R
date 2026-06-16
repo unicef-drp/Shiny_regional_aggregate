@@ -2,13 +2,13 @@
 #' @noRd
 app_server <- function(input, output, session) {
   ctx <- build_app_context()
-  panel_title1.1 <- "Results of selected regional aggregates for"
+  panel_title1.1 <- "Selected regional aggregate results for"
   panel_title1.2 <- "Sex-specific results for selected regional aggregates"
-  panel_title1.3 <- "Older children and adolescents results for selected regional aggregates"
+  panel_title1.3 <- "Results for older children and adolescents in selected regional aggregates"
   panel_title2.1 <- "Table of selected regional aggregates"
   panel_title2.2 <- "Sex-specific results for selected regional aggregates"
-  panel_title2.3 <- "Older children and adolescents results for selected regional aggregates"
-  panel_title2.4 <- "Sex-specific older children and adolescents results"
+  panel_title2.3 <- "Results for older children and adolescents in selected regional aggregates"
+  panel_title2.4 <- "Sex-specific results for older children and adolescents"
   panel_note1 <- "Regional, world, and country data are available for download:"
   panel_note2 <- "Regional, world, and country data (including sex-specific results) are available for download:"
 
@@ -125,10 +125,12 @@ app_server <- function(input, output, session) {
 
     textAreaInput(
       inputId = "adhoc_name",
-      label = "(Optional) Display name for the single custom group",
+      label = "Optional display name for the custom group",
       value = ctx$adhoc_name,
+      height = "38px",
       rows = 1,
-      placeholder = "Only changes the displayed/downloaded group name; leave blank to keep the default"
+      placeholder = "Changes only the displayed and downloaded group name; leave blank to keep the default",
+      resize = "none"
     )
   })
 
@@ -166,14 +168,14 @@ app_server <- function(input, output, session) {
             "Uploaded ", nrow(membership$data), " countries<br>",
             "Region levels: ", length(membership$region_cols), "<br>",
             "Total regions: ", num_regions, "<br><br>",
-            "You may click anywhere to dismiss this message"
+            "Click outside this message to dismiss it."
           )),
           easyClose = TRUE
         ))
       },
       error = function(e) {
         showModal(modalDialog(
-          title = "Upload Error",
+          title = "Upload error",
           paste("Error reading file:", conditionMessage(e)),
           easyClose = TRUE
         ))
@@ -188,7 +190,7 @@ app_server <- function(input, output, session) {
       regions <- unique(reactive.run()$both$Region)
       regions_non_world <- regions[regions != "World"]
       if (length(regions_non_world) > 1) {
-        return(paste("The selected regions:", paste(sort(regions_non_world), collapse = ", ")))
+        return(paste("Selected regions:", paste(sort(regions_non_world), collapse = ", ")))
       }
     }
 
@@ -213,7 +215,7 @@ app_server <- function(input, output, session) {
       return(tagList(
         h5(strong(paste(
           length(cs),
-          if (length(cs) == 1) "Country across" else "Countries across",
+          if (length(cs) == 1) "country across" else "countries across",
           num_regions,
           if (num_regions == 1) "region:" else "regions:"
         ))),
@@ -229,10 +231,10 @@ app_server <- function(input, output, session) {
       regions <- unique(reactive.run()$both$Region)
       regions_non_world <- regions[regions != "World"]
       if (length(regions_non_world) > 1) {
-        return(h4("The selected regions:"))
+        return(h4("Selected regions:"))
       }
     }
-    h4("The selected countries:")
+    h4("Selected countries:")
   })
 
   output$mymap <- renderLeaflet({
@@ -254,7 +256,7 @@ app_server <- function(input, output, session) {
     if (length(input$country_input_select) == 0) {
       showModal(modalDialog(
         title = "Please select countries first.",
-        footer = "You may click anywhere to dismiss this message",
+        footer = "Click outside this message to dismiss it.",
         easyClose = TRUE
       ))
       aggregate_results(NULL)
@@ -289,14 +291,14 @@ app_server <- function(input, output, session) {
         "<br>",
         if (!is.null(grouped_country_html)) paste0(grouped_country_html, "<br><br>") else "",
         "Processing ", num_regions, " region(s).",
-        "<br>It takes about ", seconds, " seconds."
+        "<br>This takes about ", seconds, " seconds."
       ))
     }
 
     if (isTRUE(input$run_gender)) {
       if (isTRUE(input$run_older_total)) {
         showModal(modalDialog(
-          title = paste0("Running aggregate for sex-specific under-five and older children for ", modal_country_title),
+          title = paste0("Running sex-specific under-five, older child, and adolescent aggregates for ", modal_country_title),
           build_modal_body(60),
           footer = NULL
         ))
@@ -309,7 +311,7 @@ app_server <- function(input, output, session) {
       }
     } else if (isTRUE(input$run_older_total)) {
       showModal(modalDialog(
-        title = paste0("Running aggregate for under-five and older children for ", modal_country_title),
+        title = paste0("Running under-five, older child, and adolescent aggregates for ", modal_country_title),
         build_modal_body(30),
         footer = NULL
       ))
@@ -362,7 +364,7 @@ app_server <- function(input, output, session) {
         "Show results for the world in plots",
         value = should_show_world_in_plots(NULL, single_group_run())
       ),
-      h5(a("Download definition of indicators", href = "www/Indicator definition and unit.xlsx", target = "_blank")),
+      h5(a("Download indicator definitions", href = "www/Indicator definition and unit.xlsx", target = "_blank")),
       plot_loading_output("plot_rate"),
       br(),
       plot_loading_output("plot_death"),
@@ -423,7 +425,7 @@ app_server <- function(input, output, session) {
       div(
         style = "display: flex; gap: 10px; flex-wrap: wrap;",
         downloadButton("download_table_all", "Download"),
-        downloadButton("download_table_all_long", "Download all in long-format")
+        downloadButton("download_table_all_long", "Download all in long format")
       ),
       br(),
       br(),
@@ -437,13 +439,13 @@ app_server <- function(input, output, session) {
     }
     fluidRow(
       h4(strong(panel_title2.2)),
-      p(strong("Data for the female")),
+      p(strong("Female data")),
       downloadButton("download_table_f", "Download"),
       br(),
       br(),
       DT::dataTableOutput("results_table_f", width = "80%"),
       br(),
-      p(strong("Data for the male")),
+      p(strong("Male data")),
       downloadButton("download_table_m", "Download"),
       br(),
       br(),
@@ -470,13 +472,13 @@ app_server <- function(input, output, session) {
     }
     fluidRow(
       h4(strong(panel_title2.4)),
-      p(strong("Data for the female")),
+      p(strong("Female data")),
       downloadButton("download_table_older_f", "Download"),
       br(),
       br(),
       DT::dataTableOutput("results_table_older_f", width = "80%"),
       br(),
-      p(strong("Data for the male")),
+      p(strong("Male data")),
       downloadButton("download_table_older_m", "Download"),
       br(),
       br(),

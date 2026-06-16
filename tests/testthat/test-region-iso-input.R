@@ -22,6 +22,14 @@ testthat::test_that("normalize_region_iso_input excludes countries unavailable f
   )
 })
 
+testthat::test_that("read_app_region_iso_file reports accepted file types clearly", {
+  testthat::expect_error(
+    pkg_fn("read_app_region_iso_file")("regions.txt"),
+    "Accepted file types are CSV, XLSX, and XLS. Please upload the file again.",
+    fixed = TRUE
+  )
+})
+
 testthat::test_that("build_region_membership_wide converts long input to AdhocCountries columns", {
   raw <- data.table::data.table(
     Region = c("Group A", "Group B", "Group B"),

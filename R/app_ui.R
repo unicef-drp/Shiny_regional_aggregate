@@ -4,13 +4,13 @@ app_ui <- function(request) {
   ctx <- build_app_context()
 
   note_header <- p(
-    "This ShinyApp produces regional aggregates of child mortality estimates based on individually selected countries. The ",
+    "This Shiny app produces regional aggregates of child mortality estimates for selected countries. The latest ",
     a("UN IGME", href = "https://childmortality.org", target = "_blank"),
-    "'s latest estimates of neonatal, infant and under-five mortality are used. Country data will also be included in the downloaded dataset from the \"Tables and Data Download\" panel after running the aggregates."
+    " estimates of neonatal, infant, and under-five mortality are used. Country-level data are also included in the dataset downloaded from the \"Tables and data download\" panel after the aggregates run."
   )
 
-  note_input <- "Please select countries from the drop-down list, or by uploading a file of countries' ISO-alpha3 codes."
-  note_map <- "Note: This map is stylized and not to scale and does not reflect a position by UNICEF on the legal status of any country or territory or the delimitation of any country or territory or the delimitation of any frontiers."
+  note_input <- "Please select countries from the drop-down list or upload a file of countries' ISO alpha-3 codes."
+  note_map <- "Note: This map is stylized, is not to scale, and does not reflect any position by UNICEF on the legal status of any country or territory, or on the delimitation of frontiers or boundaries."
 
   tagList(
     golem_add_external_resources(),
@@ -20,7 +20,7 @@ app_ui <- function(request) {
       sidebarPanel(
         shinyjs::useShinyjs(),
 
-        titlePanel("Aggregate Selected Countries"),
+        titlePanel("Aggregate selected countries"),
         br(),
         wellPanel(p(note_header), style = "border: 0px"),
 
@@ -28,7 +28,7 @@ app_ui <- function(request) {
           helpText(note_input),
           shinyWidgets::pickerInput(
             inputId = "country_input_select",
-            label = "Please Select Countries",
+            label = "Please select countries",
             choices = ctx$countries,
             selected = ctx$default_select,
             multiple = TRUE,
@@ -40,13 +40,13 @@ app_ui <- function(request) {
           ),
           checkboxInput(
             inputId = "input_by_region",
-            label = "Group countries by the five continents",
+            label = "Group countries by continent",
             value = FALSE
           ),
           fileInput(
             inputId = "ISO_input",
             label = p(
-              "(Optional) Upload your ISO 3 country codes",
+              "Optional: Upload ISO alpha-3 country codes",
               br(),
               "Download examples: ",
               a(
@@ -61,7 +61,7 @@ app_ui <- function(request) {
                 download = "Upload_ISO3Code_example_multiple_regions.csv"
               )
             ),
-            placeholder = "Column name shall contain \"ISO\"",
+            placeholder = "Column name must contain \"ISO\"",
             accept = c(".csv", ".xlsx", ".xls")
           ),
           style = "border: 0px"
@@ -79,10 +79,10 @@ app_ui <- function(request) {
             label = strong("Run older children and adolescents results?"),
             value = TRUE
           ),
-          actionButton("click_run", strong("Run the Aggregates"), width = "200px"),
+          actionButton("click_run", strong("Run aggregates"), width = "200px"),
           br(),
           br(),
-          actionButton("click_reset", "Reset App", width = "200px")
+          actionButton("click_reset", "Reset app", width = "200px")
         )
       ),
 
@@ -103,7 +103,7 @@ app_ui <- function(request) {
             h6(note_map)
           ),
           tabPanel(
-            "Table and Data Download",
+            "Tables and data download",
             uiOutput("panel_results_table"),
             br(),
             br(),

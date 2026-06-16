@@ -1,5 +1,11 @@
 # Update median aggregates file and results.csv
 
+# Delete all the "median_*" folders in `inst/extdata`
+extdata_dir <- file.path("inst", "extdata")
+median_dirs <- list.dirs(extdata_dir, full.names = TRUE, recursive = FALSE)
+median_dirs <- median_dirs[startsWith(basename(median_dirs), "median_")]
+if (length(median_dirs) > 0) unlink(median_dirs, recursive = TRUE, force = TRUE)
+
 # Modify this script to copy the correct files from each round's outputs
 source("update_me_every_year.R")
 release_meta <- release_metadata()
