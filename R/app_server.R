@@ -3,12 +3,12 @@
 app_server <- function(input, output, session) {
   ctx <- build_app_context()
   panel_title1.1 <- "Selected regional aggregate results for"
-  panel_title1.2 <- "Sex-specific results for selected regional aggregates"
-  panel_title1.3 <- "Results for older children and adolescents in selected regional aggregates"
-  panel_title2.1 <- "Table of selected regional aggregates"
-  panel_title2.2 <- "Sex-specific results for selected regional aggregates"
-  panel_title2.3 <- "Results for older children and adolescents in selected regional aggregates"
-  panel_title2.4 <- "Sex-specific results for older children and adolescents"
+  panel_title1.2 <- "Sex-specific under-five and infant results for selected regional aggregates"
+  panel_title1.3 <- "Results for older children, adolescents and youth (ages 5-24 years) in selected regional aggregates"
+  panel_title2.1 <- "Under-five, infant, neonatal and stillbirth results for selected regional aggregates"
+  panel_title2.2 <- "Sex-specific under-five and infant results for selected regional aggregates"
+  panel_title2.3 <- "Older child, adolescent and youth (ages 5-24 years) results for selected regional aggregates"
+  panel_title2.4 <- "Sex-specific older child, adolescent and youth (ages 5-24 years) results"
   panel_note1 <- "Regional, world, and country data are available for download:"
   panel_note2 <- "Regional, world, and country data (including sex-specific results) are available for download:"
 
@@ -16,8 +16,30 @@ app_server <- function(input, output, session) {
   single_group_run <- reactiveVal(TRUE)
   aggregate_results <- reactiveVal(NULL)
 
+  uploaded_single_region_name <- function() {
+    region_structure <- uploaded_region_structure()
+    if (is.null(region_structure) ||
+        is.null(region_structure$normalized) ||
+        !"Region" %in% colnames(region_structure$normalized)) {
+      return(ctx$adhoc_name)
+    }
+
+    regions <- unique(trimws(as.character(region_structure$normalized$Region)))
+    regions <- regions[!is.na(regions) & nzchar(regions)]
+    if (length(regions) == 1L) {
+      return(regions[[1]])
+    }
+
+    ctx$adhoc_name
+  }
+
   rename.single.region <- function(values) {
     custom_group_name <- if (is.null(input$adhoc_name)) "" else trimws(input$adhoc_name)
+    uploaded_group_name <- uploaded_single_region_name()
+    if (identical(custom_group_name, ctx$adhoc_name) && !identical(uploaded_group_name, ctx$adhoc_name)) {
+      custom_group_name <- uploaded_group_name
+    }
+
     values <- as.character(values)
     regions_non_world <- unique(values[!is.na(values) & nzchar(values) & values != "World"])
 
@@ -104,6 +126,8 @@ app_server <- function(input, output, session) {
     updateCheckboxInput(session, inputId = "input_by_region", value = FALSE)
     updateCheckboxInput(session, inputId = "run_gender", value = TRUE)
     updateCheckboxInput(session, inputId = "run_older_total", value = TRUE)
+    shiny::updateTextAreaInput(session, inputId = "adhoc_name", value = ctx$adhoc_name)
+    shinyjs::reset("ISO_input")
     uploaded_region_structure(NULL)
     single_group_run(TRUE)
     aggregate_results(NULL)
@@ -125,8 +149,8 @@ app_server <- function(input, output, session) {
 
     textAreaInput(
       inputId = "adhoc_name",
-      label = "Optional display name for the custom group",
-      value = ctx$adhoc_name,
+      label = "(Optional) Name of the single custom group aggregate",
+      value = uploaded_single_region_name(),
       height = "38px",
       rows = 1,
       placeholder = "Changes only the displayed and downloaded group name; leave blank to keep the default",
@@ -161,6 +185,13 @@ app_server <- function(input, output, session) {
 
         num_regions <- data.table::uniqueN(normalized$Region)
         single_group_run(num_regions <= 1)
+        if (num_regions <= 1) {
+          shiny::updateTextAreaInput(
+            session,
+            inputId = "adhoc_name",
+            value = uploaded_single_region_name()
+          )
+        }
 
         showModal(modalDialog(
           title = "File uploaded successfully",
@@ -361,7 +392,7 @@ app_server <- function(input, output, session) {
       br(),
       checkboxInput(
         "show_world",
-        "Show results for the world in plots",
+        "Show \"World\" rates in plots",
         value = should_show_world_in_plots(NULL, single_group_run())
       ),
       h5(a("Download indicator definitions", href = "www/Indicator definition and unit.xlsx", target = "_blank")),
@@ -424,7 +455,7 @@ app_server <- function(input, output, session) {
       if (isTRUE(input$run_gender)) p(panel_note2) else p(panel_note1),
       div(
         style = "display: flex; gap: 10px; flex-wrap: wrap;",
-        downloadButton("download_table_all", "Download"),
+        downloadButton("download_table_all", "Download table"),
         downloadButton("download_table_all_long", "Download all in long format")
       ),
       br(),
@@ -439,14 +470,14 @@ app_server <- function(input, output, session) {
     }
     fluidRow(
       h4(strong(panel_title2.2)),
-      p(strong("Female data")),
-      downloadButton("download_table_f", "Download"),
+      p(strong("Female")),
+      downloadButton("download_table_f", "Download table"),
       br(),
       br(),
       DT::dataTableOutput("results_table_f", width = "80%"),
       br(),
-      p(strong("Male data")),
-      downloadButton("download_table_m", "Download"),
+      p(strong("Male")),
+      downloadButton("download_table_m", "Download table"),
       br(),
       br(),
       DT::dataTableOutput("results_table_m", width = "80%")
@@ -459,7 +490,7 @@ app_server <- function(input, output, session) {
     }
     fluidRow(
       h4(strong(panel_title2.3)),
-      downloadButton("download_table_older_total", "Download"),
+      downloadButton("download_table_older_total", "Download table"),
       br(),
       br(),
       DT::dataTableOutput("results_table_older_total", width = "80%")
@@ -472,14 +503,14 @@ app_server <- function(input, output, session) {
     }
     fluidRow(
       h4(strong(panel_title2.4)),
-      p(strong("Female data")),
-      downloadButton("download_table_older_f", "Download"),
+      p(strong("Female")),
+      downloadButton("download_table_older_f", "Download table"),
       br(),
       br(),
       DT::dataTableOutput("results_table_older_f", width = "80%"),
       br(),
-      p(strong("Male data")),
-      downloadButton("download_table_older_m", "Download"),
+      p(strong("Male")),
+      downloadButton("download_table_older_m", "Download table"),
       br(),
       br(),
       DT::dataTableOutput("results_table_older_m", width = "80%")

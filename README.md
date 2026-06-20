@@ -19,7 +19,40 @@ The project follows the standard golem layout: `app.R` is a thin launcher, `R/ap
 - Supports older children and adolescent age groups.
 - Provides downloadable regional, world, and country-level result tables.
 
-## Run the app locally
+
+## Workflow 1. Run the app from the R package
+
+Use this workflow when you want to run the installed package version of the app,
+without making local code or data changes.
+
+Install the package from GitHub:
+
+```r
+if (!requireNamespace("remotes", quietly = TRUE)) {
+  install.packages("remotes")
+}
+
+remotes::install_github("UnicefDAPM/Shiny_regional_aggregate")
+```
+
+After the package is installed, launch the Shiny app with `run_app()`:
+
+```r
+library(shinyregionalaggregate)
+run_app()
+```
+
+Notes:
+- `run_app()` is the package entry point and is the preferred way to launch the installed app from R.
+- The packaged app reads shipped data from `inst/extdata/`.
+- Static UI assets live under `inst/app/www/`.
+- This workflow uses the version installed in your R package library. It will not automatically pick up edits made in a local source checkout.
+
+## Workflow 2. Develop the app locally for making changes or updates
+
+Use this workflow when you are editing the app, updating annual inputs, or testing
+changes from this repository. Loading the local checkout lets R use the files in
+this folder instead of the installed package version.
 
 1. Clone the repository:
 
@@ -30,7 +63,7 @@ cd Shiny_regional_aggregate
 
 2. Open `Shiny_regional_aggregate.Rproj` in RStudio, or open the project root in any R session.
 
-3. Install dependencies, load the package, and launch the app:
+3. Install dependencies:
 
 ```r
 if (!requireNamespace("devtools", quietly = TRUE)) {
@@ -38,22 +71,19 @@ if (!requireNamespace("devtools", quietly = TRUE)) {
 }
 
 devtools::install_deps(dependencies = TRUE)
-devtools::load_all(".")
+```
+
+4. Load the local checkout and launch the app:
+
+```r
+pkgload::load_all(".", export_all = FALSE, helpers = FALSE, quiet = TRUE)
 shinyregionalaggregate::run_app()
 ```
 
-If the package is installed, launch the Shiny app directly with `run_app()`:
-
-```r
-library(shinyregionalaggregate)
-run_app()
-```
-
-Notes:
-- `app.R` remains the main launcher for local development.
-- `run_app()` is the package entry point and is the preferred way to launch the installed app from R.
-- The packaged app reads shipped data from `inst/extdata/`.
-- Static UI assets live under `inst/app/www/`.
+Development note:
+- `app.R` prefers an installed `shinyregionalaggregate` package when one is available.
+- If you already have the package installed and want to see local edits, use the `pkgload::load_all()` workflow above.
+- Alternatively, remove the installed package first with `remove.packages("shinyregionalaggregate")`.
 
 ## Deploy the app
 
@@ -110,6 +140,14 @@ At the start of each annual update, edit `release_metadata_defaults()` in
 - `update_string`: release date text shown in the app's About panel.
 - `WPP_Year`: World Population Prospects year. WPP population input filenames are
   derived from this value, so do not edit WPP file names in the update scripts.
+- `IGME_YEAR`: publication year used in the child mortality citation shown in
+  the app's About panel.
+- `IGME_SB_YEAR`: publication year used in the stillbirth citation shown in the
+  app's About panel.
+- `IGME_NOTE_URL`: full child mortality explanatory-notes URL shown in the app's
+  About panel.
+- `IGME_SB_NOTE_URL`: full stillbirth explanatory-notes URL shown in the app's
+  About panel.
 - `stillbirth_aggregate_results_dir`: source folder for stillbirth aggregate
   results when that input changes.
 

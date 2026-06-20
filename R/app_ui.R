@@ -4,12 +4,12 @@ app_ui <- function(request) {
   ctx <- build_app_context()
 
   note_header <- p(
-    "This Shiny app produces regional aggregates of child mortality estimates for selected countries. The latest ",
+    "This Shiny app produces regional aggregates of mortality rates and deaths for ages 0-24, and stillbirth rates and stillbirths, for any group of user-selected countries. Aggregates are based on the latest ",
     a("UN IGME", href = "https://childmortality.org", target = "_blank"),
-    " estimates of neonatal, infant, and under-five mortality are used. Country-level data are also included in the dataset downloaded from the \"Tables and data download\" panel after the aggregates run."
+    " country estimates of mortality rates for ages 0-24 and stillbirth rates. Country-level data are also included in the dataset downloaded from the \"Tables and data download\" tab after the aggregates run."
   )
 
-  note_input <- "Please select countries from the drop-down list or upload a file of countries' ISO alpha-3 codes."
+  note_input <- "Please select countries from the drop-down list, or upload a file of countries' ISO Alpha-3 country codes."
   note_map <- "Note: This map is stylized, is not to scale, and does not reflect any position by UNICEF on the legal status of any country or territory, or on the delimitation of frontiers or boundaries."
 
   tagList(
@@ -38,17 +38,18 @@ app_ui <- function(request) {
               size = 10
             )
           ),
+          uiOutput("panel_custom_group_name"),
           checkboxInput(
             inputId = "input_by_region",
-            label = "Group countries by continent",
+            label = "Group countries in the drop-down list by continent (Africa, Americas, Asia, Europe, Oceania)",
             value = FALSE
           ),
           fileInput(
             inputId = "ISO_input",
             label = p(
-              "Optional: Upload ISO alpha-3 country codes",
+              "Optional: Upload a file of ISO Alpha-3 country codes",
               br(),
-              "Download examples: ",
+              "Example ISO Alpha-3 country code files: ",
               a(
                 "single-region",
                 href = "www/Upload_ISO3Code_example_single_region.csv",
@@ -59,6 +60,12 @@ app_ui <- function(request) {
                 "multi-region",
                 href = "www/Upload_ISO3Code_example_multiple_regions.csv",
                 download = "Upload_ISO3Code_example_multiple_regions.csv"
+              ),
+              " - ",
+              a(
+                "country-code reference",
+                href = "www/Country_ISO3Code_reference.csv",
+                download = "Country_ISO3Code_reference.csv"
               )
             ),
             placeholder = "Column name must contain \"ISO\"",
@@ -68,15 +75,14 @@ app_ui <- function(request) {
         ),
 
         wellPanel(
-          uiOutput("panel_custom_group_name"),
           checkboxInput(
             inputId = "run_gender",
-            label = strong("Run sex-specific results?"),
+            label = strong("Get results by sex"),
             value = TRUE
           ),
           checkboxInput(
             inputId = "run_older_total",
-            label = strong("Run older children and adolescents results?"),
+            label = strong("Get results for older children, adolescents and youth (ages 5-24 years)"),
             value = TRUE
           ),
           actionButton("click_run", strong("Run aggregates"), width = "200px"),
@@ -115,7 +121,14 @@ app_ui <- function(request) {
             br(),
             uiOutput("panel_results_table_older_gender")
           ),
-          get.about.panel(update_string = ctx$update_string, WPP_Year = ctx$WPP_Year)
+          get.about.panel(
+            update_string = ctx$update_string,
+            WPP_Year = ctx$WPP_Year,
+            IGME_YEAR = ctx$IGME_YEAR,
+            IGME_SB_YEAR = ctx$IGME_SB_YEAR,
+            IGME_NOTE_URL = ctx$IGME_NOTE_URL,
+            IGME_SB_NOTE_URL = ctx$IGME_SB_NOTE_URL
+          )
         )
       ),
 

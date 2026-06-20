@@ -2,8 +2,9 @@
 
 
 # Annual metadata -------------------------------------------------------------
-# The only place to update release date, WPP year, WPP-derived file names, and
-# stillbirth input location is R/fct_release_metadata.R.
+# The only place to update release date, WPP year, IGME citation years,
+# explanatory-note URLs, WPP-derived file names, and stillbirth input location is
+# R/fct_release_metadata.R.
 # `fct` is short for "function"; this file contains release metadata functions.
 if (!exists("release_metadata", mode = "function")) {
   if (
@@ -31,10 +32,8 @@ update_string0 <- release_meta$update_string
 
 # Package data locations are loaded from release_metadata().
 
-# 2. Delete all these folders in `inst/extdata`
-# dir_median_total, dir_median_female, dir_median_male
-# dir_median_total_5_14, dir_median_female_5_14, dir_median_male_5_14
-# dir_median_total_15_24, dir_median_female_15_24, dir_median_male_15_24
+
+# 2. Delete all the 9 "median_*" folders in `inst/extdata`
 
 
 # 3. Modify and run "update/1.Update median agg and results.csv.R" to copy

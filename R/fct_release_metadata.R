@@ -10,6 +10,10 @@ release_metadata_defaults <- function() {
   list(
     update_string = "Last updated: March, 2026",
     WPP_Year = 2024L,
+    IGME_YEAR = 2026L,
+    IGME_SB_YEAR = 2025L,
+    IGME_NOTE_URL = "https://childmortality.org/wp-content/uploads/2025/08/IGME_country_consultation_note_EN_2025.pdf",
+    IGME_SB_NOTE_URL = "https://childmortality.org/wp-content/uploads/2025/03/UN-IGME_Stillbirth_explanatory_notes_EN_2024.pdf",
     stillbirth_aggregate_results_dir = file.path(
       Sys.getenv("USERPROFILE"),
       "Dropbox",
@@ -23,11 +27,17 @@ release_metadata_defaults <- function() {
 release_metadata <- function() {
   defaults <- release_metadata_defaults()
   wpp_year <- as.integer(release_metadata_value("WPP_Year", defaults$WPP_Year))
+  igme_year <- as.integer(release_metadata_value("IGME_YEAR", defaults$IGME_YEAR))
+  igme_sb_year <- as.integer(release_metadata_value("IGME_SB_YEAR", defaults$IGME_SB_YEAR))
   dir_extdata <- file.path("inst", "extdata")
 
   list(
     update_string = release_metadata_value("update_string0", defaults$update_string),
     WPP_Year = wpp_year,
+    IGME_YEAR = igme_year,
+    IGME_SB_YEAR = igme_sb_year,
+    IGME_NOTE_URL = release_metadata_value("IGME_NOTE_URL", defaults$IGME_NOTE_URL),
+    IGME_SB_NOTE_URL = release_metadata_value("IGME_SB_NOTE_URL", defaults$IGME_SB_NOTE_URL),
     population_file_male = paste0("data_male_CMEpopulation.WPP", wpp_year, ".csv"),
     population_file_female = paste0("data_female_CMEpopulation.WPP", wpp_year, ".csv"),
     population_file_male_10q5 = paste0("data_male_CME_WPP", wpp_year, "_10q5.csv"),

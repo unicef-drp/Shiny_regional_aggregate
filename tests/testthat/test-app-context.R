@@ -7,24 +7,49 @@ testthat::test_that("build_app_context loads packaged app metadata", {
   testthat::expect_true(inherits(ctx$world_map, "SpatialPolygonsDataFrame"))
   testthat::expect_true("update_string" %in% names(ctx))
   testthat::expect_identical(ctx$WPP_Year, pkg_fn("release_metadata_defaults")()$WPP_Year)
+  testthat::expect_identical(ctx$IGME_YEAR, pkg_fn("release_metadata_defaults")()$IGME_YEAR)
+  testthat::expect_identical(ctx$IGME_SB_YEAR, pkg_fn("release_metadata_defaults")()$IGME_SB_YEAR)
+  testthat::expect_identical(ctx$IGME_NOTE_URL, pkg_fn("release_metadata_defaults")()$IGME_NOTE_URL)
+  testthat::expect_identical(ctx$IGME_SB_NOTE_URL, pkg_fn("release_metadata_defaults")()$IGME_SB_NOTE_URL)
 })
 
-testthat::test_that("release metadata uses WPP year from annual update globals", {
-  old_exists <- exists("WPP_Year", envir = globalenv(), inherits = FALSE)
-  old_value <- if (old_exists) get("WPP_Year", envir = globalenv()) else NULL
+testthat::test_that("release metadata uses annual update globals", {
+  annual_names <- c("WPP_Year", "IGME_YEAR", "IGME_SB_YEAR", "IGME_NOTE_URL", "IGME_SB_NOTE_URL")
+  old_values <- lapply(annual_names, function(name) {
+    if (exists(name, envir = globalenv(), inherits = FALSE)) {
+      get(name, envir = globalenv())
+    } else {
+      NULL
+    }
+  })
+  old_exists <- stats::setNames(
+    vapply(annual_names, exists, logical(1), envir = globalenv(), inherits = FALSE),
+    annual_names
+  )
+  names(old_values) <- annual_names
   withr::defer({
-    if (old_exists) {
-      assign("WPP_Year", old_value, envir = globalenv())
-    } else if (exists("WPP_Year", envir = globalenv(), inherits = FALSE)) {
-      rm(WPP_Year, envir = globalenv())
+    for (name in annual_names) {
+      if (old_exists[[name]]) {
+        assign(name, old_values[[name]], envir = globalenv())
+      } else if (exists(name, envir = globalenv(), inherits = FALSE)) {
+        rm(list = name, envir = globalenv())
+      }
     }
   })
 
   assign("WPP_Year", 2099L, envir = globalenv())
+  assign("IGME_YEAR", 2098L, envir = globalenv())
+  assign("IGME_SB_YEAR", 2097L, envir = globalenv())
+  assign("IGME_NOTE_URL", "https://example.org/child-mortality-note.pdf", envir = globalenv())
+  assign("IGME_SB_NOTE_URL", "https://example.org/stillbirth-note.pdf", envir = globalenv())
 
   meta <- pkg_fn("release_metadata")()
 
   testthat::expect_identical(meta$WPP_Year, 2099L)
+  testthat::expect_identical(meta$IGME_YEAR, 2098L)
+  testthat::expect_identical(meta$IGME_SB_YEAR, 2097L)
+  testthat::expect_identical(meta$IGME_NOTE_URL, "https://example.org/child-mortality-note.pdf")
+  testthat::expect_identical(meta$IGME_SB_NOTE_URL, "https://example.org/stillbirth-note.pdf")
   testthat::expect_identical(meta$population_file_male, "data_male_CMEpopulation.WPP2099.csv")
   testthat::expect_identical(meta$population_file_female, "data_female_CMEpopulation.WPP2099.csv")
   testthat::expect_identical(meta$population_file_male_10q5, "data_male_CME_WPP2099_10q5.csv")
@@ -39,6 +64,10 @@ testthat::test_that("annual update script gets WPP year from release metadata", 
   update_lines <- readLines(update_script, warn = FALSE)
   literal_metadata_assignments <- c(
     "^\\s*WPP_Year\\s*<-\\s*[0-9]+L?\\s*$",
+    "^\\s*IGME_YEAR\\s*<-\\s*[0-9]+L?\\s*$",
+    "^\\s*IGME_SB_YEAR\\s*<-\\s*[0-9]+L?\\s*$",
+    "^\\s*IGME_NOTE_URL\\s*<-\\s*\"",
+    "^\\s*IGME_SB_NOTE_URL\\s*<-\\s*\"",
     "^\\s*year_started\\s*<-\\s*[0-9]+L?\\b",
     "^\\s*runname\\.[A-Za-z0-9_]+\\s*<-\\s*\"",
     "^\\s*file_name_[A-Za-z0-9_]+\\s*<-\\s*\"",
@@ -59,6 +88,10 @@ testthat::test_that("annual update script gets WPP year from release metadata", 
   meta <- pkg_fn("release_metadata")()
   legacy_names <- c(
     "WPP_Year",
+    "IGME_YEAR",
+    "IGME_SB_YEAR",
+    "IGME_NOTE_URL",
+    "IGME_SB_NOTE_URL",
     "year_started",
     "runname.U5MR",
     "runname.IMR",
@@ -90,6 +123,10 @@ testthat::test_that("annual update script gets WPP year from release metadata", 
   )
 
   testthat::expect_identical(env$WPP_Year, meta$WPP_Year)
+  testthat::expect_identical(env$IGME_YEAR, meta$IGME_YEAR)
+  testthat::expect_identical(env$IGME_SB_YEAR, meta$IGME_SB_YEAR)
+  testthat::expect_identical(env$IGME_NOTE_URL, meta$IGME_NOTE_URL)
+  testthat::expect_identical(env$IGME_SB_NOTE_URL, meta$IGME_SB_NOTE_URL)
   testthat::expect_identical(env$update_string0, meta$update_string)
   for (name in legacy_names) {
     testthat::expect_identical(env[[name]], meta[[name]], info = name)
