@@ -149,7 +149,7 @@ app_server <- function(input, output, session) {
 
     textAreaInput(
       inputId = "adhoc_name",
-      label = "(Optional) Name of the single custom group aggregate",
+      label = "Optional: Name of the single custom group aggregate",
       value = uploaded_single_region_name(),
       height = "38px",
       rows = 1,

@@ -44,6 +44,10 @@ app_ui <- function(request) {
             label = "Group countries in the drop-down list by continent (Africa, Americas, Asia, Europe, Oceania)",
             value = FALSE
           ),
+          tags$hr(
+            class = "upload-divider",
+            style = "border-top: 1px solid #eeeeee; margin: 12px 0 10px 0;"
+          ),
           fileInput(
             inputId = "ISO_input",
             label = p(

@@ -47,7 +47,7 @@ testthat::test_that("custom group display-name text box has a fixed size", {
     html <- paste(as.character(output$panel_custom_group_name), collapse = "\n")
 
     testthat::expect_match(html, 'id="adhoc_name"', fixed = TRUE)
-    testthat::expect_match(html, "Name of the single custom group aggregate", fixed = TRUE)
+    testthat::expect_match(html, "Optional: Name of the single custom group aggregate", fixed = TRUE)
     testthat::expect_match(html, "height:38px", fixed = TRUE)
     testthat::expect_match(html, "resize:none", fixed = TRUE)
   })
@@ -56,6 +56,10 @@ testthat::test_that("custom group display-name text box has a fixed size", {
 testthat::test_that("upload examples are actual downloads", {
   html <- htmltools::renderTags(pkg_fn("app_ui")(NULL))$html
 
+  testthat::expect_match(
+    html,
+    '<hr class="upload-divider"[^>]+border-top: 1px solid #eeeeee'
+  )
   testthat::expect_match(
     html,
     'href="www/Upload_ISO3Code_example_single_region.csv"[^>]+download="Upload_ISO3Code_example_single_region.csv"'
